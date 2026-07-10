@@ -1,0 +1,94 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    container_name: fesb-alert-frontend
+    volumes:
+      - ./frontend/app:/app
+      - ./frontend/app/node_modules:/app/node_modules
+    command: sh -c "npm run dev -- --host 0.0.0.0 & tail -f /dev/null"
+    stdin_open: true
+    tty: true
+    environment:
+      - BACKEND_HOST="http://127.0.0.1:8000"
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+#    develop:
+#      watch:
+#        - action: sync
+#          path: ./src
+#          target: /app/src
+#          ignore:
+#            - node_modules/
+#        - action: rebuild
+#          path: ./package.json
+#          target: /app/package.json
+#        - action: rebuild
+#          path: ./vite.config.ts
+#          target: /app/vite.config.ts
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    restart: always
+    ports:
+      - "8000:8000"
+    container_name: fesb-alert-backend
+    volumes:
+      - ./backend:/app
+      - dev-static-data:/vol/web
+    command: >
+      sh -c "python manage.py wait_for_db && python manage.py migrate && 
+      python manage.py loaddata ./alert_service/fixtures/*.json && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - DEBUG=1
+    depends_on:
+      - db
+
+  worker:
+    build: ./worker
+    env_file:
+      - ./worker/.env
+    restart: always
+    container_name: fesb-alert-worker
+    volumes:
+      - ./worker:/app
+    command: >
+      sh -c "python main.py"
+    dns:
+      - 10.152.1.5
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - DEBUG=1
+    depends_on:
+      - db
+
+  db:
+    image: postgres:18.1-alpine3.23
+    restart: always
+    ports:
+      - "5432:5432"
+    container_name: fesb-alert-db
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=Cz1cdGBQG5Roq6go>PxE
+
+volumes:
+  dev-db-data:
+  dev-static-data:

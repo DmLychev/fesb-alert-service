@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://w3.org">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://w3.org" x="0px" y="0px" viewBox="0 0 500 500" xml:space="preserve">
+  <defs>
+    <!-- Встроенные стили, которые заставляют Firefox обрабатывать файл как графику, а не XML -->
+    <style type="text/css">
+      <![CDATA[
+        svg { display: block; background-color: #ffffff; }
+        .radar-glow { filter: url(#glow); }
+        .target-glow { filter: url(#targetGlow); }
+        .grid-line { stroke: #0088ff; stroke-width: 1.5; stroke-opacity: 0.6; }
+        .sub-grid { stroke: #0088ff; stroke-width: 1; stroke-opacity: 0.35; stroke-dasharray: 5,5; }
+        .ring-dash { fill: none; stroke: #0088ff; stroke-width: 1.5; stroke-opacity: 0.4; stroke-dasharray: 8,4; }
+        .ring-solid { fill: none; stroke: #0088ff; stroke-width: 1.5; stroke-opacity: 0.5; }
+        .ring-small { fill: none; stroke: #0088ff; stroke-width: 1.2; stroke-opacity: 0.4; stroke-dasharray: 4,4; }
+      ]]>
+    </style>
+
+    <!-- Отрегулированные фильтры свечения -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <filter id="targetGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Градиент луча радара -->
+    <linearGradient id="sweepGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0066cc" stop-opacity="0" />
+      <stop offset="50%" stop-color="#0077ee" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#0088ff" stop-opacity="0.25" />
+    </linearGradient>
+  </defs>
+
+  <!-- Белая подложка (Замените fill="#ffffff" на fill="none" для прозрачности) -->
+  <rect width="500" height="500" rx="24" fill="#ffffff" />
+
+  <!-- Внешний контур интерфейса -->
+  <circle cx="250" cy="250" r="220" fill="none" stroke="#0066cc" stroke-width="1.5" stroke-opacity="0.15" />
+  <circle cx="250" cy="250" r="210" fill="none" stroke="#0077ee" stroke-width="3" stroke-opacity="0.7" class="radar-glow" />
+  
+  <!-- Сетка колец радара -->
+  <circle cx="250" cy="250" r="160" class="ring-dash" />
+  <circle cx="250" cy="250" r="110" class="ring-solid" />
+  <circle cx="250" cy="250" r="60" class="ring-small" />
+
+  <!-- Перекрестие осей -->
+  <line x1="250" y1="40" x2="250" y2="460" class="grid-line" />
+  <line x1="40" y1="250" x2="460" y2="250" class="grid-line" />
+  
+  <!-- Диагональные маркеры -->
+  <line x1="101" y1="101" x2="399" y2="399" class="sub-grid" />
+  <line x1="399" y1="101" x2="101" y2="399" class="sub-grid" />
+
+  <!-- Сектор развертки (Луч радара) -->
+  <path d="M250,250 L398,102 A210,210 0 0,0 250,40 Z" fill="url(#sweepGrad)" />
+  <line x1="250" y1="250" x2="398" y2="102" stroke="#0077ee" stroke-width="2.5" stroke-opacity="0.75" class="radar-glow" />
+
+  <!-- ЗЕЛЕНЫЕ ЦЕЛИ -->
+  <!-- Цель 1 -->
+  <g class="target-glow">
+    <circle cx="340" cy="180" r="6" fill="#00aa33" />
+    <circle cx="340" cy="180" r="12" fill="none" stroke="#00aa33" stroke-width="1" stroke-opacity="0.5" />
+  </g>
+  
+  <!-- Цель 2 -->
+  <g opacity="0.7">
+    <circle cx="290" cy="330" r="5" fill="#009922" />
+  </g>
+
+  <!-- Цель 3 -->
+  <g opacity="0.5">
+    <circle cx="130" cy="210" r="4" fill="#009922" />
+  </g>
+
+  <!-- КРАСНАЯ ЦЕЛЬ (Основная угроза) -->
+  <g class="target-glow">
+    <circle cx="210" cy="110" r="7" fill="#cc0000" />
+    <circle cx="210" cy="110" r="15" fill="none" stroke="#cc0000" stroke-width="1.5" stroke-opacity="0.6" />
+    <line x1="210" y1="91" x2="210" y2="129" stroke="#cc0000" stroke-width="1" stroke-opacity="0.4" />
+    <line x1="191" y1="110" x2="229" y2="110" stroke="#cc0000" stroke-width="1" stroke-opacity="0.4" />
+  </g>
+
+  <!-- Центральная точка -->
+  <circle cx="250" cy="250" r="4" fill="#0077ee" class="radar-glow" />
+</svg>

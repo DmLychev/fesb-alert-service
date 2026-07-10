@@ -1,0 +1,86 @@
+[
+  {
+    "model": "alert_service.issuetype",
+    "pk": 101,
+    "fields": {
+      "description": "FESB недоступен на протяжении нескольких вызовов."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 102,
+    "fields": {
+      "description": "Ошибка запроса к FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 103,
+    "fields": {
+      "description": "Превышено максимальное время ожидание ответа от FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 109,
+    "fields": {
+      "description": "Неожиданная ошибка FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 201,
+    "fields": {
+      "description": "Множественные ошибки в нескольких доменах FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 202,
+    "fields": {
+      "description": "Множественные ошибки в одном домене FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 203,
+    "fields": {
+      "description": "Множественные ошибки в одном СОПС."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 204,
+    "fields": {
+      "description": "Ошибка СОПС."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 205,
+    "fields": {
+      "description": "Статус сообщения неизвестен."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 301,
+    "fields": {
+      "description": "Некорректный запрос к FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 302,
+    "fields": {
+      "description": "Ошибка запроса в БД приложения."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 303,
+    "fields": {
+      "description": "Внутренняя ошибка приложения."
+    }
+  }
+]

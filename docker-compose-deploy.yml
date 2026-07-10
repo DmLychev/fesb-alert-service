@@ -1,0 +1,35 @@
+services:
+  fesb-alert-backend:
+    build: ./backend
+    restart: always
+    container_name: fesb-alert-backend
+    volumes:
+      - ./backend:/app
+      - dev-static-data:/vol/web
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - SECRET_KEY=${DJANGO_SECRET_KEY}
+      - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=1
+    depends_on:
+      - fesb-alert-db
+
+  fesb-alert-db:
+    image: postgres:18.1-alpine3.23
+    restart: always
+    ports:
+      - "5432:5432"
+    container_name: fesb-alert-db
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+
+volumes:
+  dev-db-data:
+  dev-static-data:

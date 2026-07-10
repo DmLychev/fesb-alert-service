@@ -1,0 +1,23 @@
+[
+  {
+    "model": "alert_service.fesbrequesttype",
+    "pk": 1,
+    "fields": {
+      "title": "Сообщения за период"
+    }
+  },
+  {
+    "model": "alert_service.fesbrequesttype",
+    "pk": 2,
+    "fields": {
+      "title": "Статус незавершенного сообщения"
+    }
+  },
+  {
+    "model": "alert_service.fesbrequesttype",
+    "pk": 3,
+    "fields": {
+      "title": "Текст ошибки"
+    }
+  }
+]

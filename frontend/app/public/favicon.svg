@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 500 500" width="30" height="30" xml:space="preserve" style="display: block; background-color: null;">
+  <defs>
+    <!-- Optimized gradient cone for the radar sweep -->
+    <linearGradient id="sweepGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0066cc" stop-opacity="0" />
+      <stop offset="40%" stop-color="#0077ee" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0088ff" stop-opacity="0.55" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer frame (Consolidated into a single thick high-contrast outline) -->
+  <circle cx="250" cy="250" r="215" fill="none" stroke="#0077ee" stroke-width="12" stroke-opacity="1" />
+  
+  <!-- Main Grid Circles (Attributes declared inline for 100% browser compatibility) -->
+  <circle cx="250" cy="250" r="160" fill="none" stroke="#0088ff" stroke-width="5" stroke-opacity="0.7" stroke-dasharray="18,10" />
+  <circle cx="250" cy="250" r="110" fill="none" stroke="#0088ff" stroke-width="6" stroke-opacity="0.85" />
+  <circle cx="250" cy="250" r="60" fill="none" stroke="#0088ff" stroke-width="5" stroke-opacity="0.7" stroke-dasharray="10,10" />
+
+  <!-- Main Axes -->
+  <line x1="250" y1="35" x2="250" y2="465" stroke="#0088ff" stroke-width="6" stroke-opacity="0.95" />
+  <line x1="35" y1="250" x2="465" y2="250" stroke="#0088ff" stroke-width="6" stroke-opacity="0.95" />
+  
+  <!-- Diagonal Sub-Grid Markers -->
+  <line x1="98" y1="98" x2="402" y2="402" stroke="#0088ff" stroke-width="4" stroke-opacity="0.5" stroke-dasharray="12,12" />
+  <line x1="402" y1="98" x2="98" y2="402" stroke="#0088ff" stroke-width="4" stroke-opacity="0.5" stroke-dasharray="12,12" />
+
+  <!-- Radar Sweep Conical Sector -->
+  <path d="M250,250 L398,102 A210,210 0 0,0 250,40 Z" fill="url(#sweepGrad)" />
+  <line x1="250" y1="250" x2="398" y2="102" stroke="#0055cc" stroke-width="9" stroke-opacity="1" stroke-linecap="round" />
+
+  <!-- GREEN TARGET BLIPS -->
+  <!-- Target 1 (Main Green Blip + Outer Target Ring) -->
+  <g>
+    <circle cx="340" cy="180" r="15" fill="#00bb33" />
+    <circle cx="340" cy="180" r="28" fill="none" stroke="#00aa33" stroke-width="5" stroke-opacity="0.8" />
+  </g>
+  
+  <!-- Target 2 -->
+  <circle cx="290" cy="330" r="13" fill="#00aa22" />
+
+  <!-- Target 3 -->
+  <circle cx="130" cy="210" r="11" fill="#00aa22" />
+
+  <!-- RED TARGET BLIP (Hostile Threat) -->
+  <g>
+    <circle cx="210" cy="110" r="18" fill="#e60000" />
+    <circle cx="210" cy="110" r="34" fill="none" stroke="#cc0000" stroke-width="5" stroke-opacity="0.9" />
+    <line x1="210" y1="65" x2="210" y2="155" stroke="#cc0000" stroke-width="4" stroke-opacity="0.8" />
+    <line x1="165" y1="110" x2="255" y2="110" stroke="#cc0000" stroke-width="4" stroke-opacity="0.8" />
+  </g>
+
+  <!-- Center Pivot Core Hub -->
+  <circle cx="250" cy="250" r="12" fill="#0066ee" />
+</svg>

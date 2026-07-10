@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" width="100%" height="100%" contentScriptType="text/ecmascript" contentStyleType="text/css">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a192f" />
+      <stop offset="70%" stop-color="#020c1b" />
+      <stop offset="100%" stop-color="#01060f" />
+    </radialGradient>
+
+    <!-- Radar Glow Effect -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Target Glow Effect -->
+    <filter id="targetGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Sweep Gradient -->
+    <linearGradient id="sweepGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00bcd4" stop-opacity="0" />
+      <stop offset="50%" stop-color="#00bcd4" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#00bcd4" stop-opacity="0.4" />
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Blue Base Plate -->
+  <rect width="500" height="500" rx="24" fill="url(#bgGrad)" />
+
+  <!-- Outer Interface Ring -->
+  <circle cx="250" cy="250" r="220" fill="none" stroke="#00d2ff" stroke-width="1.5" stroke-opacity="0.2" />
+  <circle cx="250" cy="250" r="210" fill="none" stroke="#00d2ff" stroke-width="3" stroke-opacity="0.6" filter="url(#glow)" />
+  
+  <!-- Concentric Radar Rings -->
+  <circle cx="250" cy="250" r="160" fill="none" stroke="#00a8ff" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="8 4" />
+  <circle cx="250" cy="250" r="110" fill="none" stroke="#00a8ff" stroke-width="1.5" stroke-opacity="0.5" />
+  <circle cx="250" cy="250" r="60" fill="none" stroke="#00a8ff" stroke-width="1.2" stroke-opacity="0.4" stroke-dasharray="4 4" />
+
+  <!-- Crosshairs / Grid Lines -->
+  <line x1="250" y1="40" x2="250" y2="460" stroke="#00a8ff" stroke-width="1.5" stroke-opacity="0.3" />
+  <line x1="40" y1="250" x2="460" y2="250" stroke="#00a8ff" stroke-width="1.5" stroke-opacity="0.3" />
+  
+  <!-- Diagonal Sub-Grid Lines -->
+  <line x1="101" y1="101" x2="399" y2="399" stroke="#00a8ff" stroke-width="1" stroke-opacity="0.15" stroke-dasharray="5 5" />
+  <line x1="399" y1="101" x2="101" y2="399" stroke="#00a8ff" stroke-width="1" stroke-opacity="0.15" stroke-dasharray="5 5" />
+
+  <!-- Rotating Sweep Simulation Cone -->
+  <path d="M250,250 L398,102 A210,210 0 0,0 250,40 Z" fill="url(#sweepGrad)" />
+  <line x1="250" y1="250" x2="398" y2="102" stroke="#00d2ff" stroke-width="2.5" stroke-opacity="0.7" filter="url(#glow)" />
+
+  <!-- DETECTED TARGETS -->
+  <!-- Green Target 1 -->
+  <g filter="url(#targetGlow)">
+    <circle cx="340" cy="180" r="6" fill="#00ff66" />
+    <circle cx="340" cy="180" r="12" fill="none" stroke="#00ff66" stroke-width="1" stroke-opacity="0.5" />
+  </g>
+  
+  <!-- Green Target 2 -->
+  <g opacity="0.6">
+    <circle cx="290" cy="330" r="5" fill="#00cc55" />
+  </g>
+
+  <!-- Green Target 3 -->
+  <g opacity="0.4">
+    <circle cx="130" cy="210" r="4" fill="#00cc55" />
+  </g>
+
+  <!-- Red Target -->
+  <g filter="url(#targetGlow)">
+    <circle cx="210" cy="110" r="7" fill="#ff3333" />
+    <circle cx="210" cy="110" r="15" fill="none" stroke="#ff3333" stroke-width="1.5" stroke-opacity="0.6" />
+    <line x1="210" y1="91" x2="210" y2="129" stroke="#ff3333" stroke-width="1" stroke-opacity="0.4" />
+    <line x1="191" y1="110" x2="229" y2="110" stroke="#ff3333" stroke-width="1" stroke-opacity="0.4" />
+  </g>
+
+  <!-- Center Pivot Dot -->
+  <circle cx="250" cy="250" r="4" fill="#00d2ff" filter="url(#glow)" />
+</svg>
