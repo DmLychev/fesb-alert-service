@@ -60,11 +60,7 @@ const AnalyticsPage = () => {
       </Tabs.List>
       <Tabs.Content value="messages">
         {/* <MessagePage /> */}
-        <Table
-          storageKey="message_table_settings"
-          fieldRegistry={analyticsFieldRegistry}
-          deafaultPreferences={analyticsTablePreferences}
-        />
+        <Table storageKey="message_table_settings" />
       </Tabs.Content>
       <Tabs.Content value="issues">Инциденты</Tabs.Content>
     </Tabs.Root>

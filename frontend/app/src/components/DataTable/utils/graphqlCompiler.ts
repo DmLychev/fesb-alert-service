@@ -1,7 +1,9 @@
-import { FIELD_REGISTRY } from "../constants/fieldRegistry";
-import type { UiFilterRow } from "../types";
+import type { ColumnMetadata, UiFilterRow } from "../types";
 
-const compileGraphQLFilters = (filtersList: UiFilterRow[]) => {
+const compileGraphQLFilters = (
+  filtersList: UiFilterRow[],
+  fieldRegistry: Record<string, ColumnMetadata>,
+) => {
   if (!filtersList || filtersList.length === 0) return null;
 
   // We will collect root-level conditions here (handles implicit AND)
@@ -12,8 +14,7 @@ const compileGraphQLFilters = (filtersList: UiFilterRow[]) => {
   filtersList.forEach((row) => {
     if (!row.column || !row.operation) return;
 
-    const columnMeta =
-      FIELD_REGISTRY[row.column as keyof typeof FIELD_REGISTRY];
+    const columnMeta = fieldRegistry[row.column as keyof typeof fieldRegistry];
     const isStringColumn = !columnMeta || columnMeta.type === "string";
 
     // --- 1. Handle the new 'isnull' and 'notnull' logic for STRINGS ---

@@ -1,5 +1,7 @@
 import type { ListCollection } from "@chakra-ui/react";
 import {
+  type ColumnDef,
+  type PaginationState,
   type SortingState,
   type Table,
   type VisibilityState,
@@ -29,7 +31,12 @@ export interface TableUIState {
   isFilterBlockOpen: boolean;
 }
 
-type ColumnType = "string" | "number" | "boolean" | "datetime" | "choice";
+export type ColumnType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "datetime"
+  | "choice";
 
 export interface ColumnMetadata {
   label: string;
@@ -66,11 +73,11 @@ export interface FilterPanelProps {
   onFiltersSubmit: React.Dispatch<any>;
 }
 
-export interface DataTableProps {
-  table: Table<unknown>;
-  showSkeleton: boolean;
-  pageSize: number;
-}
+// export interface DataTableProps {
+//   table: Table<unknown>;
+//   showSkeleton: boolean;
+//   pageSize: number;
+// }
 
 export interface TablePaginationProps {
   pageIndex: number;
@@ -88,4 +95,51 @@ export interface TableProps {
   storageKey: string;
   deafaultPreferences: TablePreferences;
   fieldRegistry: Record<string, ColumnMetadata>;
+}
+
+export type FilterFieldType =
+  | "string"
+  | "number"
+  | "boolean"
+  | "datetime"
+  | "choice";
+
+export interface FilterChoice {
+  value: string;
+  label: string;
+}
+
+export interface FilterFieldDefinition {
+  id: string;
+  label: string;
+  type: FilterFieldType;
+  nullable?: boolean;
+  choices?: readonly FilterChoice[];
+  defaultOperation?: string;
+  createDefaultValue?: () => string;
+}
+
+export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;
+
+export interface PageResult<TData> {
+  rows: TData[];
+  totalCount: number;
+}
+
+export interface FetchPageParams {
+  pagination: PaginationState;
+  sorting: SortingState;
+  search: string;
+  filters: UiFilterRow[];
+  signal: AbortSignal;
+}
+
+export interface DataTableProps<Tdata> {
+  storageKey: string;
+  columns: ColumnDef<Tdata, any>[];
+  filterFields?: FilterFieldRegistry;
+  defaultPreferences: TablePreferences;
+
+  fetchPage: (params: FetchPageParams) => Promise<PageResult<Tdata>>;
+  getRowId?: (row: Tdata) => string;
 }

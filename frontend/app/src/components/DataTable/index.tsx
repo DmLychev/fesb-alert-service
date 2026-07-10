@@ -12,7 +12,7 @@ import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
 import { FIELD_REGISTRY } from "./constants/fieldRegistry";
-import type { TableProps, UiFilterRow } from "./types";
+import type { DataTableProps, TableProps, UiFilterRow } from "./types";
 import { page_size_options } from "./constants";
 import type { Message } from "../models";
 import { create_tanstack_columns } from "./utils/tableColumnCreator";
@@ -25,7 +25,14 @@ import DataTable from "./components/DataTable";
 import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 
-const Table = ({ storageKey }: TableProps) => {
+const Table = <TData,>({
+  storageKey,
+  columns,
+  filterFields,
+  defaultPreferences,
+  fetchPage,
+  getRowId,
+}: DataTableProps<TData>) => {
   // Постоянные параметры таблицы, хранимые в локальном хранилище браузера
   const { preferences, updatePreferences } = useTablePreferences(storageKey, {
     version: 1,
@@ -134,7 +141,7 @@ const Table = ({ storageKey }: TableProps) => {
           variables: {
             page: uiState.pageIndex + 1,
             size: preferences.pageSize,
-            filters: compileGraphQLFilters(preferences.filters),
+            filters: compileGraphQLFilters(preferences.filters, FIELD_REGISTRY),
             search: uiState.globalSearch || undefined,
             order: graphqlSortingPayload,
           },
@@ -203,8 +210,8 @@ const Table = ({ storageKey }: TableProps) => {
         functionalUpdate(updater, preferences.columnOrder),
       ),
     onPaginationChange: handlePaginationChange,
-
     getCoreRowModel: getCoreRowModel(),
+    enableMultiSort: false,
   });
 
   return (
