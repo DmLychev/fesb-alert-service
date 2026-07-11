@@ -42,7 +42,7 @@ const fetchMessages = async ({
         page: pagination.pageIndex + 1,
         size: pagination.pageSize,
         filters: compileMessageFilters(filters),
-        search: search || undefined,
+        search: search.trim() || undefined,
         order: compileMessageSorting(sorting),
       },
     },
