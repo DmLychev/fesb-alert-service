@@ -20,7 +20,7 @@ const FilterVisibilityAndOrder = ({
   onColumnsVisibilityAndOrderChange,
 }: FilterVisibilityAndOrderProps) => {
   return (
-    <Popover.Root portalled lazyMount closeOnInteractOutside={false}>
+    <Popover.Root portalled lazyMount closeOnInteractOutside={true}>
       <Popover.Trigger asChild>
         <Button variant="outline" size="sm">
           <CiViewColumn /> Столбцы

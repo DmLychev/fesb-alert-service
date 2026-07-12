@@ -2,6 +2,9 @@ import { Link, Tabs } from "@chakra-ui/react";
 import Table from "../DataTable/index";
 import type { ColumnMetadata, TablePreferences } from "../DataTable/types";
 import StatusCell from "../DataTable/components/StatusCell";
+import fetchMessages from "../../features/messages/api/fetchMessages";
+import messageFilterFields from "../../features/messages/table/messageFilterFields";
+import messageColumns from "../../features/messages/table/messageColumns";
 
 const analyticsFieldRegistry: Record<string, ColumnMetadata> = {
   "route.domainName": { label: "Домен", type: "string" },
@@ -60,7 +63,7 @@ const AnalyticsPage = () => {
       </Tabs.List>
       <Tabs.Content value="messages">
         {/* <MessagePage /> */}
-        <Table storageKey="message_table_settings" />
+        <Table storageKey="message_table_settings" fetchPage={fetchMessages} filterFields={messageFilterFields} columns={messageColumns}/>
       </Tabs.Content>
       <Tabs.Content value="issues">Инциденты</Tabs.Content>
     </Tabs.Root>

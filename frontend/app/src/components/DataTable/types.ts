@@ -6,6 +6,7 @@ import {
   type Table,
   type VisibilityState,
 } from "@tanstack/react-table";
+import type { ComponentType } from "react";
 
 export interface UiFilterRow {
   id: string;
@@ -109,14 +110,27 @@ export interface FilterChoice {
   label: string;
 }
 
-export interface FilterFieldDefinition {
-  id: string;
+export interface CellProps<TValue = unknown> {
+  value: TValue;
+}
+
+export interface FilterFieldDefinition<TValue = unknown> {
+  // id: string;
   label: string;
   type: FilterFieldType;
+
+  filterable?: boolean;
   nullable?: boolean;
   choices?: readonly FilterChoice[];
+
   defaultOperation?: string;
-  createDefaultValue?: () => string;
+  defaultVisible?: boolean;
+  defaultSize?: number;
+  minSize?: number;
+  maxSize?: number;
+  // createDefaultValue?: () => string;
+
+  Cell?: ComponentType<CellProps<TValue>>;
 }
 
 export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;

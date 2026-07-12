@@ -54,7 +54,8 @@ const Table = <TData,>({
     isFilterBlockOpen: false,
   });
 
-  const [data, setData] = useState<Message[]>([]);
+  // const [data, setData] = useState<Message[]>([]);
+  const [data, setData] = useState<TData[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Запомнить названия столбцов
@@ -85,94 +86,145 @@ const Table = <TData,>({
   };
 
   // Загрузить данные через api
+  // useEffect(() => {
+  //   let skeletonTimer: ReturnType<typeof setTimeout>; // NodeJS.Timeout
+
+  //   const fetchMessages = async () => {
+  //     try {
+  //       // Показывать скелеты, если запрос выполняется дольше 200мс
+  //       skeletonTimer = setTimeout(() => {
+  //         setLoading(true);
+  //       }, 200);
+
+  //       let graphqlSortingPayload: Record<string, any> | null = null;
+  //       if (preferences.sorting.length > 0) {
+  //         const activeSort = preferences.sorting[0];
+  //         const sortDirection = activeSort.desc ? "DESC" : "ASC";
+
+  //         // Check if we are sorting by a nested relation column property (e.g., 'route.domainName')
+  //         if (activeSort.id.includes("_")) {
+  //           const [parent, child] = activeSort.id.split("_");
+  //           graphqlSortingPayload = {
+  //             [parent]: {
+  //               [child]: sortDirection,
+  //             },
+  //           };
+  //         } else {
+  //           // Standard root column ordering (e.g., 'startDate')
+  //           graphqlSortingPayload = {
+  //             [activeSort.id]: sortDirection,
+  //           };
+  //         }
+  //       }
+
+  //       const graphqlQuery = `
+  //       query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search: String, $order: MessageOrder) {
+  //         messagesPage(page: $page, size: $size, filters: $filters, search: $search, order: $order) {
+  //           count
+  //           results {
+  //             exchangeId
+  //             requestId
+  //             status
+  //             errorMessage
+  //             updateStatusAttempts
+  //             startDate
+  //             route {
+  //               name
+  //               domainName
+  //             }
+  //           }
+  //         }
+  //       }
+  //     `;
+
+  //       const payload = {
+  //         query: graphqlQuery,
+  //         variables: {
+  //           page: uiState.pageIndex + 1,
+  //           size: preferences.pageSize,
+  //           filters: compileGraphQLFilters(preferences.filters, FIELD_REGISTRY),
+  //           search: uiState.globalSearch || undefined,
+  //           order: graphqlSortingPayload,
+  //         },
+  //       };
+
+  //       const res = await api.post("/api/graphql", payload);
+  //       const dataPayload = res.data.data.messagesPage;
+
+  //       setData(dataPayload.results);
+  //       updateUiState("totalCount", dataPayload.count);
+  //     } catch (error: any) {
+  //       toaster.create({
+  //         title: error.message,
+  //         type: "error",
+  //         duration: 6000,
+  //       });
+  //     } finally {
+  //       clearTimeout(skeletonTimer);
+  //       setLoading(false);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchMessages();
+  //   return () => clearTimeout(skeletonTimer);
+  // }, [
+  //   uiState.pageIndex,
+  //   preferences.pageSize,
+  //   preferences.filters,
+  //   uiState.globalSearch,
+  //   preferences.sorting,
+  // ]);
+
   useEffect(() => {
+    const controller = new AbortController();
+
     let skeletonTimer: ReturnType<typeof setTimeout>; // NodeJS.Timeout
 
-    const fetchMessages = async () => {
+    const load = async () => {
       try {
-        // Показывать скелеты, если запрос выполняется дольше 200мс
         skeletonTimer = setTimeout(() => {
           setLoading(true);
         }, 200);
 
-        let graphqlSortingPayload: Record<string, any> | null = null;
-        if (preferences.sorting.length > 0) {
-          const activeSort = preferences.sorting[0];
-          const sortDirection = activeSort.desc ? "DESC" : "ASC";
-
-          // Check if we are sorting by a nested relation column property (e.g., 'route.domainName')
-          if (activeSort.id.includes("_")) {
-            const [parent, child] = activeSort.id.split("_");
-            graphqlSortingPayload = {
-              [parent]: {
-                [child]: sortDirection,
-              },
-            };
-          } else {
-            // Standard root column ordering (e.g., 'startDate')
-            graphqlSortingPayload = {
-              [activeSort.id]: sortDirection,
-            };
-          }
-        }
-
-        const graphqlQuery = `
-        query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search: String, $order: MessageOrder) {
-          messagesPage(page: $page, size: $size, filters: $filters, search: $search, order: $order) {
-            count
-            results {
-              exchangeId
-              requestId
-              status
-              errorMessage
-              updateStatusAttempts
-              startDate
-              route {
-                name
-                domainName
-              }
-            }
-          }
-        }
-      `;
-
-        const payload = {
-          query: graphqlQuery,
-          variables: {
-            page: uiState.pageIndex + 1,
-            size: preferences.pageSize,
-            filters: compileGraphQLFilters(preferences.filters, FIELD_REGISTRY),
-            search: uiState.globalSearch || undefined,
-            order: graphqlSortingPayload,
+        const result = await fetchPage({
+          pagination: {
+            pageIndex: uiState.pageIndex,
+            pageSize: preferences.pageSize,
           },
-        };
-
-        const res = await api.post("/api/graphql", payload);
-        const dataPayload = res.data.data.messagesPage;
-
-        setData(dataPayload.results);
-        updateUiState("totalCount", dataPayload.count);
-      } catch (error: any) {
-        toaster.create({
-          title: error.message,
-          type: "error",
-          duration: 6000,
+          sorting: preferences.sorting,
+          search: uiState.globalSearch,
+          filters: preferences.filters,
+          signal: controller.signal,
         });
+
+        setData(result.rows);
+        // setTotalCount(result.totalCount);
+        updateUiState("totalCount", result.totalCount);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          toaster.create({
+            title: error.message,
+            type: "error",
+            duration: 6000,
+          });
+        }
       } finally {
         clearTimeout(skeletonTimer);
-        setLoading(false);
         setLoading(false);
       }
     };
 
-    fetchMessages();
-    return () => clearTimeout(skeletonTimer);
+    void load();
+
+    return () => controller.abort();
   }, [
+    fetchPage,
     uiState.pageIndex,
     preferences.pageSize,
+    preferences.sorting,
     preferences.filters,
     uiState.globalSearch,
-    preferences.sorting,
   ]);
 
   const table = useReactTable({
@@ -180,8 +232,8 @@ const Table = <TData,>({
     columns: tableColumns,
     state: {
       sorting: preferences.sorting,
-      globalFilter: uiState.globalSearch,
-      columnFilters: preferences.filters,
+      // globalFilter: uiState.globalSearch,
+      // columnFilters: preferences.filters,
       columnVisibility: preferences.columnVisibility,
       pagination: {
         pageSize: preferences.pageSize,
