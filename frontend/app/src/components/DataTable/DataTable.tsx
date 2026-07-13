@@ -141,6 +141,7 @@ const DataTable = <TData,>({
       sorting: preferences.sorting,
       columnVisibility: preferences.columnVisibility,
       columnOrder: preferences.columnOrder,
+      columnSizing: preferences.columnSizing,
       pagination: {
         pageSize: preferences.pageSize,
         pageIndex: uiState.pageIndex,
@@ -149,6 +150,8 @@ const DataTable = <TData,>({
     manualPagination: true,
     manualSorting: true,
     rowCount: uiState.totalCount,
+    enableColumnResizing: true,
+    columnResizeMode: "onEnd",
 
     onSortingChange: (updater) => {
       updatePreferences(
@@ -236,16 +239,18 @@ const DataTable = <TData,>({
       />
 
       {/* Пагинация */}
-      <TablePagination
-        pageIndex={uiState.pageIndex}
-        pageSize={preferences.pageSize}
-        totalCount={uiState.totalCount}
-        pageSizeOptions={page_size_options}
-        onPageChange={(newPage: number) => {
-          table.setPageIndex(newPage - 1);
-        }}
-        onPageSizeChange={(newSize) => table.setPageSize(newSize)}
-      />
+      {uiState.totalCount > 0 && (
+        <TablePagination
+          pageIndex={uiState.pageIndex}
+          pageSize={preferences.pageSize}
+          totalCount={uiState.totalCount}
+          pageSizeOptions={page_size_options}
+          onPageChange={(newPage: number) => {
+            table.setPageIndex(newPage - 1);
+          }}
+          onPageSizeChange={(newSize) => table.setPageSize(newSize)}
+        />
+      )}
     </Stack>
   );
 };

@@ -7,6 +7,7 @@ export const default_table_preferences: TablePreferences = {
   sorting: [],
   columnVisibility: {},
   columnOrder: [],
+  columnSizing: {},
   pageSize: 10,
 };
 

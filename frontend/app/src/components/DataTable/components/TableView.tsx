@@ -8,8 +8,21 @@ const DataTable = <TData,>({
   pageSize,
 }: TableViewProps<TData>) => {
   return (
-    <Table.ScrollArea borderWidth="1px" maxW="1200px" rounded="md" width="full">
-      <Table.Root variant="outline" showColumnBorder stickyHeader interactive>
+    <Table.ScrollArea
+      borderWidth="1px"
+      maxW="1200px"
+      rounded="md"
+      width="full"
+      overflowX="auto"
+    >
+      <Table.Root
+        variant="outline"
+        showColumnBorder
+        stickyHeader
+        interactive
+        tableLayout="fixed"
+        style={{ width: table.getTotalSize() }}
+      >
         <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
             <Table.Row key={headerGroup.id}>
@@ -31,6 +44,11 @@ const DataTable = <TData,>({
                         : undefined
                     }
                     _hover={isSortable ? { bg: "bg.muted/50" } : {}}
+                    style={{
+                      width: header.getSize(),
+                      minWidth: header.getSize(),
+                      maxWidth: header.getSize(),
+                    }}
                   >
                     {header.isPlaceholder ? null : (
                       <HStack gap={1} display="inline-flex">
@@ -52,6 +70,40 @@ const DataTable = <TData,>({
                         )}
                       </HStack>
                     )}
+
+                    {header.column.getCanResize() && (
+                      <Box
+                        role="separator"
+                        aria-orientation="vertical"
+                        position="absolute"
+                        top={0}
+                        right={0}
+                        width="6px"
+                        height="full"
+                        cursor="col-resize"
+                        userSelect="none"
+                        touchAction="none"
+                        zIndex={1}
+                        bg={
+                          header.column.getIsResizing()
+                            ? `translateX(${table.getState().columnSizingInfo.deltaOffset ?? 0}px)`
+                            : undefined
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          header.column.resetSize();
+                        }}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          header.getResizeHandler()(e);
+                        }}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          header.getResizeHandler()(e);
+                        }}
+                      />
+                    )}
                   </Table.ColumnHeader>
                 );
               })}
@@ -66,7 +118,14 @@ const DataTable = <TData,>({
             Array.from({ length: pageSize }).map((_, rowIndex) => (
               <Table.Row key={`skeleton-row-${rowIndex}`}>
                 {table.getVisibleLeafColumns().map((column) => (
-                  <Table.Cell key={`skeleton-cell-${rowIndex}-${column.id}`}>
+                  <Table.Cell
+                    key={`skeleton-cell-${rowIndex}-${column.id}`}
+                    style={{
+                      width: column.getSize(),
+                      minWidth: column.getSize(),
+                      maxWidth: column.getSize(),
+                    }}
+                  >
                     {/* Chakra UI v3 Skeleton line animation */}
                     <Skeleton height="20px" width="full" rounded="sm" />
                   </Table.Cell>
@@ -96,6 +155,11 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
+                    style={{
+                      width: cell.column.getSize(),
+                      minWidth: cell.column.getSize(),
+                      maxWidth: cell.column.getSize(),
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </Table.Cell>

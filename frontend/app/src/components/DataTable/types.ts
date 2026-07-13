@@ -2,6 +2,7 @@ import type { ListCollection } from "@chakra-ui/react";
 import {
   type Column,
   type ColumnDef,
+  type ColumnSizingState,
   type PaginationState,
   type SortingState,
   type Table,
@@ -20,6 +21,7 @@ export interface TablePreferences {
   sorting: SortingState;
   columnVisibility: VisibilityState;
   columnOrder: string[];
+  columnSizing: ColumnSizingState;
   filters: UiFilterRow[];
   pageSize: number;
 }
@@ -69,11 +71,13 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
 
 export type RegistryColumnDef<TData> = DistributiveOmit<
   ColumnDef<TData, any>,
-  "id" | "header"
+  "id" | "header" | "size" | "minSize"
 >;
 
 export interface TableFieldDefinition<TData> {
   label: string;
+  defaultSize?: number;
+  minSize?: number;
   column?: RegistryColumnDef<TData>;
   filter?: Omit<FilterFieldDefinition, "label"> | false;
 }

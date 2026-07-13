@@ -13,6 +13,12 @@ export function createTableDefinitions<TData>(
         ...definition.column,
         id: fieldId,
         header: definition.label,
+        ...(definition.defaultSize !== undefined
+          ? { size: definition.defaultSize }
+          : {}),
+        ...(definition.minSize !== undefined
+          ? { minSize: definition.minSize }
+          : {}),
       } as ColumnDef<TData, any>);
 
     if (definition.filter)

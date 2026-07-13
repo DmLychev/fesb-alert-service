@@ -9,5 +9,6 @@ export const messageTablePreferences: TablePreferences = {
   columnOrder: Object.entries(MESSAGE_FIELD_REGISTRY)
     .filter(([, definition]) => Boolean(definition.column))
     .map(([fieldId]) => fieldId),
+  columnSizing: {},
   pageSize: 10,
 };

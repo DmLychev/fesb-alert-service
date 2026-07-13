@@ -10,7 +10,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.route.domainName,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
@@ -24,7 +23,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.route.name,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
@@ -38,7 +36,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.status,
       enableSorting: true,
-      size: 100,
 
       cell: ({ getValue }) => <StatusCell value={getValue()} />,
     },
@@ -59,7 +56,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.startDate,
       enableSorting: true,
-      size: 100,
 
       cell: ({ getValue }) => formatDateTime(getValue()),
     },
@@ -71,11 +67,11 @@ export const MESSAGE_FIELD_REGISTRY = {
 
   errorMessage: {
     label: "Текст ошибки",
+    defaultSize: 200,
 
     column: {
       accessorFn: (message) => message.errorMessage,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
@@ -90,7 +86,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.updateStatusAttempts,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
@@ -104,7 +99,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.exchangeId,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
@@ -118,7 +112,6 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.requestId,
       enableSorting: true,
-      size: 100,
     },
 
     filter: {
