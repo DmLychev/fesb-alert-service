@@ -151,7 +151,14 @@ const DataTable = <TData,>({
     manualSorting: true,
     rowCount: uiState.totalCount,
     enableColumnResizing: true,
-    columnResizeMode: "onEnd",
+    columnResizeMode: "onChange",
+
+    onColumnSizingChange: (updater) => {
+      updatePreferences(
+        "columnSizing",
+        functionalUpdate(updater, preferences.columnSizing),
+      );
+    },
 
     onSortingChange: (updater) => {
       updatePreferences(

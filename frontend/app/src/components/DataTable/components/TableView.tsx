@@ -37,13 +37,6 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    cursor={isSortable ? "pointer" : "default"}
-                    onClick={
-                      isSortable
-                        ? header.column.getToggleSortingHandler()
-                        : undefined
-                    }
-                    _hover={isSortable ? { bg: "bg.muted/50" } : {}}
                     style={{
                       width: header.getSize(),
                       minWidth: header.getSize(),
@@ -51,20 +44,41 @@ const DataTable = <TData,>({
                     }}
                   >
                     {header.isPlaceholder ? null : (
-                      <HStack gap={1} display="inline-flex">
-                        <Box>
+                      <HStack
+                        as={isSortable ? "button" : "div"}
+                        type={isSortable ? "button" : undefined}
+                        gap={1}
+                        width="full"
+                        height="full"
+                        pe="8px"
+                        cursor={isSortable ? "pointer" : "default"}
+                        textAlign="left"
+                        overflow="hidden"
+                        onClick={
+                          isSortable
+                            ? header.column.getToggleSortingHandler()
+                            : undefined
+                        }
+                        _hover={isSortable ? { bg: "bg.muted/50" } : undefined}
+                        display="inline-flex"
+                      >
+                        <Box
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                          whiteSpace="nowrap"
+                        >
                           {flexRender(
                             header.column.columnDef.header,
                             header.getContext(),
                           )}
                         </Box>
                         {sortDirection === "asc" && (
-                          <Text as="span" fontSize="xs">
+                          <Text as="span" fontSize="xs" flexShrink={0}>
                             ▲
                           </Text>
                         )}
                         {sortDirection === "desc" && (
-                          <Text as="span" fontSize="xs">
+                          <Text as="span" fontSize="xs" flexShrink={0}>
                             ▼
                           </Text>
                         )}
@@ -83,18 +97,26 @@ const DataTable = <TData,>({
                         cursor="col-resize"
                         userSelect="none"
                         touchAction="none"
-                        zIndex={1}
+                        zIndex={2}
                         bg={
                           header.column.getIsResizing()
-                            ? `translateX(${table.getState().columnSizingInfo.deltaOffset ?? 0}px)`
-                            : undefined
+                            ? "blue.400"
+                            : "transparent"
                         }
-                        onClick={(e) => e.stopPropagation()}
+                        _hover={{
+                          bg: "blue.300",
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
                         onDoubleClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           header.column.resetSize();
                         }}
                         onMouseDown={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           header.getResizeHandler()(e);
                         }}
