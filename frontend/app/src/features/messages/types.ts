@@ -1,4 +1,6 @@
-import type { DateTimeString } from "../../components/DataTable/types";
+export type DateTimeString = string;
+
+export type MessageStatus = "SUCCESS" | "ERROR";
 
 export interface Route {
   id: string;

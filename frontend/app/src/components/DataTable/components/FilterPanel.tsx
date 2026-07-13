@@ -13,18 +13,22 @@ import {
   Text,
 } from "@chakra-ui/react";
 import type { FilterPanelProps, UiFilterRow } from "../types";
-import getBeginningOfCurrentDayString from "../utils/datetimeFormatter";
+import { getBeginningOfCurrentDayString } from "../utils/date";
 import { all_filter_operations, bool_values } from "../constants";
-import { create_columns_collection } from "../utils/tableColumnCreator";
 
 const FilterPanel = ({
   activeFilters,
-  commitedFilters,
-  fieldRegistry,
+  comittedFilters,
+  filterFields,
   onFiltersChange,
   onFiltersSubmit,
 }: FilterPanelProps) => {
-  const columnsCollection = create_columns_collection(fieldRegistry);
+  const filterFieldsCollection = createListCollection({
+    items: Object.entries(filterFields).map(([value, field]) => ({
+      value,
+      label: field.label,
+    })),
+  });
 
   const addFilterRow = () => {
     onFiltersChange((prev) => [
@@ -45,9 +49,9 @@ const FilterPanel = ({
 
   const handleColumnChange = (
     rowId: string,
-    selectedColumn: keyof typeof fieldRegistry,
+    selectedColumn: keyof typeof filterFields,
   ) => {
-    const columnMeta = fieldRegistry[selectedColumn];
+    const columnMeta = filterFields[selectedColumn];
 
     onFiltersChange((prev) =>
       prev.map((row) => {
@@ -75,6 +79,9 @@ const FilterPanel = ({
 
   // const currentDraftTree = compileGraphQLFilters(activeFilters);
 
+  const filtersAreUnchanged =
+    JSON.stringify(comittedFilters) === JSON.stringify(activeFilters);
+
   const isApplyDisabled =
     // 🚩 Rule 1: Disable if any active input field row is empty or incomplete
     activeFilters.some((row) => {
@@ -86,10 +93,7 @@ const FilterPanel = ({
         row.value === null ||
         String(row.value).trim() === ""
       );
-    }) ||
-    // 🚩 Rule 2: Disable if the compiled draft matches what was already sent to the backend API
-    // JSON.stringify(currentDraftTree) === JSON.stringify(commitedFilters);
-    commitedFilters === activeFilters;
+    }) || filtersAreUnchanged;
 
   return (
     <Box
@@ -110,7 +114,7 @@ const FilterPanel = ({
         {activeFilters.map((row) => {
           // Look up current column type metadata from the central registry
           const columnMeta =
-            fieldRegistry[row.column as keyof typeof fieldRegistry];
+            filterFields[row.column as keyof typeof filterFields];
           const currentColumnType = columnMeta?.type;
 
           return (
@@ -121,7 +125,7 @@ const FilterPanel = ({
             >
               {/* 1. ВЫБОР СТОЛБЦА */}
               <Select.Root
-                collection={columnsCollection} // Использует сгенерированную из реестра коллекцию
+                collection={filterFieldsCollection} // Использует сгенерированную из реестра коллекцию
                 value={row.column ? [row.column] : []}
                 onValueChange={(details) => {
                   const selectedColumn = details.value[0];
@@ -138,7 +142,7 @@ const FilterPanel = ({
                 <Portal>
                   <Select.Positioner>
                     <Select.Content zIndex={15}>
-                      {columnsCollection.items.map((i) => (
+                      {filterFieldsCollection.items.map((i) => (
                         <Select.Item item={i} key={i.value}>
                           {i.label}
                         </Select.Item>
@@ -410,7 +414,10 @@ const FilterPanel = ({
                 size="sm"
                 variant="ghost"
                 colorPalette="red"
-                onClick={() => onFiltersSubmit([])}
+                onClick={() => {
+                  onFiltersChange([]);
+                  onFiltersSubmit([]);
+                }}
               >
                 Сбросить всё
               </Button>
@@ -421,10 +428,6 @@ const FilterPanel = ({
             size="sm"
             colorPalette="blue"
             disabled={isApplyDisabled}
-            // onClick={() => {
-            //   const compiledTree = compileGraphQLFilters(activeFilters);
-            //   onFiltersSubmit(compiledTree);
-            // }}
             onClick={() => onFiltersSubmit(activeFilters)}
           >
             Применить фильтры

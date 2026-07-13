@@ -1,8 +1,12 @@
 import { Box, HStack, Skeleton, Table, Text } from "@chakra-ui/react";
-import type { DataTableProps } from "../types";
+import type { TableViewProps } from "../types";
 import { flexRender } from "@tanstack/react-table";
 
-const DataTable = ({ table, showSkeleton, pageSize }: DataTableProps) => {
+const DataTable = <TData,>({
+  table,
+  showSkeleton,
+  pageSize,
+}: TableViewProps<TData>) => {
   return (
     <Table.ScrollArea borderWidth="1px" maxW="1200px" rounded="md" width="full">
       <Table.Root variant="outline" showColumnBorder stickyHeader interactive>

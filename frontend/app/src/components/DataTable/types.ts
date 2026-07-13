@@ -1,12 +1,12 @@
 import type { ListCollection } from "@chakra-ui/react";
 import {
+  type Column,
   type ColumnDef,
   type PaginationState,
   type SortingState,
   type Table,
   type VisibilityState,
 } from "@tanstack/react-table";
-import type { ComponentType } from "react";
 
 export interface UiFilterRow {
   id: string;
@@ -24,78 +24,10 @@ export interface TablePreferences {
   pageSize: number;
 }
 
-export interface TableUIState {
-  globalSearch: string;
-  displayedFilters: UiFilterRow[];
-  pageIndex: number;
-  totalCount: number;
-  isFilterBlockOpen: boolean;
-}
+export type GraphQLScalar = string | number | boolean | null;
 
-export type ColumnType =
-  | "string"
-  | "number"
-  | "boolean"
-  | "datetime"
-  | "choice";
-
-export interface ColumnMetadata {
-  label: string;
-  type: ColumnType;
-  nullable?: boolean;
-  choices?: { value: string; label: string }[];
-  renderCell?: (value: any) => React.ReactNode;
-}
-
-export type DateTimeString = string;
-
-export interface GlobalSearchProps {
-  globalSearchInput: string;
-  onGlobalSearchSubmit: (value: string) => void;
-}
-
-export interface FilterButtonProps {
-  isFilterPanelOpened: boolean;
-  activeFiltersCount: number;
-  onFilterButtonClick: (isFilterPanelOpened: boolean) => void;
-}
-
-export interface FilterVisibilityAndOrderProps {
-  table: Table<unknown>;
-  columns: string[];
-  onColumnsVisibilityAndOrderChange: (newOrder: string[]) => void;
-}
-
-export interface FilterPanelProps {
-  activeFilters: UiFilterRow[];
-  commitedFilters: any;
-  fieldRegistry: Record<string, ColumnMetadata>;
-  onFiltersChange: React.Dispatch<React.SetStateAction<UiFilterRow[]>>;
-  onFiltersSubmit: React.Dispatch<any>;
-}
-
-// export interface DataTableProps {
-//   table: Table<unknown>;
-//   showSkeleton: boolean;
-//   pageSize: number;
-// }
-
-export interface TablePaginationProps {
-  pageIndex: number;
-  pageSize: number;
-  totalCount: number;
-  pageSizeOptions: ListCollection<{
-    value: string;
-    label: string;
-  }>;
-  onPageChange: (newPageIndex: number) => void;
-  onPageSizeChange: (newPageSize: number) => void;
-}
-
-export interface TableProps {
-  storageKey: string;
-  deafaultPreferences: TablePreferences;
-  fieldRegistry: Record<string, ColumnMetadata>;
+export interface GraphQLInputObject {
+  [key: string]: GraphQLScalar | GraphQLInputObject | GraphQLInputObject[];
 }
 
 export type FilterFieldType =
@@ -105,35 +37,77 @@ export type FilterFieldType =
   | "datetime"
   | "choice";
 
+export type FilterOperation =
+  | "exact"
+  | "contains"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "isnull"
+  | "notnull";
+
 export interface FilterChoice {
   value: string;
   label: string;
 }
 
-export interface CellProps<TValue = unknown> {
-  value: TValue;
-}
-
-export interface FilterFieldDefinition<TValue = unknown> {
-  // id: string;
+export interface FilterFieldDefinition {
   label: string;
   type: FilterFieldType;
-
-  filterable?: boolean;
+  path: readonly string[];
   nullable?: boolean;
   choices?: readonly FilterChoice[];
-
-  defaultOperation?: string;
-  defaultVisible?: boolean;
-  defaultSize?: number;
-  minSize?: number;
-  maxSize?: number;
-  // createDefaultValue?: () => string;
-
-  Cell?: ComponentType<CellProps<TValue>>;
+  treatEmptyStringsAsNull?: boolean;
+  parseValue?: (value: string) => GraphQLScalar;
 }
 
 export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;
+
+export interface SortFieldDefinition {
+  path: readonly string[];
+}
+
+export type SortFieldRegistry = Record<string, SortFieldDefinition>;
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K>
+  : never;
+
+export type RegistryColumnDef<TData> = DistributiveOmit<
+  ColumnDef<TData, any>,
+  "id" | "header"
+>;
+
+export interface RegistryFilterDefinition extends Omit<
+  FilterFieldDefinition,
+  "label" | "path"
+> {
+  path?: readonly string[];
+}
+
+export interface RegistrySortingDefinition {
+  path?: readonly string[];
+}
+
+export interface TableFieldDefinition<TData> {
+  label: string;
+  path?: readonly string[];
+  column?: RegistryColumnDef<TData>;
+  filter?: RegistryFilterDefinition | false;
+  sorting?: RegistrySortingDefinition | false;
+}
+
+export type TableFieldRegistry<Tdata> = Record<
+  string,
+  TableFieldDefinition<Tdata>
+>;
+
+export interface TableDefinitions<Tdata> {
+  columns: ColumnDef<Tdata, any>[];
+  filterFields: FilterFieldRegistry;
+  sortFields: SortFieldRegistry;
+}
 
 export interface PageResult<TData> {
   rows: TData[];
@@ -156,4 +130,52 @@ export interface DataTableProps<Tdata> {
 
   fetchPage: (params: FetchPageParams) => Promise<PageResult<Tdata>>;
   getRowId?: (row: Tdata) => string;
+}
+
+export interface TableViewProps<TData> {
+  table: Table<TData>;
+  showSkeleton: boolean;
+  pageSize: number;
+}
+
+export interface GlobalSearchProps {
+  value: string;
+  onSubmit: (value: string) => void;
+}
+
+export interface FilterButtonProps {
+  isOpen: boolean;
+  activeFiltersCount: number;
+  onToggle: () => void;
+}
+
+export interface FilterVisibilityAndOrderProps<TData> {
+  table: Table<TData>;
+  columns: string[];
+  onColumnOrderChange: (newOrder: string[]) => void;
+}
+
+export interface SortableColumnItemProps<Tdata> {
+  id: string;
+  column: Column<Tdata, any>;
+}
+
+export interface FilterPanelProps {
+  activeFilters: UiFilterRow[];
+  comittedFilters: UiFilterRow[];
+  filterFields: FilterFieldRegistry;
+  onFiltersChange: React.Dispatch<React.SetStateAction<UiFilterRow[]>>;
+  onFiltersSubmit: (filters: UiFilterRow[]) => void;
+}
+
+export interface TablePaginationProps {
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  pageSizeOptions: ListCollection<{
+    value: string;
+    label: string;
+  }>;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { GlobalSearchProps } from "../types";
 import {
   Button,
@@ -9,20 +9,20 @@ import {
 } from "@chakra-ui/react";
 import { LuSearch } from "react-icons/lu";
 
-const GlobalSearch = ({
-  globalSearchInput,
-  onGlobalSearchSubmit,
-}: GlobalSearchProps) => {
-  const [input, setInput] = useState(globalSearchInput);
-
+const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
+  const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const globalFilterClearButton = input ? (
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  const globalFilterClearButton = inputValue ? (
     <CloseButton
       size="xs"
       onClick={() => {
-        setInput("");
-        onGlobalSearchSubmit("");
+        setInputValue("");
+        onSubmit("");
         inputRef.current?.focus();
       }}
       me="-2"
@@ -37,18 +37,24 @@ const GlobalSearch = ({
         endElement={globalFilterClearButton}
       >
         <Input
+          ref={inputRef}
           size="sm"
           placeholder="Поиск по всем столбцам"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          ref={inputRef}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.type === "Enter") {
+              onSubmit(inputValue);
+            }
+          }}
         />
       </InputGroup>
+
       <Button
         size="sm"
         bg="bg.subtle"
         variant="outline"
-        onClick={() => onGlobalSearchSubmit(input)}
+        onClick={() => onSubmit(inputValue)}
       >
         Найти
       </Button>

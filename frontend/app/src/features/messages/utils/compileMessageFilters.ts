@@ -1,171 +1,97 @@
-import type {
-  ColumnType,
-  UiFilterRow,
-} from "../../../components/DataTable/types";
-import messageFilterFields from "../table/messageFilterFields";
+import type { UiFilterRow } from "../../../components/DataTable";
+import { messageFilterFields } from "../messageTableDefinitions";
 
-type GraphQLScalar = string | number | boolean | null;
+const compileMessageFilters = (filtersList: UiFilterRow[]) => {
+  const fieldRegistry = messageFilterFields;
 
-export interface MessageFilterInput {
-  [key: string]: GraphQLScalar | MessageFilterInput | MessageFilterInput[];
-}
+  if (!filtersList || filtersList.length === 0) return null;
 
-type FilterOperation =
-  | "exact"
-  | "contains"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "isnull"
-  | "notnull";
+  // We will collect root-level conditions here (handles implicit AND)
+  const conditions: any[] = [];
+  // Standard fields can still be grouped into a single base object
+  const baseFilterObject: Record<string, any> = {};
 
-const FILTER_OPERATIONS: readonly FilterOperation[] = [
-  "exact",
-  "contains",
-  "gt",
-  "gte",
-  "lt",
-  "lte",
-  "isnull",
-  "notnull",
-];
+  filtersList.forEach((row) => {
+    if (!row.column || !row.operation) return;
 
-const isFilterOperation = (value: string): value is FilterOperation =>
-  FILTER_OPERATIONS.includes(value as FilterOperation);
+    const columnMeta = fieldRegistry[row.column as keyof typeof fieldRegistry];
+    const isStringColumn = !columnMeta || columnMeta.type === "string";
 
-// Преобразовать вложенные поля в структуру route.domainName + { contains: "test" } > { route: { domainName: { contains: "test" }}}
-const buildNestedFilter = (
-  path: string,
-  leaf: MessageFilterInput,
-): MessageFilterInput =>
-  path.split(".").reduceRight<MessageFilterInput>(
-    (nested, fieldName) => ({
-      [fieldName]: nested,
-    }),
-    leaf,
-  );
+    // --- 1. Handle the new 'isnull' and 'notnull' logic for STRINGS ---
+    if (
+      isStringColumn &&
+      (row.operation === "isnull" || row.operation === "notnull")
+    ) {
+      // Helper to build the nested object path (e.g., "parent.child" -> { parent: { child: ... } })
+      const buildNestedObject = (path: string, leafValue: any) => {
+        const parts = path.split(".");
+        const result: Record<string, any> = {};
+        let current = result;
 
-const resolveFilterValue = (
-  row: UiFilterRow,
-  fieldType: ColumnType,
-): GraphQLScalar => {
-  switch (fieldType) {
-    case "number": {
-      const numberValue = Number(row.value);
+        parts.forEach((part, index) => {
+          if (index === parts.length - 1) {
+            current[part] = leafValue;
+          } else {
+            current[part] = {};
+            current = current[part];
+          }
+        });
+        return result;
+      };
 
-      if (!Number.isFinite(numberValue)) {
-        throw new Error(
-          `Invalid number filter value "${row.value}" for "${row.column}"`,
-        );
+      const nullCondition = buildNestedObject(row.column, { isNull: true });
+      const emptyCondition = buildNestedObject(row.column, { exact: "" });
+
+      if (row.operation === "isnull") {
+        conditions.push({ OR: [nullCondition, emptyCondition] });
+      } else {
+        conditions.push({ NOT: [nullCondition, emptyCondition] });
       }
-
-      return numberValue;
+      return; // Skip the rest of the loop for this row
     }
 
-    case "boolean": {
-      if (row.value !== "true" && row.value !== "false") {
-        throw new Error(
-          `Invalid boolean filter value "${row.value}" for "${row.column}"`,
-        );
-      }
-
-      return row.value === "true";
-    }
-
-    case "datetime": {
-      const dateValue = new Date(row.value);
-
-      if (Number.isNaN(dateValue.getTime())) {
-        throw new Error(
-          `Invalid datetime filter value "${row.value}" for "${row.column}"`,
-        );
-      }
-
-      return dateValue.toISOString();
-    }
-
-    case "choice":
-    case "string":
-      return row.value;
-  }
-};
-
-// Считать NULL и "" пустыми строками isNull: true
-const compileNullFilter = (
-  row: UiFilterRow,
-  fieldType: ColumnType,
-): MessageFilterInput => {
-  const nullCondition = buildNestedFilter(row.column, {
-    isNull: true,
-  });
-
-  if (fieldType === "string") {
-    const emptyStringCondition = buildNestedFilter(row.column, {
-      exact: "",
-    });
+    // --- 2. Fallback to your original type transformations ---
+    let resolvedOperation = row.operation;
+    let resolvedValue: any = row.value;
 
     if (row.operation === "isnull") {
-      return {
-        OR: [nullCondition, emptyStringCondition],
-      };
+      resolvedOperation = "isNull";
+      resolvedValue = true;
+    } else if (row.operation === "notnull") {
+      resolvedOperation = "isNull";
+      resolvedValue = false;
+    } else if (columnMeta?.type === "number" && row.value !== "") {
+      resolvedValue = parseInt(row.value, 10);
+    } else if (columnMeta?.type === "datetime" && row.value) {
+      resolvedValue = new Date(row.value).toISOString();
+    } else if (columnMeta?.type === "boolean" && row.value) {
+      resolvedValue = row.value === "true";
     }
 
-    return {
-      AND: [
-        {
-          NOT: [nullCondition],
-        },
-        {
-          NOT: [emptyStringCondition],
-        },
-      ],
-    };
-  }
-
-  return buildNestedFilter(row.column, {
-    isNull: row.operation === "isnull",
+    // --- 3. Process dot-notation nested parameters for standard fields ---
+    if (row.column.includes(".")) {
+      const [parent, child] = row.column.split(".");
+      baseFilterObject[parent] = baseFilterObject[parent] || {};
+      baseFilterObject[parent][child] = baseFilterObject[parent][child] || {};
+      baseFilterObject[parent][child][resolvedOperation] = resolvedValue;
+    } else {
+      baseFilterObject[row.column] = baseFilterObject[row.column] || {};
+      baseFilterObject[row.column][resolvedOperation] = resolvedValue;
+    }
   });
-};
 
-const compileFilterRow = (row: UiFilterRow): MessageFilterInput | null => {
-  if (!row.column || !row.operation) return null;
-
-  const field = messageFilterFields[row.column];
-
-  if (!field) {
-    throw new Error(`Unsupported filter field: "${row.column}"`);
+  // --- 4. Combine everything into a single query object ---
+  // If we only have standard fields, return the flat object to keep queries clean
+  if (conditions.length === 0) {
+    return Object.keys(baseFilterObject).length > 0 ? baseFilterObject : null;
   }
 
-  if (!isFilterOperation) {
-    throw new Error(`Unsupported filter operation: "${row.operation}"`);
+  // If we have OR/NOT blocks, merge them alongside standard fields using "AND"
+  if (Object.keys(baseFilterObject).length > 0) {
+    conditions.unshift(baseFilterObject);
   }
-
-  if (row.operation === "isnull" || row.operation === "notnull") {
-    return compileNullFilter(row, field.type);
-  }
-
-  if (row.value.trim() === "") {
-    return null;
-  }
-
-  const value = resolveFilterValue(row, field.type);
-
-  return buildNestedFilter(row.column, {
-    [row.operation]: value,
-  });
-};
-
-export const compileMessageFilters = (
-  rows: UiFilterRow[],
-): MessageFilterInput | null => {
-  const conditions = rows
-    .map(compileFilterRow)
-    .filter((condition): condition is MessageFilterInput => condition !== null);
-
-  if (conditions.length === 0) return null;
-
-  if (conditions.length === 1) return conditions[0];
 
   return { AND: conditions };
 };
+
+export default compileMessageFilters;

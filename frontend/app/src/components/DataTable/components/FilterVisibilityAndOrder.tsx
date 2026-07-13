@@ -14,11 +14,11 @@ import {
 } from "@dnd-kit/modifiers";
 import { SortableColumnItem } from "./SortableColumnItem";
 
-const FilterVisibilityAndOrder = ({
+const FilterVisibilityAndOrder = <TData,>({
   table,
   columns,
-  onColumnsVisibilityAndOrderChange,
-}: FilterVisibilityAndOrderProps) => {
+  onColumnOrderChange,
+}: FilterVisibilityAndOrderProps<TData>) => {
   return (
     <Popover.Root portalled lazyMount closeOnInteractOutside={true}>
       <Popover.Trigger asChild>
@@ -61,7 +61,7 @@ const FilterVisibilityAndOrder = ({
                   const oldIndex = columns.indexOf(active.id as string);
                   const newIndex = columns.indexOf(over.id as string);
                   const newOrder = arrayMove(columns, oldIndex, newIndex);
-                  onColumnsVisibilityAndOrderChange(newOrder);
+                  onColumnOrderChange(newOrder);
                 }
               }}
             >
