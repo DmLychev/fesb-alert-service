@@ -1,4 +1,4 @@
-import { Box, HStack, Skeleton, Table, Text } from "@chakra-ui/react";
+import { Box, Button, Skeleton, Table, Text } from "@chakra-ui/react";
 import type { TableViewProps } from "../types";
 import { flexRender } from "@tanstack/react-table";
 
@@ -27,7 +27,6 @@ const DataTable = <TData,>({
           {table.getHeaderGroups().map((headerGroup) => (
             <Table.Row key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
-                const isSortable = header.column.getCanSort();
                 const sortDirection = header.column.getIsSorted();
 
                 return (
@@ -44,23 +43,18 @@ const DataTable = <TData,>({
                     }}
                   >
                     {header.isPlaceholder ? null : (
-                      <HStack
-                        as={isSortable ? "button" : "div"}
-                        type={isSortable ? "button" : undefined}
-                        gap={1}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         width="full"
                         height="full"
+                        justifyContent="flex-start"
+                        px={0}
                         pe="8px"
-                        cursor={isSortable ? "pointer" : "default"}
-                        textAlign="left"
                         overflow="hidden"
-                        onClick={
-                          isSortable
-                            ? header.column.getToggleSortingHandler()
-                            : undefined
-                        }
-                        _hover={isSortable ? { bg: "bg.muted/50" } : undefined}
-                        display="inline-flex"
+                        borderRadius={0}
+                        onClick={header.column.getToggleSortingHandler()}
                       >
                         <Box
                           overflow="hidden"
@@ -82,7 +76,7 @@ const DataTable = <TData,>({
                             ▼
                           </Text>
                         )}
-                      </HStack>
+                      </Button>
                     )}
 
                     {header.column.getCanResize() && (
