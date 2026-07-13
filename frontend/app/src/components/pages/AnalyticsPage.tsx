@@ -1,50 +1,5 @@
 import { Link, Tabs } from "@chakra-ui/react";
-import Table from "../DataTable/index";
-import type { ColumnMetadata, TablePreferences } from "../DataTable/types";
-import StatusCell from "../DataTable/components/StatusCell";
-import fetchMessages from "../../features/messages/api/fetchMessages";
-import messageFilterFields from "../../features/messages/table/messageFilterFields";
-import messageColumns from "../../features/messages/table/messageColumns";
-
-const analyticsFieldRegistry: Record<string, ColumnMetadata> = {
-  "route.domainName": { label: "Домен", type: "string" },
-  "route.name": { label: "СОПС", type: "string" },
-  status: {
-    label: "Статус",
-    type: "choice",
-    nullable: true,
-    choices: [
-      { value: "SUCCESS", label: "SUCCESS" },
-      { value: "ERROR", label: "ERROR" },
-    ],
-    renderCell: StatusCell,
-  },
-  startDate: {
-    label: "Начало обработки",
-    type: "datetime",
-    renderCell: (rawValue) => {
-      if (!rawValue) return "";
-      const date = new Date(rawValue);
-      const pad = (num: number, size = 2) => String(num).padStart(size, "0");
-      return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${pad(date.getMilliseconds(), 3)}`;
-    },
-  },
-  errorMessage: { label: "Текст ошибки", type: "string" },
-  updateStatusAttempts: { label: "Попыток", type: "number" },
-  exchangeId: { label: "Exchange ID", type: "string" },
-  requestId: { label: "Request ID", type: "string" },
-};
-
-const analyticsTablePreferences: TablePreferences = {
-  version: 1,
-  filters: [],
-  sorting: [{ id: "startDate", desc: true }],
-  columnVisibility: {},
-  columnOrder: Object.keys(analyticsFieldRegistry).map((key) =>
-    key.replace(/\./g, "_"),
-  ),
-  pageSize: 10,
-};
+import MessageTable from "../../features/messages/MessageTable";
 
 const AnalyticsPage = () => {
   return (
@@ -63,7 +18,7 @@ const AnalyticsPage = () => {
       </Tabs.List>
       <Tabs.Content value="messages">
         {/* <MessagePage /> */}
-        <Table storageKey="message_table_settings" fetchPage={fetchMessages} filterFields={messageFilterFields} columns={messageColumns}/>
+        <MessageTable />
       </Tabs.Content>
       <Tabs.Content value="issues">Инциденты</Tabs.Content>
     </Tabs.Root>

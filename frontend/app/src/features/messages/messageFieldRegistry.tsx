@@ -73,7 +73,7 @@ export const MESSAGE_FIELD_REGISTRY = {
     label: "Текст ошибки",
 
     column: {
-      accessorFn: (message) => message.updateStatusAttempts,
+      accessorFn: (message) => message.errorMessage,
       enableSorting: true,
       size: 100,
     },

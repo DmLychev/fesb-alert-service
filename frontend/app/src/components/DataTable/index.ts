@@ -7,8 +7,10 @@ export type {
   FilterFieldDefinition,
   FilterFieldRegistry,
   PageResult,
+  TableDefinitions,
   TableFieldDefinition,
   TableFieldRegistry,
   TablePreferences,
+  TableUiState,
   UiFilterRow,
 } from "./types";

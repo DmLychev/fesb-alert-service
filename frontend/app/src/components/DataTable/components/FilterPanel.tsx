@@ -18,7 +18,7 @@ import { all_filter_operations, bool_values } from "../constants";
 
 const FilterPanel = ({
   activeFilters,
-  comittedFilters,
+  committedFilters,
   filterFields,
   onFiltersChange,
   onFiltersSubmit,
@@ -77,10 +77,8 @@ const FilterPanel = ({
     );
   };
 
-  // const currentDraftTree = compileGraphQLFilters(activeFilters);
-
   const filtersAreUnchanged =
-    JSON.stringify(comittedFilters) === JSON.stringify(activeFilters);
+    JSON.stringify(committedFilters) === JSON.stringify(activeFilters);
 
   const isApplyDisabled =
     // 🚩 Rule 1: Disable if any active input field row is empty or incomplete

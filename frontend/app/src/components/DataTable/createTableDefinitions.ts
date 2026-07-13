@@ -6,11 +6,8 @@ export function createTableDefinitions<TData>(
 ): TableDefinitions<TData> {
   const columns: ColumnDef<TData, any>[] = [];
   const filterFields: TableDefinitions<TData>["filterFields"] = {};
-  const sortFields: TableDefinitions<TData>["sortFields"] = {};
 
   for (const [fieldId, definition] of Object.entries(registry)) {
-    const defaultPath = definition.path ?? fieldId.split(".");
-
     if (definition.column)
       columns.push({
         ...definition.column,
@@ -22,24 +19,11 @@ export function createTableDefinitions<TData>(
       filterFields[fieldId] = {
         label: definition.label,
         ...definition.filter,
-        path: definition.filter.path ?? defaultPath,
       };
-
-    const sortingEnabled =
-      definition.column !== undefined &&
-      definition.column.enableSorting !== false &&
-      definition.sorting !== false;
-
-    if (sortingEnabled) {
-      sortFields[fieldId] = {
-        path: definition.sorting?.path && defaultPath,
-      };
-    }
   }
 
   return {
     columns,
     filterFields,
-    sortFields,
   };
 }

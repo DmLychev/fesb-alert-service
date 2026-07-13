@@ -20,7 +20,7 @@ import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
 
-const Table = <TData,>({
+const DataTable = <TData,>({
   storageKey,
   columns,
   filterFields = {},
@@ -63,14 +63,16 @@ const Table = <TData,>({
       pageSize: preferences.pageSize,
     };
 
-    const newPagination =
+    const nextPagination =
       typeof updater === "function" ? updater(currentPagination) : updater;
 
-    if (newPagination.pageIndex !== currentPagination.pageIndex)
-      updateUiState("pageIndex", newPagination.pageIndex);
+    if (nextPagination.pageIndex !== currentPagination.pageIndex)
+      updateUiState("pageIndex", nextPagination.pageIndex);
 
-    if (newPagination.pageSize !== currentPagination.pageSize)
-      updatePreferences("pageSize", newPagination.pageSize);
+    if (nextPagination.pageSize !== currentPagination.pageSize) {
+      updatePreferences("pageSize", nextPagination.pageSize);
+      updateUiState("pageIndex", 0);
+    }
   };
 
   useEffect(() => {
@@ -212,7 +214,7 @@ const Table = <TData,>({
       {hasFilterFields && uiState.isFilterBlockOpen && (
         <FilterPanel
           activeFilters={uiState.displayedFilters}
-          comittedFilters={preferences.filters}
+          committedFilters={preferences.filters}
           filterFields={filterFields}
           onFiltersChange={(updater) => {
             const nextFilters =
@@ -248,4 +250,4 @@ const Table = <TData,>({
   );
 };
 
-export default Table;
+export default DataTable;

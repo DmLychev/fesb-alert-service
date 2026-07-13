@@ -7,10 +7,10 @@ export interface MessageOrderInput {
 }
 
 const MESSAGE_SORT_PATHS = {
-  exchangeId: ["exchangeid"],
+  exchangeId: ["exchangeId"],
   requestId: ["requestId"],
   errorMessage: ["errorMessage"],
-  updateStatusAttempts: ["updsateStatusAttempts"],
+  updateStatusAttempts: ["updateStatusAttempts"],
   status: ["status"],
   startDate: ["startDate"],
   endDate: ["endDate"],

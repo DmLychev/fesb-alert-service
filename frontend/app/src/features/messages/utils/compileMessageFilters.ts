@@ -1,7 +1,7 @@
 import type { UiFilterRow } from "../../../components/DataTable";
 import { messageFilterFields } from "../messageTableDefinitions";
 
-const compileMessageFilters = (filtersList: UiFilterRow[]) => {
+export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
   const fieldRegistry = messageFilterFields;
 
   if (!filtersList || filtersList.length === 0) return null;
@@ -93,5 +93,3 @@ const compileMessageFilters = (filtersList: UiFilterRow[]) => {
 
   return { AND: conditions };
 };
-
-export default compileMessageFilters;

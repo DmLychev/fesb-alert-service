@@ -1,12 +1,12 @@
 import { useState } from "react";
-import type { TableUIState } from "../types";
+import type { TableUiState } from "../types";
 
-const useUiState = (defaults: TableUIState) => {
-  const [uiState, setUiState] = useState<TableUIState>(defaults);
+const useUiState = (defaults: TableUiState) => {
+  const [uiState, setUiState] = useState<TableUiState>(defaults);
 
-  const updateUiState = <k extends keyof TableUIState>(
+  const updateUiState = <k extends keyof TableUiState>(
     key: k,
-    value: TableUIState[k] | ((prev: TableUIState[k]) => TableUIState[k]),
+    value: TableUiState[k] | ((prev: TableUiState[k]) => TableUiState[k]),
   ) => {
     setUiState((prev) => ({
       ...prev,

@@ -24,10 +24,12 @@ export interface TablePreferences {
   pageSize: number;
 }
 
-export type GraphQLScalar = string | number | boolean | null;
-
-export interface GraphQLInputObject {
-  [key: string]: GraphQLScalar | GraphQLInputObject | GraphQLInputObject[];
+export interface TableUiState {
+  globalSearch: string;
+  displayedFilters: UiFilterRow[];
+  pageIndex: number;
+  totalCount: number;
+  isFilterBlockOpen: boolean;
 }
 
 export type FilterFieldType =
@@ -37,15 +39,15 @@ export type FilterFieldType =
   | "datetime"
   | "choice";
 
-export type FilterOperation =
-  | "exact"
-  | "contains"
-  | "gt"
-  | "gte"
-  | "lt"
-  | "lte"
-  | "isnull"
-  | "notnull";
+// export type FilterOperation =
+//   | "exact"
+//   | "contains"
+//   | "gt"
+//   | "gte"
+//   | "lt"
+//   | "lte"
+//   | "isnull"
+//   | "notnull";
 
 export interface FilterChoice {
   value: string;
@@ -55,20 +57,11 @@ export interface FilterChoice {
 export interface FilterFieldDefinition {
   label: string;
   type: FilterFieldType;
-  path: readonly string[];
   nullable?: boolean;
   choices?: readonly FilterChoice[];
-  treatEmptyStringsAsNull?: boolean;
-  parseValue?: (value: string) => GraphQLScalar;
 }
 
 export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;
-
-export interface SortFieldDefinition {
-  path: readonly string[];
-}
-
-export type SortFieldRegistry = Record<string, SortFieldDefinition>;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   ? Omit<T, K>
@@ -79,23 +72,10 @@ export type RegistryColumnDef<TData> = DistributiveOmit<
   "id" | "header"
 >;
 
-export interface RegistryFilterDefinition extends Omit<
-  FilterFieldDefinition,
-  "label" | "path"
-> {
-  path?: readonly string[];
-}
-
-export interface RegistrySortingDefinition {
-  path?: readonly string[];
-}
-
 export interface TableFieldDefinition<TData> {
   label: string;
-  path?: readonly string[];
   column?: RegistryColumnDef<TData>;
-  filter?: RegistryFilterDefinition | false;
-  sorting?: RegistrySortingDefinition | false;
+  filter?: Omit<FilterFieldDefinition, "label"> | false;
 }
 
 export type TableFieldRegistry<Tdata> = Record<
@@ -106,7 +86,6 @@ export type TableFieldRegistry<Tdata> = Record<
 export interface TableDefinitions<Tdata> {
   columns: ColumnDef<Tdata, any>[];
   filterFields: FilterFieldRegistry;
-  sortFields: SortFieldRegistry;
 }
 
 export interface PageResult<TData> {
@@ -162,7 +141,7 @@ export interface SortableColumnItemProps<Tdata> {
 
 export interface FilterPanelProps {
   activeFilters: UiFilterRow[];
-  comittedFilters: UiFilterRow[];
+  committedFilters: UiFilterRow[];
   filterFields: FilterFieldRegistry;
   onFiltersChange: React.Dispatch<React.SetStateAction<UiFilterRow[]>>;
   onFiltersSubmit: (filters: UiFilterRow[]) => void;
