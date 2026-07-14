@@ -3,9 +3,17 @@ import MessageTable from "../../features/messages/MessageTable";
 
 const AnalyticsPage = () => {
   return (
-    <Box height="full" minHeight={0}>
-      <Tabs.Root defaultValue="issues" variant="line">
-        <Tabs.List>
+    <Box height="full" minHeight={0} overflow="hidden">
+      <Tabs.Root
+        defaultValue="messages"
+        variant="line"
+        height="full"
+        minHeight={0}
+        display="flex"
+        flexDirection="column"
+        overflow="hidden"
+      >
+        <Tabs.List flexShrink={0}>
           <Tabs.Trigger value="messages" asChild>
             <Link unstyled href="#messages">
               Сообщения
@@ -17,11 +25,25 @@ const AnalyticsPage = () => {
             </Link>
           </Tabs.Trigger>
         </Tabs.List>
-        <Tabs.Content value="messages">
+        <Tabs.Content
+          value="messages"
+          flex="1"
+          minHeight={0}
+          overflow="hidden"
+          pt={4}
+        >
           {/* <MessagePage /> */}
           <MessageTable />
         </Tabs.Content>
-        <Tabs.Content value="issues">Инциденты</Tabs.Content>
+        <Tabs.Content
+          value="issues"
+          flex="1"
+          minHeight={0}
+          overflow="auto"
+          pt={4}
+        >
+          Инциденты
+        </Tabs.Content>
       </Tabs.Root>
     </Box>
   );
