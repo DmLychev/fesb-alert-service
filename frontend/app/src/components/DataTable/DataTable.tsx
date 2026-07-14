@@ -19,6 +19,7 @@ import FilterPanel from "./components/FilterPanel";
 import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
+import RefreshButton from "./components/RefreshButton";
 
 const DataTable = <TData,>({
   storageKey,
@@ -41,10 +42,11 @@ const DataTable = <TData,>({
     pageIndex: 0,
     totalCount: 0,
     isFilterBlockOpen: false,
+    showSkeleton: false,
+    refreshVersion: 0,
   });
 
   const [data, setData] = useState<TData[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const handleSearchSubmit = (value: string) => {
     updateUiState("globalSearch", value);
@@ -75,6 +77,11 @@ const DataTable = <TData,>({
     }
   };
 
+  const handleRefresh = () => {
+    updateUiState("pageIndex", 0);
+    updateUiState("refreshVersion", uiState.refreshVersion + 1);
+  };
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -83,7 +90,7 @@ const DataTable = <TData,>({
     const load = async () => {
       try {
         skeletonTimer = setTimeout(() => {
-          setLoading(true);
+          updateUiState("showSkeleton", true);
         }, 200);
 
         const result = await fetchPage({
@@ -112,7 +119,7 @@ const DataTable = <TData,>({
       } finally {
         if (skeletonTimer) clearTimeout(skeletonTimer);
 
-        if (!controller.signal.aborted) setLoading(false);
+        if (!controller.signal.aborted) updateUiState("showSkeleton", false);
       }
     };
 
@@ -130,6 +137,7 @@ const DataTable = <TData,>({
     preferences.sorting,
     preferences.filters,
     uiState.globalSearch,
+    uiState.refreshVersion,
   ]);
 
   const table = useReactTable<TData>({
@@ -198,6 +206,9 @@ const DataTable = <TData,>({
         />
 
         <HStack gap={2}>
+          {/* Кнопка обновления */}
+          <RefreshButton onRefresh={handleRefresh} />
+
           {/* Кнопка фильтрации */}
           {hasFilterFields && (
             <FilterButton
@@ -243,7 +254,8 @@ const DataTable = <TData,>({
       {/* Таблица */}
       <TableView
         table={table}
-        showSkeleton={loading}
+        // showSkeleton={loading}
+        showSkeleton={uiState.showSkeleton}
         pageSize={preferences.pageSize}
       />
 

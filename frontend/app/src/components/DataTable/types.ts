@@ -32,6 +32,8 @@ export interface TableUiState {
   pageIndex: number;
   totalCount: number;
   isFilterBlockOpen: boolean;
+  showSkeleton: boolean;
+  refreshVersion: number;
 }
 
 export type FilterFieldType =
@@ -40,16 +42,6 @@ export type FilterFieldType =
   | "boolean"
   | "datetime"
   | "choice";
-
-// export type FilterOperation =
-//   | "exact"
-//   | "contains"
-//   | "gt"
-//   | "gte"
-//   | "lt"
-//   | "lte"
-//   | "isnull"
-//   | "notnull";
 
 export interface FilterChoice {
   value: string;
@@ -124,6 +116,10 @@ export interface TableViewProps<TData> {
 export interface GlobalSearchProps {
   value: string;
   onSubmit: (value: string) => void;
+}
+
+export interface RefreshButtonProps {
+  onRefresh: () => void;
 }
 
 export interface FilterButtonProps {

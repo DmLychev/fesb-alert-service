@@ -38,7 +38,6 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    bg="bg.panel"
                     zIndex={1}
                     style={{
                       width: header.getSize(),
