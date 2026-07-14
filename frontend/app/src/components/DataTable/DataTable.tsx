@@ -44,6 +44,7 @@ const DataTable = <TData,>({
     isFilterBlockOpen: false,
     showSkeleton: false,
     refreshVersion: 0,
+    isRefreshing: false,
   });
 
   const [data, setData] = useState<TData[]>([]);
@@ -78,7 +79,7 @@ const DataTable = <TData,>({
   };
 
   const handleRefresh = () => {
-    updateUiState("pageIndex", 0);
+    updateUiState("isRefreshing", true);
     updateUiState("refreshVersion", uiState.refreshVersion + 1);
   };
 
@@ -88,6 +89,8 @@ const DataTable = <TData,>({
     let skeletonTimer: ReturnType<typeof setTimeout> | undefined;
 
     const load = async () => {
+      const refreshStartedAt = performance.now();
+
       try {
         skeletonTimer = setTimeout(() => {
           updateUiState("showSkeleton", true);
@@ -119,7 +122,18 @@ const DataTable = <TData,>({
       } finally {
         if (skeletonTimer) clearTimeout(skeletonTimer);
 
-        if (!controller.signal.aborted) updateUiState("showSkeleton", false);
+        const elapsed = performance.now() - refreshStartedAt;
+        const remainingAnimationTime = Math.max(0, 300 - elapsed);
+        if (remainingAnimationTime > 0) {
+          await new Promise<void>((resolve) =>
+            setTimeout(resolve, remainingAnimationTime),
+          );
+        }
+
+        if (!controller.signal.aborted) {
+          updateUiState("showSkeleton", false);
+          updateUiState("isRefreshing", false);
+        }
       }
     };
 
@@ -207,7 +221,10 @@ const DataTable = <TData,>({
 
         <HStack gap={2}>
           {/* Кнопка обновления */}
-          <RefreshButton onRefresh={handleRefresh} />
+          <RefreshButton
+            onRefresh={handleRefresh}
+            isRefreshing={uiState.isRefreshing}
+          />
 
           {/* Кнопка фильтрации */}
           {hasFilterFields && (

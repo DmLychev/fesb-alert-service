@@ -34,6 +34,7 @@ export interface TableUiState {
   isFilterBlockOpen: boolean;
   showSkeleton: boolean;
   refreshVersion: number;
+  isRefreshing: boolean;
 }
 
 export type FilterFieldType =
@@ -120,6 +121,7 @@ export interface GlobalSearchProps {
 
 export interface RefreshButtonProps {
   onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
 export interface FilterButtonProps {
