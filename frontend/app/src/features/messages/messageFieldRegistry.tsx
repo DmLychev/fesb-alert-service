@@ -1,7 +1,9 @@
+import { Text } from "@chakra-ui/react";
 import type { TableFieldRegistry } from "../../components/DataTable";
 import { formatDateTime } from "../../components/DataTable/utils/date";
 import StatusCell from "./components/StatusCell";
 import type { Message } from "./types";
+import ScrollableTextCell from "./components/ScrollableTextCell";
 
 export const MESSAGE_FIELD_REGISTRY = {
   "route.domainName": {
@@ -74,6 +76,7 @@ export const MESSAGE_FIELD_REGISTRY = {
     column: {
       accessorFn: (message) => message.errorMessage,
       enableSorting: true,
+      cell: ({ getValue }) => <ScrollableTextCell getValue={getValue} />,
     },
 
     filter: {

@@ -171,6 +171,7 @@ const DataTable = <TData,>({
                 {row.getVisibleCells().map((cell) => (
                   <Table.Cell
                     key={cell.id}
+                    verticalAlign="top"
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
