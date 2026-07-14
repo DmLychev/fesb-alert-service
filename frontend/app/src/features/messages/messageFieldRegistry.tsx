@@ -32,6 +32,7 @@ export const MESSAGE_FIELD_REGISTRY = {
 
   status: {
     label: "Статус",
+    defaultSize: 86,
 
     column: {
       accessorFn: (message) => message.status,
@@ -52,6 +53,7 @@ export const MESSAGE_FIELD_REGISTRY = {
 
   startDate: {
     label: "Начало обработки",
+    defaultSize: 176,
 
     column: {
       accessorFn: (message) => message.startDate,

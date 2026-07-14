@@ -10,10 +10,13 @@ const DataTable = <TData,>({
   return (
     <Table.ScrollArea
       borderWidth="1px"
-      maxW="1200px"
       rounded="md"
       width="full"
+      flex="1"
+      minHeight={0}
       overflowX="auto"
+      overflowY="auto"
+      overscrollBehavior="contain"
     >
       <Table.Root
         variant="outline"
@@ -36,6 +39,8 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
+                    bg="bg.panel"
+                    zIndex={1}
                     style={{
                       width: header.getSize(),
                       minWidth: header.getSize(),

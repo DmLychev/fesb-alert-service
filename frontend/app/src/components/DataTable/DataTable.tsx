@@ -1,4 +1,4 @@
-import { Flex, HStack, Stack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Stack } from "@chakra-ui/react";
 import {
   functionalUpdate,
   getCoreRowModel,
@@ -189,8 +189,8 @@ const DataTable = <TData,>({
   const hasFilterFields = Object.keys(filterFields).length > 0;
 
   return (
-    <Stack width="full" gap={5}>
-      <Flex justifyContent="space-between" gap={4}>
+    <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
+      <Flex justifyContent="space-between" gap={4} flexShrink={0}>
         {/* Глобальный поиск */}
         <GlobalSearch
           value={uiState.globalSearch}
@@ -222,20 +222,22 @@ const DataTable = <TData,>({
 
       {/* Панель фильтрации */}
       {hasFilterFields && uiState.isFilterBlockOpen && (
-        <FilterPanel
-          activeFilters={uiState.displayedFilters}
-          committedFilters={preferences.filters}
-          filterFields={filterFields}
-          onFiltersChange={(updater) => {
-            const nextFilters =
-              typeof updater === "function"
-                ? updater(uiState.displayedFilters)
-                : updater;
+        <Box flexShrink={0}>
+          <FilterPanel
+            activeFilters={uiState.displayedFilters}
+            committedFilters={preferences.filters}
+            filterFields={filterFields}
+            onFiltersChange={(updater) => {
+              const nextFilters =
+                typeof updater === "function"
+                  ? updater(uiState.displayedFilters)
+                  : updater;
 
-            updateUiState("displayedFilters", nextFilters);
-          }}
-          onFiltersSubmit={handleFilterSubmit}
-        />
+              updateUiState("displayedFilters", nextFilters);
+            }}
+            onFiltersSubmit={handleFilterSubmit}
+          />
+        </Box>
       )}
 
       {/* Таблица */}
@@ -247,16 +249,18 @@ const DataTable = <TData,>({
 
       {/* Пагинация */}
       {uiState.totalCount > 0 && (
-        <TablePagination
-          pageIndex={uiState.pageIndex}
-          pageSize={preferences.pageSize}
-          totalCount={uiState.totalCount}
-          pageSizeOptions={page_size_options}
-          onPageChange={(newPage: number) => {
-            table.setPageIndex(newPage - 1);
-          }}
-          onPageSizeChange={(newSize) => table.setPageSize(newSize)}
-        />
+        <Box flexShrink={0}>
+          <TablePagination
+            pageIndex={uiState.pageIndex}
+            pageSize={preferences.pageSize}
+            totalCount={uiState.totalCount}
+            pageSizeOptions={page_size_options}
+            onPageChange={(newPage: number) => {
+              table.setPageIndex(newPage - 1);
+            }}
+            onPageSizeChange={(newSize) => table.setPageSize(newSize)}
+          />
+        </Box>
       )}
     </Stack>
   );

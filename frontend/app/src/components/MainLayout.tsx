@@ -5,9 +5,25 @@ import { Outlet } from "react-router-dom";
 
 const MainLayout: React.FC = () => {
   return (
-    <Box minH="100vh">
-      <NavBar />
-      <Container as="main" maxW="1200px" py={8}>
+    <Box
+      height="100dvh"
+      display="flex"
+      flexDirection="column"
+      overflow="hidden"
+    >
+      <Box flexShrink={0}>
+        <NavBar />
+      </Box>
+
+      <Container
+        as="main"
+        maxW="1200px"
+        width="full"
+        flex="1"
+        minHeight={0}
+        py={4}
+        overflow="hidden"
+      >
         <Outlet />
       </Container>
     </Box>
