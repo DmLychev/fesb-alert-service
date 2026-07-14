@@ -41,7 +41,7 @@ const DataTable = <TData,>({
                     overflow="hidden"
                     textOverflow="ellipsis"
                     zIndex={1}
-                    bg="bg.panel"
+                    bg="bg.muted"
                     style={{
                       width: header.getSize(),
                       minWidth: header.getSize(),
