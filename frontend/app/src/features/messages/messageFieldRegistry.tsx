@@ -1,4 +1,3 @@
-import { Text } from "@chakra-ui/react";
 import type { TableFieldRegistry } from "../../components/DataTable";
 import { formatDateTime } from "../../components/DataTable/utils/date";
 import StatusCell from "./components/StatusCell";
