@@ -8,3 +8,7 @@ PyJWT>=2.13,<2.14
 drf-spectacular>=0.29,<0.30
 psycopg2>=2.9.11,<2.10
 uwsgi>=2.0.31,<2.1
+redis>=8.0.1,<8.1
+channels>=4.3.2,<4.4
+channels-redis>=4.3.0,<4.4
+daphne>=4.2.2,<4.3

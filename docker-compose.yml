@@ -16,19 +16,6 @@ services:
       - BACKEND_HOST="http://127.0.0.1:8000"
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
-#    develop:
-#      watch:
-#        - action: sync
-#          path: ./src
-#          target: /app/src
-#          ignore:
-#            - node_modules/
-#        - action: rebuild
-#          path: ./package.json
-#          target: /app/package.json
-#        - action: rebuild
-#          path: ./vite.config.ts
-#          target: /app/vite.config.ts
     depends_on:
       - backend
 
@@ -51,9 +38,32 @@ services:
       - DB_NAME=devdb
       - DB_USER=dbuser
       - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
       - DEBUG=1
     depends_on:
       - db
+      - redis
+
+  backend-events-listener:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    restart: always
+    container_name: fesb-alert-backend-events-listener
+    volumes:
+      - ./backend:/app
+      - dev-static-data:/vol/web
+    command: python manage.py listen_message_events
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=1
+    depends_on:
+      - redis
+      - backend
 
   worker:
     build: ./worker
@@ -72,9 +82,11 @@ services:
       - DB_NAME=devdb
       - DB_USER=dbuser
       - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
       - DEBUG=1
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:18.1-alpine3.23
@@ -83,11 +95,17 @@ services:
       - "5432:5432"
     container_name: fesb-alert-db
     volumes:
-      - dev-db-data:/var/lib/postgresql/data
+      - dev-db-data:/var/lib/postgresql
     environment:
       - POSTGRES_DB=devdb
       - POSTGRES_USER=dbuser
       - POSTGRES_PASSWORD=Cz1cdGBQG5Roq6go>PxE
+
+  redis:
+    image: redis:8-alpine
+    container_name: fesb-alert-redis
+    ports:
+      - "6379:6379"
 
 volumes:
   dev-db-data:

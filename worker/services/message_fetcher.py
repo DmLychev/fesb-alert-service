@@ -15,6 +15,7 @@ from .helpers.fesb import (FesbRequestTimeoutError, get_new_messages, get_messag
 from .helpers.db import (get_settings, db_session_maker, DbRequestTimeoutError, save_messages,
                          get_messages_without_status_and_warning, save_issue, save_fesb_request,
                          get_messages_with_errors_without_error_text)
+from .helpers.redis import publish_new_messages
 from .helpers.models import Message
 
 logger = logging.getLogger('message_fetcher')
@@ -67,6 +68,8 @@ async def get_fesb_messages_and_save_to_db() -> None:
             try:
                 await save_fesb_request(True, 1)
                 await save_messages(messages)
+                if len(messages) > 0:
+                    await publish_new_messages(len(messages))
             except DbRequestTimeoutError as e:
                 msg = f"Превышено время ожидания записи сообщений в БД приложения: {type(e)} {e}. Traceback: {traceback.print_exc()}."
                 logger.critical(msg)
