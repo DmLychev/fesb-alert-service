@@ -22,6 +22,8 @@ class Command(BaseCommand):
         pubsub = redis_client.pubsub()
         channel_layer = get_channel_layer()
 
+        print(f"Starting Redis listener on {redis_url}")
+
         await pubsub.subscribe(REDIS_CHANNEL)
 
         try:
