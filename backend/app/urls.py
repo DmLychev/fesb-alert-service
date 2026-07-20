@@ -37,10 +37,10 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/schema/', SpectacularAPIView.as_view(), name='api-schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'), name='api-docs'),
-    path('api/settings/general', SystemSettingsView.as_view(), name='system-settings'),
-    path('api/messages', MessageListView.as_view(), name='messages'),
-    path("api/graphql", csrf_exempt(GraphQLView.as_view(schema=schema))),
-    path("api/websocket-ticket", WebSocketTicketView.as_view(), name='websocket-ticket'),
+    path('api/settings/general/', SystemSettingsView.as_view(), name='system-settings'),
+    path('api/messages/', MessageListView.as_view(), name='messages'),
+    path("api/graphql/", csrf_exempt(GraphQLView.as_view(schema=schema))),
+    path("api/websocket-ticket/", WebSocketTicketView.as_view(), name='websocket-ticket'),
 ]
 
 if settings.DEBUG:

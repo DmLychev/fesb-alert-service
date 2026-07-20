@@ -47,6 +47,6 @@ class WebSocketTicketAuthMiddleware:
                 logger.exception("Failed to consume WebSocket ticket")
 
             if payload is not None and payload['path'] == scope.get('path'):
-                scope['user'] = get_active_user(payload['user_id'])
+                scope['user'] = await get_active_user(payload['user_id'])
 
         return await self.application(scope, receive, send)

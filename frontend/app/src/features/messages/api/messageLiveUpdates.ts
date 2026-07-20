@@ -10,7 +10,7 @@ const createMessageConnectionUrl = async (
   signal: AbortSignal,
 ): Promise<string> => {
   const response = await api.post<WebSocketTicketResponse>(
-    "/api/websocket-ticket",
+    "/api/websocket-ticket/",
     {},
     { signal },
   );

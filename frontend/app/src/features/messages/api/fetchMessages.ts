@@ -35,7 +35,7 @@ const fetchMessages = async ({
   signal,
 }: FetchPageParams): Promise<PageResult<Message>> => {
   const response = await api.post(
-    "/api/graphql",
+    "/api/graphql/",
     {
       query: GET_MESSAGE_PAGE,
       variables: {
