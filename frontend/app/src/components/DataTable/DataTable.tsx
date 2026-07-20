@@ -162,71 +162,98 @@ const DataTable = <TData,>({
   ]);
 
   useEffect(() => {
-    if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.url) return;
+    if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.createConnectionUrl)
+      return;
 
-    const socket = new WebSocket(liveUpdates.url);
+    const controller = new AbortController();
+    let socket: WebSocket | null = null;
     let closedByCleanup = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
-    socket.onmessage = (message) => {
+    const connect = async () => {
       try {
-        const payload: unknown = JSON.parse(message.data);
-
-        if (typeof payload !== "object" || payload === null) return;
-
-        const eventType =
-          "type" in payload ? (payload as { type?: unknown }).type : undefined;
-
-        if (liveUpdates.eventType && eventType !== liveUpdates.eventType)
-          return;
-
-        if (refreshTimer) clearTimeout(refreshTimer);
-
-        refreshTimer = setTimeout(
-          () => requestRefresh(),
-          liveUpdates.debounceMs,
+        const connectionUrl = await liveUpdates.createConnectionUrl(
+          controller.signal,
         );
-      } catch {
+
+        if (controller.signal.aborted) return;
+
+        socket = new WebSocket(connectionUrl);
+
+        socket.onopen = () =>
+          console.info("Authentication WebSocket connected");
+
+        socket.onmessage = (message) => {
+          try {
+            const payload: unknown = JSON.parse(message.data);
+
+            if (typeof payload !== "object" || payload === null) return;
+
+            const eventType =
+              "type" in payload
+                ? (payload as { type?: unknown }).type
+                : undefined;
+
+            if (liveUpdates.eventType && eventType !== liveUpdates.eventType)
+              return;
+
+            if (refreshTimer) clearTimeout(refreshTimer);
+
+            refreshTimer = setTimeout(
+              () => requestRefresh(),
+              liveUpdates.debounceMs,
+            );
+          } catch {
+            toaster.create({
+              title: `Invalid WebSocket message:${message.data}`,
+              type: "error",
+              duration: 6000,
+            });
+          }
+        };
+
+        socket.onerror = () => {
+          toaster.create({
+            title: "WebSocket connection error",
+            type: "error",
+            duration: 6000,
+          });
+        };
+
+        socket.onclose = () => {
+          if (closedByCleanup) return;
+
+          toaster.create({
+            title: "Соединение автообновления закрыто",
+            description:
+              "Включите автообновление повторно, чтобы переподключиться",
+            type: "warning",
+            duration: 6000,
+          });
+        };
+      } catch (error: unknown) {
+        if (controller.signal.aborted) return;
+
         toaster.create({
-          title: `Invalid WebSocket message:${message.data}`,
+          title: "Не удалось получить WebSocket ticket",
+          description: error instanceof Error ? error.message : undefined,
           type: "error",
           duration: 6000,
         });
       }
     };
 
-    socket.onerror = () => {
-      toaster.create({
-        title: "WebSocket connection error",
-        type: "error",
-        duration: 6000,
-      });
-    };
-
-    socket.onclose = () => {
-      if (closedByCleanup) return;
-
-      toaster.create({
-        title: "Соединение автообновления закрыто",
-        description: "Включите автообновление повторно, чтобы переподключиться",
-        type: "warning",
-        duration: 6000,
-      });
-    };
+    void connect();
 
     return () => {
       closedByCleanup = true;
+      controller.abort();
 
       if (refreshTimer) clearTimeout(refreshTimer);
 
-      socket.close();
+      if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     };
-  }, [
-    preferences.isLiveUpdatesEnabled,
-    liveUpdates,
-    requestRefresh,
-    updateUiState,
-  ]);
+  }, [preferences.isLiveUpdatesEnabled, liveUpdates, requestRefresh]);
 
   const table = useReactTable<TData>({
     data,

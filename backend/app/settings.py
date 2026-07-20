@@ -162,7 +162,14 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [os.getenv("REDIS_URL")],
+            "hosts": [{
+                "address": os.getenv("REDIS_URL"),
+                "socket_timeout": None,
+                "socket_connect_timeout": 5
+            }],
         }
     }
 }
+
+WEBSOCKET_TICKET_TTL_SECONDS = int(os.getenv("WEBSOCKET_TICKET_TTL_SECONDS", 30))
+WEBSOCKET_TICKET_REDIS_URL = os.getenv("WEBSOCKET_TICKET_REDIS_URL", os.getenv("REDIS_URL"))

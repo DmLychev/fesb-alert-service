@@ -2,7 +2,7 @@ import axios from "axios";
 import { ACCESS_TOKEN } from "./constants";
 
 const api = axios.create({
-  // baseURL: import.meta.env.BACKEND_HOST,
+  // baseURL: import.meta.env.VITE_BACKEND_HOST,
   baseURL: "http://127.0.0.1:8000",
 });
 

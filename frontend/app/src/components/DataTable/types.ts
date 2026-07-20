@@ -17,7 +17,7 @@ export interface UiFilterRow {
 }
 
 export interface LiveUpdateConfig {
-  url: string;
+  createConnectionUrl: (signal: AbortSignal) => Promise<string>;
   eventType?: string;
   debounceMs?: number;
 }

@@ -25,6 +25,7 @@ from strawberry.django.views import GraphQLView
 
 from alert_service.views import CreateUserView, SystemSettingsView, MessageListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from redis_listener.views import WebSocketTicketView
 
 from alert_service.schema import schema
 
@@ -38,7 +39,8 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'), name='api-docs'),
     path('api/settings/general', SystemSettingsView.as_view(), name='system-settings'),
     path('api/messages', MessageListView.as_view(), name='messages'),
-    path("api/graphql", csrf_exempt(GraphQLView.as_view(schema=schema)))
+    path("api/graphql", csrf_exempt(GraphQLView.as_view(schema=schema))),
+    path("api/websocket-ticket", WebSocketTicketView.as_view(), name='websocket-ticket'),
 ]
 
 if settings.DEBUG:

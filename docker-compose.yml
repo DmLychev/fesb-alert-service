@@ -13,7 +13,8 @@ services:
     stdin_open: true
     tty: true
     environment:
-      - BACKEND_HOST="http://127.0.0.1:8000"
+      - VITE_BACKEND_HOST="http://127.0.0.1:8000"
+      - VITE_WEBSOCKET_BASE_URL=ws://127.0.0.1:8000
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
     depends_on:
@@ -39,6 +40,8 @@ services:
       - DB_USER=dbuser
       - DB_PASS=Cz1cdGBQG5Roq6go>PxE
       - REDIS_URL=redis://redis:6379/0
+      - WEBSOCKET_TICKET_REDIS_URL=redis://redis:6379/1
+      - WEBSOCKET_TICKET_TTL_SECONDS=30
       - DEBUG=1
     depends_on:
       - db

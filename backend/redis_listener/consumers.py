@@ -5,11 +5,19 @@ class MessageConsumer(AsyncJsonWebsocketConsumer):
     group_name = 'messages'
 
     async def connect(self):
+        user = self.scope['user']
+
+        if user is None or not user.is_authenticated:
+            await self.close(code=4401)
+            return
+
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
         await self.accept()
+
+        print(f"Authenticated WebSocket: {user.username}", flush=True)
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(

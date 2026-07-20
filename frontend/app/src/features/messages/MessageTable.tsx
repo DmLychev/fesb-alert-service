@@ -3,7 +3,7 @@ import type { Message } from "./types";
 import { messageColumns, messageFilterFields } from "./messageTableDefinitions";
 import { messageTablePreferences } from "./messageTablePreferences";
 import fetchMessages from "./api/fetchMessages";
-import { messagesWebSocketConfig } from "../../components/DataTable/constants";
+import { messageLiveUpdateConfig } from "./api/messageLiveUpdates";
 
 const MessageTable = () => {
   return (
@@ -13,7 +13,7 @@ const MessageTable = () => {
       filterFields={messageFilterFields}
       defaultPreferences={messageTablePreferences}
       fetchPage={fetchMessages}
-      liveUpdates={messagesWebSocketConfig}
+      liveUpdates={messageLiveUpdateConfig}
     />
   );
 };

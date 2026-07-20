@@ -16,7 +16,14 @@ from redis_listener.routing import websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
 
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
+from redis_listener.middleware import WebSocketTicketAuthMiddleware
+from redis_listener.routing import websocket_urlpatterns
+
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
-    'websocket': URLRouter(websocket_urlpatterns),
+    'websocket': AllowedHostsOriginValidator(
+        WebSocketTicketAuthMiddleware(URLRouter(websocket_urlpatterns)),
+    ),
 })

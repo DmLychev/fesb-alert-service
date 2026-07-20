@@ -1,5 +1,5 @@
 import { createListCollection } from "@chakra-ui/react";
-import type { LiveUpdateConfig, TablePreferences } from "./types";
+import type { TablePreferences } from "./types";
 
 export const default_table_preferences: TablePreferences = {
   version: 1,
@@ -38,12 +38,3 @@ export const bool_values = createListCollection({
     { value: "false", label: "ЛОЖЬ" },
   ],
 });
-
-const websocketProtocol =
-  window.location.protocol === "https:" ? "wss:" : "ws:";
-
-export const messagesWebSocketConfig: LiveUpdateConfig = {
-  url: `${websocketProtocol}//127.0.0.1:8000/ws/messages/`,
-  eventType: "messages_created",
-  debounceMs: 250,
-};
