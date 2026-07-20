@@ -196,7 +196,6 @@ const DataTable = <TData,>({
     };
 
     socket.onerror = () => {
-      updatePreferences("isLiveUpdatesEnabled", false);
       toaster.create({
         title: "WebSocket connection error",
         type: "error",

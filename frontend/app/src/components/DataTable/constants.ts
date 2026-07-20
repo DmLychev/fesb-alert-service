@@ -39,6 +39,11 @@ export const bool_values = createListCollection({
   ],
 });
 
+const websocketProtocol =
+  window.location.protocol === "https:" ? "wss:" : "ws:";
+
 export const messagesWebSocketConfig: LiveUpdateConfig = {
-  url: "http://127.0.0.1:8000/ws/messages",
+  url: `${websocketProtocol}//127.0.0.1:8000/ws/messages/`,
+  eventType: "messages_created",
+  debounceMs: 250,
 };
