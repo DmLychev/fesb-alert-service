@@ -16,6 +16,12 @@ export interface UiFilterRow {
   value: string;
 }
 
+export interface LiveUpdateConfig {
+  url: string;
+  eventType?: string;
+  debounceMs?: number;
+}
+
 export interface TablePreferences {
   version: number;
   sorting: SortingState;
@@ -24,6 +30,7 @@ export interface TablePreferences {
   columnSizing: ColumnSizingState;
   filters: UiFilterRow[];
   pageSize: number;
+  isLiveUpdatesEnabled: boolean;
 }
 
 export interface TableUiState {
@@ -106,6 +113,7 @@ export interface DataTableProps<Tdata> {
 
   fetchPage: (params: FetchPageParams) => Promise<PageResult<Tdata>>;
   getRowId?: (row: Tdata) => string;
+  liveUpdates?: LiveUpdateConfig;
 }
 
 export interface TableViewProps<TData> {
@@ -122,6 +130,11 @@ export interface GlobalSearchProps {
 export interface RefreshButtonProps {
   onRefresh: () => void;
   isRefreshing: boolean;
+}
+
+export interface LiveUpdateToggleProps {
+  isChecked: boolean;
+  onCheckedChange: (checked: boolean) => void;
 }
 
 export interface FilterButtonProps {

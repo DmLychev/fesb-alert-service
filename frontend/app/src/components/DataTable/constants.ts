@@ -1,5 +1,5 @@
 import { createListCollection } from "@chakra-ui/react";
-import type { TablePreferences } from "./types";
+import type { LiveUpdateConfig, TablePreferences } from "./types";
 
 export const default_table_preferences: TablePreferences = {
   version: 1,
@@ -9,6 +9,7 @@ export const default_table_preferences: TablePreferences = {
   columnOrder: [],
   columnSizing: {},
   pageSize: 10,
+  isLiveUpdatesEnabled: false,
 };
 
 export const page_size_options = createListCollection({
@@ -37,3 +38,7 @@ export const bool_values = createListCollection({
     { value: "false", label: "ЛОЖЬ" },
   ],
 });
+
+export const messagesWebSocketConfig: LiveUpdateConfig = {
+  url: "http://127.0.0.1:8000/ws/messages",
+};

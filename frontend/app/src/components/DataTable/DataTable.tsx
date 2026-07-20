@@ -6,7 +6,7 @@ import {
   type Updater,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
@@ -20,6 +20,7 @@ import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
 import RefreshButton from "./components/RefreshButton";
+import LiveUpdateToggle from "./components/LiveUpdateToggle";
 
 const DataTable = <TData,>({
   storageKey,
@@ -28,6 +29,7 @@ const DataTable = <TData,>({
   defaultPreferences,
   fetchPage,
   getRowId,
+  liveUpdates,
 }: DataTableProps<TData>) => {
   // Постоянные параметры таблицы, хранимые в локальном хранилище браузера
   const { preferences, updatePreferences } = useTablePreferences(
@@ -78,10 +80,15 @@ const DataTable = <TData,>({
     }
   };
 
-  const handleRefresh = () => {
+  // const handleRefresh = () => {
+  //   updateUiState("isRefreshing", true);
+  //   updateUiState("refreshVersion", uiState.refreshVersion + 1);
+  // };
+
+  const requestRefresh = useCallback(() => {
     updateUiState("isRefreshing", true);
-    updateUiState("refreshVersion", uiState.refreshVersion + 1);
-  };
+    updateUiState("refreshVersion", (prev) => prev + 1);
+  }, [updateUiState]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -154,6 +161,74 @@ const DataTable = <TData,>({
     uiState.refreshVersion,
   ]);
 
+  useEffect(() => {
+    if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.url) return;
+
+    const socket = new WebSocket(liveUpdates.url);
+    let closedByCleanup = false;
+    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+    socket.onmessage = (message) => {
+      try {
+        const payload: unknown = JSON.parse(message.data);
+
+        if (typeof payload !== "object" || payload === null) return;
+
+        const eventType =
+          "type" in payload ? (payload as { type?: unknown }).type : undefined;
+
+        if (liveUpdates.eventType && eventType !== liveUpdates.eventType)
+          return;
+
+        if (refreshTimer) clearTimeout(refreshTimer);
+
+        refreshTimer = setTimeout(
+          () => requestRefresh(),
+          liveUpdates.debounceMs,
+        );
+      } catch {
+        toaster.create({
+          title: `Invalid WebSocket message:${message.data}`,
+          type: "error",
+          duration: 6000,
+        });
+      }
+    };
+
+    socket.onerror = () => {
+      updatePreferences("isLiveUpdatesEnabled", false);
+      toaster.create({
+        title: "WebSocket connection error",
+        type: "error",
+        duration: 6000,
+      });
+    };
+
+    socket.onclose = () => {
+      if (closedByCleanup) return;
+
+      toaster.create({
+        title: "Соединение автообновления закрыто",
+        description: "Включите автообновление повторно, чтобы переподключиться",
+        type: "warning",
+        duration: 6000,
+      });
+    };
+
+    return () => {
+      closedByCleanup = true;
+
+      if (refreshTimer) clearTimeout(refreshTimer);
+
+      socket.close();
+    };
+  }, [
+    preferences.isLiveUpdatesEnabled,
+    liveUpdates,
+    requestRefresh,
+    updateUiState,
+  ]);
+
   const table = useReactTable<TData>({
     data,
     columns,
@@ -222,8 +297,16 @@ const DataTable = <TData,>({
         <HStack gap={2}>
           {/* Кнопка обновления */}
           <RefreshButton
-            onRefresh={handleRefresh}
+            onRefresh={requestRefresh}
             isRefreshing={uiState.isRefreshing}
+          />
+
+          {/* Переключатель автообновления */}
+          <LiveUpdateToggle
+            isChecked={preferences.isLiveUpdatesEnabled}
+            onCheckedChange={(checked) =>
+              updatePreferences("isLiveUpdatesEnabled", checked)
+            }
           />
 
           {/* Кнопка фильтрации */}

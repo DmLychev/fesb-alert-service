@@ -11,4 +11,5 @@ export const messageTablePreferences: TablePreferences = {
     .map(([fieldId]) => fieldId),
   columnSizing: {},
   pageSize: 10,
+  isLiveUpdatesEnabled: false,
 };
