@@ -18,6 +18,8 @@ class MessageConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def messages_created(self, event):
+        print("Websocket event:", event, flush=True)
+
         await self.send_json({
             "type": "messages_created",
             "count": event["count"]

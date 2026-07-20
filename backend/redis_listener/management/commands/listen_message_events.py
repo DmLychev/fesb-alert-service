@@ -6,7 +6,7 @@ import redis.asyncio as redis
 from channels.layers import get_channel_layer
 from django.core.management.base import BaseCommand
 
-REDIS_CHANNEL = 'messages.created'
+REDIS_CHANNEL = 'messages'
 CHANNELS_GROUP = 'messages'
 
 
@@ -32,14 +32,11 @@ class Command(BaseCommand):
                     continue
 
                 payload = json.loads(message["data"])
-                print(f"Django received message: {payload}")
+                print(f"Django event listener received message: {payload}")
 
                 await channel_layer.group_send(
                     CHANNELS_GROUP,
-                    {
-                        "type": "messages.created",
-                        "count": payload["count"],
-                    },
+                    payload,
                 )
         finally:
             await pubsub.unsubscribe(REDIS_CHANNEL)
