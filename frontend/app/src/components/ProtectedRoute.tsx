@@ -7,8 +7,7 @@ interface Props {
 }
 
 function ProtectedRoute({ children }: Props) {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -16,10 +15,7 @@ function ProtectedRoute({ children }: Props) {
     const checkAuthorization = async () => {
       const authorized = await hasValidSession();
 
-      if (cancelled) return;
-
-      setIsAuthorized(authorized);
-      setIsLoading(false);
+      if (!cancelled) setIsAuthorized(authorized);
     };
 
     void checkAuthorization();
@@ -29,7 +25,7 @@ function ProtectedRoute({ children }: Props) {
     };
   }, []);
 
-  if (isLoading) return <>Loading...</>;
+  if (isAuthorized === null) return <>Loading...</>;
 
   return isAuthorized ? children : <Navigate to="/login" replace />;
 }
