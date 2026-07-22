@@ -41,7 +41,6 @@ const DataTable = <TData,>({
                 return (
                   <Table.ColumnHeader
                     key={header.id}
-                    position="relative"
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
@@ -52,8 +51,9 @@ const DataTable = <TData,>({
                       maxWidth: header.getSize(),
 
                       ...getPinnedColumnStyles(header.column),
+
+                      zIndex: header.column.getIsPinned() ? 4 : 3,
                     }}
-                    zIndex={header.column.getIsPinned() ? 3 : 1}
                   >
                     {header.isPlaceholder ? null : (
                       <Button

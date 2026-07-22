@@ -11,7 +11,7 @@ export const getPinnedColumnStyles = <TData>(
     pinned === "right" && column.getIsFirstColumn("right");
 
   return {
-    position: pinned ? "sticky" : "relative",
+    position: pinned ? "sticky" : undefined,
     left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
     right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
     zIndex: pinned ? 2 : 0,
