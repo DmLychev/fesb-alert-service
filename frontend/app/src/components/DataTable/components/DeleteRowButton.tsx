@@ -9,7 +9,7 @@ interface DeleteRowButton {
 const DeleteRowButton = ({ disabled, onDelete }: DeleteRowButton) => {
   return (
     <IconButton onClick={onDelete} variant="ghost" disabled={disabled}>
-      <Icon color="red" size="lg" asChild>
+      <Icon color="red" size="sm" asChild>
         <MdDelete />
       </Icon>
     </IconButton>

@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
-import type { DataTableProps, UiFilterRow } from "./types";
+import type { DataTableProps, UiFilterRow, UpdateCellParams } from "./types";
 import {
   ACTIONS_COLUMN_ID,
   page_size_options,
@@ -214,6 +214,43 @@ const DataTable = <TData,>({
       }
     },
     [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
+  );
+
+  const handleUpdateCell = useCallback(
+    async ({ rowId, fieldId, value }: UpdateCellParams): Promise<void> => {
+      if (!editing?.updateRow) return;
+
+      if (!editing.fields[fieldId])
+        throw new Error(`Field ${fieldId} is not editable`);
+
+      const controller = new AbortController();
+
+      try {
+        const updateRow = await editing.updateRow({
+          rowId,
+          changes: { [fieldId]: value },
+          signal: controller.signal,
+        });
+
+        setData((previousRows) =>
+          previousRows.map((row) =>
+            getRowId?.(row) === rowId ? updateRow : row,
+          ),
+        );
+      } catch (error: unknown) {
+        toaster.create({
+          title:
+            error instanceof Error
+              ? error.message
+              : "Не удалось обновить запись",
+          type: "error",
+          duration: 6000,
+        });
+
+        throw error;
+      }
+    },
+    [editing, getRowId],
   );
 
   useEffect(() => {
@@ -528,9 +565,10 @@ const DataTable = <TData,>({
       {/* Таблица */}
       <TableView
         table={table}
-        // showSkeleton={loading}
         showSkeleton={uiState.showSkeleton}
         pageSize={preferences.pageSize}
+        editableFields={editing?.updateRow ? editing.fields : undefined}
+        onUpdateCell={editing?.updateRow ? handleUpdateCell : undefined}
       />
 
       {/* Пагинация */}

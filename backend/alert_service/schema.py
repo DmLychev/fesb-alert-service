@@ -6,8 +6,11 @@ from typing_extensions import Self
 
 from django.db.models import Q
 from django.db import transaction
+from django.core.exceptions import ValidationError
 
-from typing import List, Optional, Any, Awaitable
+from graphql import GraphQLError
+
+from typing import List, Optional
 import datetime
 
 from .models import Message, Route
@@ -101,7 +104,7 @@ class MessageOrder:
 @strawberry.type
 class MessagePaginationResult:
     count: int
-    results: List[MessageType]
+    results: List[Message]
 
 
 @strawberry.type
@@ -146,9 +149,6 @@ class Query:
         )
 
 
-
-
-
 @strawberry.type
 class DeleteMessagesPayload:
     deleted_count: int
@@ -156,8 +156,14 @@ class DeleteMessagesPayload:
 
 
 @strawberry.type
+class UpdateMessageInput:
+    id: strawberry.ID
+    status = strawberry.Maybe[str | None]
+
+
+@strawberry.type
 class Mutation:
-    @strawberry.mutation(permission_classes=[IsAuthenticated,])
+    @strawberry.mutation(permission_classes=[IsAuthenticated, ])
     @transaction.atomic
     def delete_messages(self, ids: list[strawberry.ID]) -> DeleteMessagesPayload:
         numeric_ids = [int(_id) for _id in ids]
@@ -172,6 +178,37 @@ class Mutation:
             deleted_count=len(existing_ids),
             deleted_ids=[strawberry.ID(str(_id)) for _id in existing_ids],
         )
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated, ])
+    @transaction.atomic
+    def update_message(self, data: UpdateMessageInput) -> Message:
+        try:
+            message = Message.objects.select_related("route").get(pk=data.id)
+        except Message.DoesNotExist as error:
+            raise GraphQLError("Message not found") from error
+
+        changed_fields: list[str] = []
+
+        if data.status is not None:
+            status = data.status.value
+
+            if status not in [None, "SUCCESS", "ERROR"]:
+                raise GraphQLError("Unsupported message status")
+
+            message.status = status
+            changed_fields.append('status')
+
+        if not changed_fields:
+            return message
+
+        try:
+            message.full_clean()
+        except ValidationError as error:
+            raise GraphQLError("; ".join(error.messages)) from error
+
+        message.save(update_fields=[*changed_fields, "updated_at", ])
+
+        return message
 
 
 # Instantiate the execution instance for urls.py

@@ -13,6 +13,7 @@ export const getPinnedColumnStyles = <TData>(
 
   return {
     position: isHeader || pinned ? "sticky" : undefined,
+    top: isHeader ? 0 : undefined,
     left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
     right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
     zIndex: isHeader ? (pinned ? 4 : 3) : pinned ? 2 : 0,

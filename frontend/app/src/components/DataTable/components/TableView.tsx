@@ -1,12 +1,15 @@
 import { Box, Button, Skeleton, Table, Text } from "@chakra-ui/react";
-import type { TableViewProps } from "../types";
+import type { EditableValue, TableViewProps } from "../types";
 import { flexRender } from "@tanstack/react-table";
 import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
+import EditableCell from "./EditableCell";
 
 const DataTable = <TData,>({
   table,
   showSkeleton,
   pageSize,
+  editableFields,
+  onUpdateCell,
 }: TableViewProps<TData>) => {
   return (
     <Table.ScrollArea
@@ -200,7 +203,33 @@ const DataTable = <TData,>({
                       ...getPinnedColumnStyles(cell.column),
                     }}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    {(() => {
+                      const displayContent = flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      );
+
+                      const editableDefinition =
+                        editableFields?.[cell.column.id];
+
+                      if (!editableDefinition || !onUpdateCell)
+                        return displayContent;
+
+                      return (
+                        <EditableCell
+                          definition={editableDefinition}
+                          value={cell.getValue() as EditableValue}
+                          displayContent={displayContent}
+                          onSave={(value) =>
+                            onUpdateCell({
+                              rowId: row.id,
+                              fieldId: cell.column.id,
+                              value,
+                            })
+                          }
+                        />
+                      );
+                    })()}
                   </Table.Cell>
                 ))}
               </Table.Row>

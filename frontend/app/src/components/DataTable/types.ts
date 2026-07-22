@@ -134,10 +134,20 @@ export interface DataTableProps<Tdata> {
   editing?: DataTableEditingConfig<Tdata>;
 }
 
+export interface UpdateCellParams {
+  rowId: string;
+  fieldId: string;
+  value: EditableValue;
+}
+
 export interface TableViewProps<TData> {
   table: Table<TData>;
   showSkeleton: boolean;
   pageSize: number;
+
+  editableFields?: EditableFieldRegistry;
+
+  onUpdateCell?: (params: UpdateCellParams) => Promise<void>;
 }
 
 export interface GlobalSearchProps {
