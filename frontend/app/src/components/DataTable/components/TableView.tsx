@@ -149,6 +149,8 @@ const DataTable = <TData,>({
                 {table.getVisibleLeafColumns().map((column) => (
                   <Table.Cell
                     key={`skeleton-cell-${rowIndex}-${column.id}`}
+                    borderBottomWidth="1px"
+                    borderBottomColor="border.muted"
                     bg={column.getIsPinned() ? "bg.panel" : undefined}
                     style={{
                       width: column.getSize(),
@@ -171,6 +173,8 @@ const DataTable = <TData,>({
                 colSpan={table.getVisibleLeafColumns().length}
                 textAlign="center"
                 py={10}
+                borderBottomWidth="1px"
+                borderBottomColor="border.muted"
               >
                 <Text color="fg.muted">
                   Записи не найдены по заданным условиям поиска
@@ -188,10 +192,15 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
+                    borderBottomWidth="1px"
+                    borderBottomColor="border.muted"
+                    bg={cell.column.getIsPinned() ? "bg.panel" : undefined}
                     style={{
                       width: cell.column.getSize(),
                       minWidth: cell.column.getSize(),
                       maxWidth: cell.column.getSize(),
+
+                      ...getPinnedColumnStyles(cell.column),
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

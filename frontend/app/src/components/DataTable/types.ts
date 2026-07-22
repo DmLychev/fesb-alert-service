@@ -214,5 +214,5 @@ export interface DataTableEditingConfig<TData> {
 
   deleteRows: (params: DeleteRowsParams) => Promise<void>;
 
-  candDeleteRow?: (row: TData) => boolean;
+  canDeleteRow?: (row: TData) => boolean;
 }

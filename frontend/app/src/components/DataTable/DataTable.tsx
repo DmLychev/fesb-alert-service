@@ -324,7 +324,7 @@ const DataTable = <TData,>({
       enableHiding: false,
       enableResizing: false,
 
-      header: ({ table }) => {
+      header: ({ table }) => (
         <RowSelectionCheckbox
           checked={
             table.getIsAllPageRowsSelected()
@@ -336,8 +336,8 @@ const DataTable = <TData,>({
           onCheckedChange={(checked) =>
             table.toggleAllPageRowsSelected(checked)
           }
-        />;
-      },
+        />
+      ),
 
       cell: ({ row }) => (
         <RowSelectionCheckbox
@@ -364,8 +364,7 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <DeleteRowButton
           disabled={
-            uiState.isMutating ||
-            editing.candDeleteRow?.(row.original) === false
+            uiState.isMutating || editing.canDeleteRow?.(row.original) === false
           }
           onDelete={() => void handleDeleteRows([row.id])}
         />

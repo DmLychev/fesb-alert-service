@@ -16,6 +16,7 @@ const RowSelectionCheckbox = ({
       checked={checked}
       disabled={disabled}
       onCheckedChange={({ checked }) => onCheckedChange(checked === true)}
+      size="sm"
     >
       <Checkbox.HiddenInput />
       <Checkbox.Control>

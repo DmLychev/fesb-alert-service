@@ -21,7 +21,7 @@ from django.conf import settings
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from django.views.decorators.csrf import csrf_exempt
-from strawberry.django.views import GraphQLView
+from .graphql_view import JWTGraphQLView
 
 from alert_service.views import CreateUserView, SystemSettingsView, MessageListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -39,7 +39,7 @@ urlpatterns = [
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='api-schema'), name='api-docs'),
     path('api/settings/general/', SystemSettingsView.as_view(), name='system-settings'),
     path('api/messages/', MessageListView.as_view(), name='messages'),
-    path("api/graphql/", csrf_exempt(GraphQLView.as_view(schema=schema))),
+    path("api/graphql/", csrf_exempt(JWTGraphQLView.as_view(schema=schema))),
     path("api/websocket-ticket/", WebSocketTicketView.as_view(), name='websocket-ticket'),
 ]
 

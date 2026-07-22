@@ -6,12 +6,12 @@ interface GraphQLErrorItem {
 }
 
 interface DeleteMessagesResponse {
-  data?: {
+  data: {
     deletedMessages: {
       deletedCount: number;
       deletedIds: string[];
     };
-  };
+  } | null;
 
   errors?: GraphQLErrorItem[];
 }
@@ -37,7 +37,14 @@ export const deleteMessages = async ({
     { signal },
   );
 
-  if (response.data.errors?.length) {
+  const graphQLErrors = response.data.errors;
+
+  if (graphQLErrors?.length)
+    throw new Error(graphQLErrors.map((error) => error.message).join("; "));
+
+  const result = response.data.data?.deletedMessages;
+
+  if (!result) {
     throw new Error("Delete mutation returned no data");
   }
 };
