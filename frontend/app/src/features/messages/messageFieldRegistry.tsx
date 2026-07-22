@@ -13,9 +13,11 @@ export const MESSAGE_FIELD_REGISTRY = {
       enableSorting: true,
     },
 
-    filter: {
+    value: {
       type: "string",
     },
+
+    filter: true,
   },
 
   "route.name": {
@@ -26,9 +28,11 @@ export const MESSAGE_FIELD_REGISTRY = {
       enableSorting: true,
     },
 
-    filter: {
+    value: {
       type: "string",
     },
+
+    filter: true,
   },
 
   status: {
@@ -42,7 +46,7 @@ export const MESSAGE_FIELD_REGISTRY = {
       cell: ({ getValue }) => <StatusCell value={getValue()} />,
     },
 
-    filter: {
+    value: {
       type: "choice",
       nullable: true,
       choices: [
@@ -50,6 +54,9 @@ export const MESSAGE_FIELD_REGISTRY = {
         { value: "ERROR", label: "ERROR" },
       ],
     },
+
+    filter: true,
+    edit: true,
   },
 
   startDate: {
@@ -63,9 +70,11 @@ export const MESSAGE_FIELD_REGISTRY = {
       cell: ({ getValue }) => formatDateTime(getValue()),
     },
 
-    filter: {
+    value: {
       type: "datetime",
     },
+
+    filter: true,
   },
 
   errorMessage: {
@@ -78,10 +87,12 @@ export const MESSAGE_FIELD_REGISTRY = {
       cell: ({ getValue }) => <ScrollableTextCell getValue={getValue} />,
     },
 
-    filter: {
+    value: {
       type: "string",
       nullable: true,
     },
+
+    filter: true,
   },
 
   updateStatusAttempts: {
@@ -92,9 +103,11 @@ export const MESSAGE_FIELD_REGISTRY = {
       enableSorting: true,
     },
 
-    filter: {
+    value: {
       type: "number",
     },
+
+    filter: true,
   },
 
   exchangeId: {
@@ -105,9 +118,11 @@ export const MESSAGE_FIELD_REGISTRY = {
       enableSorting: true,
     },
 
-    filter: {
+    value: {
       type: "string",
     },
+
+    filter: true,
   },
 
   requestId: {
@@ -118,8 +133,10 @@ export const MESSAGE_FIELD_REGISTRY = {
       enableSorting: true,
     },
 
-    filter: {
+    value: {
       type: "string",
     },
+
+    filter: true,
   },
 } satisfies TableFieldRegistry<Message>;

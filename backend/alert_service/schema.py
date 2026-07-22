@@ -1,12 +1,14 @@
 import strawberry
 import strawberry_django
-from strawberry import auto
+from strawberry import auto, Info
+from strawberry.permission import BasePermission
 
 from typing_extensions import Self
 
 from django.db.models import Q
+from django.db import transaction
 
-from typing import List, Optional
+from typing import List, Optional, Any, Awaitable
 import datetime
 
 from .models import Message, Route
@@ -143,5 +145,41 @@ class Query:
         )
 
 
+class CanDeleteMessages(BasePermission):
+    message = "You do not have permission to delete this message"
+
+    def has_permission(
+            self, source: Any, info: Info, **kwargs: Any
+    ) -> bool | Awaitable[bool]:
+        user = info.context.request.user
+
+        return user.is_authenticated and user.has_perm("alert_service.delete_message")
+
+
+@strawberry.type
+class DeleteMessagesPayload:
+    deleted_count: int
+    deleted_ids: list[strawberry.ID]
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation(permission_classes=[CanDeleteMessages,])
+    @transaction.atomic
+    def delete_messages(self, info, ids: list[strawberry.ID]) -> DeleteMessagesPayload:
+        numeric_ids = [int(_id) for _id in ids]
+
+        queryset = Message.objects.filter(pk__in=numeric_ids, )
+
+        existing_ids = list(queryset.values_list("id", flat=True))
+
+        queryset.delete()
+
+        return DeleteMessagesPayload(
+            deleted_count=len(existing_ids),
+            deleted_ids=[strawberry.ID(str(_id)) for _id in existing_ids],
+        )
+
+
 # Instantiate the execution instance for urls.py
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(query=Query, mutation=Mutation)

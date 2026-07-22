@@ -12,13 +12,17 @@ query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search
     messagesPage(page: $page, size: $size, filters: $filters, search: $search, order: $order) {
         count
         results {
+            id
             exchangeId
             requestId
             status
             errorMessage
             updateStatusAttempts
+            warningLevel
             startDate
+            endDate
             route {
+                id
                 name
                 domainName
             }

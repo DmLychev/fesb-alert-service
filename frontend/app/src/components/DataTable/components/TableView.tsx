@@ -1,6 +1,7 @@
 import { Box, Button, Skeleton, Table, Text } from "@chakra-ui/react";
 import type { TableViewProps } from "../types";
 import { flexRender } from "@tanstack/react-table";
+import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
 
 const DataTable = <TData,>({
   table,
@@ -25,7 +26,11 @@ const DataTable = <TData,>({
         stickyHeader
         interactive
         tableLayout="fixed"
-        style={{ width: table.getTotalSize() }}
+        style={{
+          width: table.getTotalSize(),
+          borderCollapse: "separate",
+          borderSpacing: 0,
+        }}
       >
         <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -40,13 +45,15 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    zIndex={1}
                     bg="bg.muted"
                     style={{
                       width: header.getSize(),
                       minWidth: header.getSize(),
                       maxWidth: header.getSize(),
+
+                      ...getPinnedColumnStyles(header.column),
                     }}
+                    zIndex={header.column.getIsPinned() ? 3 : 1}
                   >
                     {header.isPlaceholder ? null : (
                       <Button
@@ -142,10 +149,13 @@ const DataTable = <TData,>({
                 {table.getVisibleLeafColumns().map((column) => (
                   <Table.Cell
                     key={`skeleton-cell-${rowIndex}-${column.id}`}
+                    bg={column.getIsPinned() ? "bg.panel" : undefined}
                     style={{
                       width: column.getSize(),
                       minWidth: column.getSize(),
                       maxWidth: column.getSize(),
+
+                      ...getPinnedColumnStyles(column),
                     }}
                   >
                     {/* Chakra UI v3 Skeleton line animation */}

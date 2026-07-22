@@ -13,6 +13,7 @@ const MessageTable = () => {
       filterFields={messageFilterFields}
       defaultPreferences={messageTablePreferences}
       fetchPage={fetchMessages}
+      getRowId={(message) => message.id}
       liveUpdates={messageLiveUpdateConfig}
     />
   );

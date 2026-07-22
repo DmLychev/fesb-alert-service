@@ -4,6 +4,7 @@ import {
   type ColumnDef,
   type ColumnSizingState,
   type PaginationState,
+  type RowSelectionState,
   type SortingState,
   type Table,
   type VisibilityState,
@@ -42,6 +43,8 @@ export interface TableUiState {
   showSkeleton: boolean;
   refreshVersion: number;
   isRefreshing: boolean;
+  rowSelection: RowSelectionState;
+  isMutating: boolean;
 }
 
 export type FilterFieldType =
@@ -63,7 +66,13 @@ export interface FilterFieldDefinition {
   choices?: readonly FilterChoice[];
 }
 
+export interface EditableFieldDefinition extends FilterFieldDefinition {
+  control?: "input" | "textarea";
+}
+
 export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;
+
+export type EditableFieldRegistry = Record<string, EditableFieldDefinition>;
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   ? Omit<T, K>
@@ -74,12 +83,18 @@ export type RegistryColumnDef<TData> = DistributiveOmit<
   "id" | "header" | "size" | "minSize"
 >;
 
+export interface EditDefinition {
+  control?: "input" | "textarea";
+}
+
 export interface TableFieldDefinition<TData> {
   label: string;
   defaultSize?: number;
   minSize?: number;
   column?: RegistryColumnDef<TData>;
-  filter?: Omit<FilterFieldDefinition, "label"> | false;
+  value?: Omit<FilterFieldDefinition, "label">;
+  filter?: boolean;
+  edit?: boolean | EditDefinition;
 }
 
 export type TableFieldRegistry<Tdata> = Record<
@@ -90,6 +105,7 @@ export type TableFieldRegistry<Tdata> = Record<
 export interface TableDefinitions<Tdata> {
   columns: ColumnDef<Tdata, any>[];
   filterFields: FilterFieldRegistry;
+  editableFields: EditableFieldRegistry;
 }
 
 export interface PageResult<TData> {
@@ -114,6 +130,8 @@ export interface DataTableProps<Tdata> {
   fetchPage: (params: FetchPageParams) => Promise<PageResult<Tdata>>;
   getRowId?: (row: Tdata) => string;
   liveUpdates?: LiveUpdateConfig;
+
+  editing?: DataTableEditingConfig<Tdata>;
 }
 
 export interface TableViewProps<TData> {
@@ -172,4 +190,29 @@ export interface TablePaginationProps {
   }>;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+}
+
+export type EditableValue = string | number | boolean | null;
+
+export interface UpdateRowParams {
+  rowId: string;
+
+  changes: Record<string, EditableValue>;
+
+  signal: AbortSignal;
+}
+
+export interface DeleteRowsParams {
+  rowIds: string[];
+  signal: AbortSignal;
+}
+
+export interface DataTableEditingConfig<TData> {
+  fields: EditableFieldRegistry;
+
+  updateRow?: (params: UpdateRowParams) => Promise<TData>;
+
+  deleteRows: (params: DeleteRowsParams) => Promise<void>;
+
+  candDeleteRow?: (row: TData) => boolean;
 }

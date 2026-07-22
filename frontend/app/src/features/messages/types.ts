@@ -9,6 +9,7 @@ export interface Route {
 }
 
 export interface Message {
+  id: string;
   route: Route;
   exchangeId: string;
   requestId: string;

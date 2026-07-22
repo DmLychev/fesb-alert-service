@@ -1,17 +1,22 @@
 import { Box, Flex, HStack, Stack } from "@chakra-ui/react";
 import {
+  type ColumnDef,
   functionalUpdate,
   getCoreRowModel,
   type PaginationState,
   type Updater,
   useReactTable,
 } from "@tanstack/react-table";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
 import type { DataTableProps, UiFilterRow } from "./types";
-import { page_size_options } from "./constants";
+import {
+  ACTIONS_COLUMN_ID,
+  page_size_options,
+  SELECT_COLUMN_ID,
+} from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
 import FilterButton from "./components/FilterButton";
 import FilterVisibilityAndOrder from "./components/FilterVisibilityAndOrder";
@@ -21,6 +26,9 @@ import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
 import RefreshButton from "./components/RefreshButton";
 import LiveUpdateToggle from "./components/LiveUpdateToggle";
+import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
+import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
+import DeleteRowButton from "./components/DeleteRowButton";
 
 const DataTable = <TData,>({
   storageKey,
@@ -30,6 +38,7 @@ const DataTable = <TData,>({
   fetchPage,
   getRowId,
   liveUpdates,
+  editing,
 }: DataTableProps<TData>) => {
   // Постоянные параметры таблицы, хранимые в локальном хранилище браузера
   const { preferences, updatePreferences } = useTablePreferences(
@@ -47,6 +56,8 @@ const DataTable = <TData,>({
     showSkeleton: false,
     refreshVersion: 0,
     isRefreshing: false,
+    rowSelection: {},
+    isMutating: false,
   });
 
   const [data, setData] = useState<TData[]>([]);
@@ -79,11 +90,6 @@ const DataTable = <TData,>({
       updateUiState("pageIndex", 0);
     }
   };
-
-  // const handleRefresh = () => {
-  //   updateUiState("isRefreshing", true);
-  //   updateUiState("refreshVersion", uiState.refreshVersion + 1);
-  // };
 
   const requestRefresh = useCallback(() => {
     updateUiState("isRefreshing", true);
@@ -160,6 +166,55 @@ const DataTable = <TData,>({
     uiState.globalSearch,
     uiState.refreshVersion,
   ]);
+
+  const handleDeleteRows = useCallback(
+    async (rowIds: string[]): Promise<void> => {
+      if (!editing || rowIds.length === 0) return;
+
+      const controller = new AbortController();
+
+      try {
+        updateUiState("isMutating", true);
+
+        await editing.deleteRows({ rowIds, signal: controller.signal });
+
+        updateUiState("rowSelection", {});
+
+        const remainingRows = data.filter((row) => {
+          const rowId = getRowId?.(row);
+
+          return rowId === undefined || !rowIds.includes(rowId);
+        });
+
+        if (remainingRows.length === 0 && uiState.pageIndex > 0) {
+          updateUiState("pageIndex", uiState.pageIndex - 1);
+        } else {
+          requestRefresh();
+        }
+
+        toaster.create({
+          title:
+            rowIds.length === 1
+              ? "Запись удалена"
+              : `Удалено записей: ${rowIds.length}`,
+          type: "success",
+          duration: 3000,
+        });
+      } catch (error: unknown) {
+        toaster.create({
+          title:
+            error instanceof Error
+              ? error.message
+              : "Не удалось удалить записи",
+          type: "error",
+          duration: 6000,
+        });
+      } finally {
+        updateUiState("isMutating", false);
+      }
+    },
+    [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
+  );
 
   useEffect(() => {
     if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.createConnectionUrl)
@@ -255,9 +310,78 @@ const DataTable = <TData,>({
     };
   }, [preferences.isLiveUpdatesEnabled, liveUpdates, requestRefresh]);
 
+  const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
+    if (!editing) return columns;
+
+    const selectionColumn: ColumnDef<TData, unknown> = {
+      id: SELECT_COLUMN_ID,
+
+      size: 44,
+      minSize: 44,
+      maxSize: 44,
+
+      enableSorting: false,
+      enableHiding: false,
+      enableResizing: false,
+
+      header: ({ table }) => {
+        <RowSelectionCheckbox
+          checked={
+            table.getIsAllPageRowsSelected()
+              ? true
+              : table.getIsSomePageRowsSelected()
+                ? "indeterminate"
+                : false
+          }
+          onCheckedChange={(checked) =>
+            table.toggleAllPageRowsSelected(checked)
+          }
+        />;
+      },
+
+      cell: ({ row }) => (
+        <RowSelectionCheckbox
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onCheckedChange={(checked) => row.toggleSelected(checked)}
+        />
+      ),
+    };
+
+    const actionsColumn: ColumnDef<TData, unknown> = {
+      id: ACTIONS_COLUMN_ID,
+
+      size: 48,
+      minSize: 48,
+      maxSize: 48,
+
+      enableSorting: false,
+      enableHiding: false,
+      enableResizing: false,
+
+      header: () => null,
+
+      cell: ({ row }) => (
+        <DeleteRowButton
+          disabled={
+            uiState.isMutating ||
+            editing.candDeleteRow?.(row.original) === false
+          }
+          onDelete={() => void handleDeleteRows([row.id])}
+        />
+      ),
+    };
+
+    return [selectionColumn, ...columns, actionsColumn];
+  }, [columns, editing, uiState.isMutating, handleDeleteRows]);
+
+  const selectedRowsIds = Object.entries(uiState.rowSelection)
+    .filter(([, selected]) => selected)
+    .map(([rowId]) => rowId);
+
   const table = useReactTable<TData>({
     data,
-    columns,
+    columns: effectiveColumns,
     getRowId,
 
     state: {
@@ -269,11 +393,22 @@ const DataTable = <TData,>({
         pageSize: preferences.pageSize,
         pageIndex: uiState.pageIndex,
       },
+      rowSelection: uiState.rowSelection,
+      columnPinning: editing
+        ? {
+            left: [SELECT_COLUMN_ID],
+            right: [ACTIONS_COLUMN_ID],
+          }
+        : {
+            left: [],
+            right: [],
+          },
     },
     manualPagination: true,
     manualSorting: true,
     rowCount: uiState.totalCount,
     enableColumnResizing: true,
+    enableRowSelection: true,
     columnResizeMode: "onChange",
 
     onColumnSizingChange: (updater) => {
@@ -304,6 +439,12 @@ const DataTable = <TData,>({
         functionalUpdate(updater, preferences.columnOrder),
       ),
 
+    onRowSelectionChange: (updater) =>
+      updateUiState(
+        "rowSelection",
+        functionalUpdate(updater, uiState.rowSelection),
+      ),
+
     onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     enableMultiSort: false,
@@ -319,6 +460,14 @@ const DataTable = <TData,>({
           value={uiState.globalSearch}
           onSubmit={handleSearchSubmit}
         />
+
+        {/* Кнопка удаления строк */}
+        {editing && selectedRowsIds.length > 0 && (
+          <DeleteSelectedRowsButton
+            disabled={uiState.isMutating}
+            onClick={() => void handleDeleteRows(selectedRowsIds)}
+          />
+        )}
 
         <HStack gap={2}>
           {/* Кнопка обновления */}
