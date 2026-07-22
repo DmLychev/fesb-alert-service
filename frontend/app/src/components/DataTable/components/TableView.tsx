@@ -23,7 +23,6 @@ const DataTable = <TData,>({
       <Table.Root
         variant="outline"
         showColumnBorder
-        stickyHeader
         interactive
         tableLayout="fixed"
         style={{
@@ -50,9 +49,7 @@ const DataTable = <TData,>({
                       minWidth: header.getSize(),
                       maxWidth: header.getSize(),
 
-                      ...getPinnedColumnStyles(header.column),
-
-                      zIndex: header.column.getIsPinned() ? 4 : 3,
+                      ...getPinnedColumnStyles(header.column, true),
                     }}
                   >
                     {header.isPlaceholder ? null : (
