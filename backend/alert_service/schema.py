@@ -104,7 +104,7 @@ class MessageOrder:
 @strawberry.type
 class MessagePaginationResult:
     count: int
-    results: List[Message]
+    results: List[MessageType]
 
 
 @strawberry.type
@@ -181,7 +181,7 @@ class Mutation:
 
     @strawberry.mutation(permission_classes=[IsAuthenticated, ])
     @transaction.atomic
-    def update_message(self, data: UpdateMessageInput) -> Message:
+    def update_message(self, data: UpdateMessageInput) -> MessageType:
         try:
             message = Message.objects.select_related("route").get(pk=data.id)
         except Message.DoesNotExist as error:
