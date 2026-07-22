@@ -1,7 +1,6 @@
 import strawberry
 import strawberry_django
-from strawberry import auto, Info
-from strawberry.permission import BasePermission
+from strawberry import auto
 
 from typing_extensions import Self
 
@@ -12,10 +11,12 @@ from typing import List, Optional, Any, Awaitable
 import datetime
 
 from .models import Message, Route
+from .permissions import IsAuthenticated
 
 
 @strawberry_django.type(Route)
 class RouteType:
+    id: strawberry.ID
     name: str
     description: str
     domain_name: str
@@ -145,15 +146,7 @@ class Query:
         )
 
 
-class CanDeleteMessages(BasePermission):
-    message = "You do not have permission to delete this message"
 
-    def has_permission(
-            self, source: Any, info: Info, **kwargs: Any
-    ) -> bool | Awaitable[bool]:
-        user = info.context.request.user
-
-        return user.is_authenticated and user.has_perm("alert_service.delete_message")
 
 
 @strawberry.type
@@ -164,9 +157,9 @@ class DeleteMessagesPayload:
 
 @strawberry.type
 class Mutation:
-    @strawberry.mutation(permission_classes=[CanDeleteMessages,])
+    @strawberry.mutation(permission_classes=[IsAuthenticated,])
     @transaction.atomic
-    def delete_messages(self, info, ids: list[strawberry.ID]) -> DeleteMessagesPayload:
+    def delete_messages(self, ids: list[strawberry.ID]) -> DeleteMessagesPayload:
         numeric_ids = [int(_id) for _id in ids]
 
         queryset = Message.objects.filter(pk__in=numeric_ids, )
