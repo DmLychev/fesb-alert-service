@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Stack } from "@chakra-ui/react";
+import { Box, HStack, Stack } from "@chakra-ui/react";
 import {
   type ColumnDef,
   functionalUpdate,
@@ -17,7 +17,6 @@ import type {
   EditableValue,
   PendingChanges,
   UiFilterRow,
-  UpdateCellParams,
 } from "./types";
 import {
   ACTIONS_COLUMN_ID,
@@ -27,7 +26,6 @@ import {
 import GlobalSearch from "./components/GlobalSearch";
 import FilterButton from "./components/FilterButton";
 import FilterVisibilityAndOrder from "./components/FilterVisibilityAndOrder";
-import FilterPanel from "./components/FilterPanel";
 import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
@@ -37,7 +35,8 @@ import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
 import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
 import DeleteRowButton from "./components/DeleteRowButton";
 import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
-import ReseAllChangesButton from "./components/ReseAllChangesButton";
+import ResetAllChangesButton from "./components/ResetAllChangesButton";
+import TableToolbar from "./components/TableToolbar";
 
 const DataTable = <TData,>({
   storageKey,
@@ -225,43 +224,6 @@ const DataTable = <TData,>({
       }
     },
     [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
-  );
-
-  const handleUpdateCell = useCallback(
-    async ({ rowId, fieldId, value }: UpdateCellParams): Promise<void> => {
-      if (!editing?.updateRow) return;
-
-      if (!editing.fields[fieldId])
-        throw new Error(`Field ${fieldId} is not editable`);
-
-      const controller = new AbortController();
-
-      try {
-        const updateRow = await editing.updateRow({
-          rowId,
-          changes: { [fieldId]: value },
-          signal: controller.signal,
-        });
-
-        setData((previousRows) =>
-          previousRows.map((row) =>
-            getRowId?.(row) === rowId ? updateRow : row,
-          ),
-        );
-      } catch (error: unknown) {
-        toaster.create({
-          title:
-            error instanceof Error
-              ? error.message
-              : "Не удалось обновить запись",
-          type: "error",
-          duration: 6000,
-        });
-
-        throw error;
-      }
-    },
-    [editing, getRowId],
   );
 
   useEffect(() => {
@@ -643,96 +605,69 @@ const DataTable = <TData,>({
 
   return (
     <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
-      <Flex justifyContent="space-between" gap={4} flexShrink={0}>
-        {/* Глобальный поиск */}
-        <GlobalSearch
-          value={uiState.globalSearch}
-          onSubmit={handleSearchSubmit}
-        />
+      <TableToolbar
+        left={
+          <GlobalSearch
+            value={uiState.globalSearch}
+            onSubmit={handleSearchSubmit}
+          />
+        }
+        right={
+          <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
+            {editing && selectedRowsIds.length > 0 && (
+              <DeleteSelectedRowsButton
+                disabled={uiState.isMutating}
+                onClick={() => void handleDeleteRows(selectedRowsIds)}
+              />
+            )}
 
-        <HStack gap={2}>
-          {editing && selectedRowsIds.length > 0 && (
-            // Кнопка удаления строк
-            <DeleteSelectedRowsButton
-              disabled={uiState.isMutating}
-              onClick={() => void handleDeleteRows(selectedRowsIds)}
+            {editing?.updateRow && hasPendingChanges && (
+              <>
+                <ApplyAllChangesButton
+                  isApplying={uiState.isApplyingChanges}
+                  changesCount={changeRowsCount}
+                  onClick={() => void handleApplyChanges()}
+                />
+                <ResetAllChangesButton
+                  isApplying={uiState.isApplyingChanges}
+                  onClick={handleResetChanges}
+                />
+              </>
+            )}
+
+            <RefreshButton
+              onRefresh={requestRefresh}
+              isRefreshing={uiState.isRefreshing}
             />
-          )}
 
-          {/* Кнопки применения и сброса изменений */}
-          {editing?.updateRow && hasPendingChanges && (
-            <>
-              <ApplyAllChangesButton
-                isApplying={uiState.isApplyingChanges}
-                changesCount={changeRowsCount}
-                onClick={() => void handleApplyChanges()}
-              />
-              <ReseAllChangesButton
-                isApplying={uiState.isApplyingChanges}
-                onClick={handleResetChanges}
-              />
-            </>
-          )}
-        </HStack>
-
-        <HStack gap={2}>
-          {/* Кнопка обновления */}
-          <RefreshButton
-            onRefresh={requestRefresh}
-            isRefreshing={uiState.isRefreshing}
-          />
-
-          {/* Переключатель автообновления */}
-          <LiveUpdateToggle
-            isChecked={preferences.isLiveUpdatesEnabled}
-            onCheckedChange={(checked) =>
-              updatePreferences("isLiveUpdatesEnabled", checked)
-            }
-          />
-
-          {/* Кнопка фильтрации */}
-          {hasFilterFields && (
-            <FilterButton
-              isOpen={uiState.isFilterBlockOpen}
-              activeFiltersCount={uiState.displayedFilters.length}
-              onToggle={() =>
-                updateUiState("isFilterBlockOpen", !uiState.isFilterBlockOpen)
+            <LiveUpdateToggle
+              isChecked={preferences.isLiveUpdatesEnabled}
+              onCheckedChange={(checked) =>
+                updatePreferences("isLiveUpdatesEnabled", checked)
               }
             />
-          )}
 
-          {/* Выбор отображаемых столбцов */}
-          <FilterVisibilityAndOrder
-            table={table}
-            columns={preferences.columnOrder}
-            onColumnOrderChange={(newOrder) =>
-              updatePreferences("columnOrder", newOrder)
-            }
-          />
-        </HStack>
-      </Flex>
+            {hasFilterFields && (
+              <FilterButton
+                isOpen={uiState.isFilterBlockOpen}
+                activeFiltersCount={uiState.displayedFilters.length}
+                onToggle={() =>
+                  updateUiState("isFilterBlockOpen", !uiState.isFilterBlockOpen)
+                }
+              />
+            )}
 
-      {/* Панель фильтрации */}
-      {hasFilterFields && uiState.isFilterBlockOpen && (
-        <Box flexShrink={0}>
-          <FilterPanel
-            activeFilters={uiState.displayedFilters}
-            committedFilters={preferences.filters}
-            filterFields={filterFields}
-            onFiltersChange={(updater) => {
-              const nextFilters =
-                typeof updater === "function"
-                  ? updater(uiState.displayedFilters)
-                  : updater;
+            <FilterVisibilityAndOrder
+              table={table}
+              columns={preferences.columnOrder}
+              onColumnOrderChange={(newOrder) =>
+                updatePreferences("columnOrder", newOrder)
+              }
+            />
+          </HStack>
+        }
+      />
 
-              updateUiState("displayedFilters", nextFilters);
-            }}
-            onFiltersSubmit={handleFilterSubmit}
-          />
-        </Box>
-      )}
-
-      {/* Таблица */}
       <TableView
         table={table}
         showSkeleton={uiState.showSkeleton}
