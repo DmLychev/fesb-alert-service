@@ -1,4 +1,5 @@
-import { Button } from "@chakra-ui/react";
+import { Button, Text } from "@chakra-ui/react";
+import { LuCheck } from "react-icons/lu";
 
 interface ApplyAllChangesButtonProps {
   isApplying: boolean;
@@ -13,12 +14,19 @@ const ApplyAllChangesButton = ({
 }: ApplyAllChangesButtonProps) => {
   return (
     <Button
+      aria-label="Применить изменения"
       size="sm"
+      width={{ base: "36px", md: "132px" }}
+      minWidth={{ base: "36px", md: "132px" }}
+      paddingInline={{ base: 0, md: 3 }}
       colorPalette="yellow"
       disabled={isApplying}
       onClick={onClick}
     >
-      {isApplying ? "Applying..." : `Применить (${changesCount})`}
+      <LuCheck />
+      <Text hideBelow="md">
+        {isApplying ? "Applying..." : `Применить (${changesCount})`}
+      </Text>
     </Button>
   );
 };

@@ -47,6 +47,7 @@ export interface TableUiState {
   isMutating: boolean;
   pendingChanges: PendingChanges;
   isApplyingChanges: boolean;
+  liveUpdateStatus: LiveUpdateStatus;
 }
 
 export type FilterFieldType =
@@ -55,6 +56,13 @@ export type FilterFieldType =
   | "boolean"
   | "datetime"
   | "choice";
+
+export type LiveUpdateStatus =
+  | "off"
+  | "connecting"
+  | "connected"
+  | "disconnected"
+  | "paused";
 
 export interface FilterChoice {
   value: string;
@@ -155,26 +163,10 @@ export interface GlobalSearchProps {
   onSubmit: (value: string) => void;
 }
 
-export interface RefreshButtonProps {
-  onRefresh: () => void;
-  isRefreshing: boolean;
-}
-
-export interface LiveUpdateToggleProps {
-  isChecked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}
-
 export interface FilterButtonProps {
   isOpen: boolean;
   activeFiltersCount: number;
   onToggle: () => void;
-}
-
-export interface FilterVisibilityAndOrderProps<TData> {
-  table: Table<TData>;
-  columns: string[];
-  onColumnOrderChange: (newOrder: string[]) => void;
 }
 
 export interface SortableColumnItemProps<Tdata> {

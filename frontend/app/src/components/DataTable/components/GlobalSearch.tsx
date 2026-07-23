@@ -30,7 +30,7 @@ const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
   ) : undefined;
 
   return (
-    <Group attached>
+    <Group width="full" maxWidth={{ base: "full", md: "420px" }}>
       <InputGroup
         flex="1"
         startElement={<LuSearch />}

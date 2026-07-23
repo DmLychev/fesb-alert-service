@@ -1,28 +1,30 @@
-import type { RefreshButtonProps } from "../types";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, IconButton } from "@chakra-ui/react";
 import { LuRefreshCw } from "react-icons/lu";
 
-const RefreshButton = ({ isRefreshing, onRefresh }: RefreshButtonProps) => {
+interface RefreshButtonProps {
+  onRefresh: () => void;
+  isRefreshing: boolean;
+  disabled?: boolean;
+}
+
+const RefreshButton = ({
+  isRefreshing,
+  onRefresh,
+  disabled,
+}: RefreshButtonProps) => {
   return (
-    <Button
-      variant="outline"
+    <IconButton
+      aria-label="Обновить таблицу"
+      title="Обновить таблицу"
       size="sm"
+      variant="outline"
+      disabled={disabled || isRefreshing}
       onClick={onRefresh}
-      disabled={isRefreshing}
-      aria-busy={isRefreshing}
     >
-      <Box
-        as="span"
-        display="inline-flex"
-        animationName={isRefreshing ? "spin" : undefined}
-        animationDuration="800ms"
-        animationTimingFunction="linear"
-        animationIterationCount="infinite"
-      >
+      <Box animation={isRefreshing ? "spin 0.8s linear infinite" : undefined}>
         <LuRefreshCw />
       </Box>
-      Обновить
-    </Button>
+    </IconButton>
   );
 };
 

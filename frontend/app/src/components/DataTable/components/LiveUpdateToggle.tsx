@@ -1,5 +1,9 @@
 import { Switch } from "@chakra-ui/react";
-import type { LiveUpdateToggleProps } from "../types";
+
+interface LiveUpdateToggleProps {
+  isChecked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}
 
 const LiveUpdateToggle = ({
   isChecked,
@@ -7,6 +11,7 @@ const LiveUpdateToggle = ({
 }: LiveUpdateToggleProps) => {
   return (
     <Switch.Root
+      aria-label="Автообновление"
       checked={isChecked}
       onCheckedChange={({ checked }) => onCheckedChange(checked)}
       size="sm"
@@ -14,7 +19,6 @@ const LiveUpdateToggle = ({
     >
       <Switch.HiddenInput />
       <Switch.Control />
-      <Switch.Label>Live</Switch.Label>
     </Switch.Root>
   );
 };

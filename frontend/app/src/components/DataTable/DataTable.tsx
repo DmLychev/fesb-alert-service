@@ -25,18 +25,19 @@ import {
 } from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
 import FilterButton from "./components/FilterButton";
-import FilterVisibilityAndOrder from "./components/FilterVisibilityAndOrder";
 import TablePagination from "./components/TablePagination";
 import useUiState from "./hooks/useUiState";
 import TableView from "./components/TableView";
 import RefreshButton from "./components/RefreshButton";
-import LiveUpdateToggle from "./components/LiveUpdateToggle";
 import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
 import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
 import DeleteRowButton from "./components/DeleteRowButton";
 import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
 import ResetAllChangesButton from "./components/ResetAllChangesButton";
 import TableToolbar from "./components/TableToolbar";
+import FilterPanel from "./components/FilterPanel";
+import TableSettings from "./components/TableSettings";
+import LiveUpdateStatusIndicator from "./components/LiveUpdateStatusIndicator";
 
 const DataTable = <TData,>({
   storageKey,
@@ -68,6 +69,7 @@ const DataTable = <TData,>({
     isMutating: false,
     pendingChanges: {},
     isApplyingChanges: false,
+    liveUpdateStatus: "off",
   });
 
   const [data, setData] = useState<TData[]>([]);
@@ -228,7 +230,9 @@ const DataTable = <TData,>({
 
   useEffect(() => {
     if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.createConnectionUrl)
-      return;
+      updateUiState("liveUpdateStatus", "off");
+
+    updateUiState("liveUpdateStatus", "connecting");
 
     const controller = new AbortController();
     let socket: WebSocket | null = null;
@@ -245,8 +249,7 @@ const DataTable = <TData,>({
 
         socket = new WebSocket(connectionUrl);
 
-        socket.onopen = () =>
-          console.info("Authentication WebSocket connected");
+        socket.onopen = () => updateUiState("liveUpdateStatus", "connected");
 
         socket.onmessage = (message) => {
           try {
@@ -278,6 +281,8 @@ const DataTable = <TData,>({
         };
 
         socket.onerror = () => {
+          updateUiState("liveUpdateStatus", "disconnected");
+
           toaster.create({
             title: "WebSocket connection error",
             type: "error",
@@ -287,6 +292,8 @@ const DataTable = <TData,>({
 
         socket.onclose = () => {
           if (closedByCleanup) return;
+
+          updateUiState("liveUpdateStatus", "disconnected");
 
           toaster.create({
             title: "Соединение автообновления закрыто",
@@ -298,6 +305,8 @@ const DataTable = <TData,>({
         };
       } catch (error: unknown) {
         if (controller.signal.aborted) return;
+
+        updateUiState("liveUpdateStatus", "disconnected");
 
         toaster.create({
           title: "Не удалось получить WebSocket ticket",
@@ -640,13 +649,6 @@ const DataTable = <TData,>({
               isRefreshing={uiState.isRefreshing}
             />
 
-            <LiveUpdateToggle
-              isChecked={preferences.isLiveUpdatesEnabled}
-              onCheckedChange={(checked) =>
-                updatePreferences("isLiveUpdatesEnabled", checked)
-              }
-            />
-
             {hasFilterFields && (
               <FilterButton
                 isOpen={uiState.isFilterBlockOpen}
@@ -657,16 +659,40 @@ const DataTable = <TData,>({
               />
             )}
 
-            <FilterVisibilityAndOrder
+            <TableSettings
               table={table}
               columns={preferences.columnOrder}
+              isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
               onColumnOrderChange={(newOrder) =>
                 updatePreferences("columnOrder", newOrder)
+              }
+              onLiveUpdatesEnabledChange={(enabled) =>
+                updatePreferences("isLiveUpdatesEnabled", enabled)
               }
             />
           </HStack>
         }
       />
+
+      {/* Панель фильтрации */}
+      {hasFilterFields && uiState.isFilterBlockOpen && (
+        <Box flexShrink={0}>
+          <FilterPanel
+            activeFilters={uiState.displayedFilters}
+            committedFilters={preferences.filters}
+            filterFields={filterFields}
+            onFiltersChange={(updater) => {
+              const nextFilters =
+                typeof updater === "function"
+                  ? updater(uiState.displayedFilters)
+                  : updater;
+
+              updateUiState("displayedFilters", nextFilters);
+            }}
+            onFiltersSubmit={handleFilterSubmit}
+          />
+        </Box>
+      )}
 
       <TableView
         table={table}
@@ -677,6 +703,8 @@ const DataTable = <TData,>({
         isApplyingChanges={uiState.isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
       />
+
+      <LiveUpdateStatusIndicator status={uiState.liveUpdateStatus} />
 
       {/* Пагинация */}
       {uiState.totalCount > 0 && (
