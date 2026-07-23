@@ -1,25 +1,23 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode, type KeyboardEvent } from "react";
 import type { EditableFieldDefinition, EditableValue } from "../types";
 import {
   Box,
   Checkbox,
-  HStack,
-  IconButton,
   Input,
   NativeSelect,
-  Spinner,
   Stack,
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import { LuCheck, LuX } from "react-icons/lu";
 
 interface EditableCellProps {
   definition: EditableFieldDefinition;
   value: EditableValue;
   displayContent: ReactNode;
+  isDirty: boolean;
+  disabled?: boolean;
 
-  onSave: (value: EditableValue) => Promise<void>;
+  onChange: (value: EditableValue) => void;
 }
 
 type DraftValue = string | boolean;
@@ -37,30 +35,26 @@ const EditableCell = ({
   definition,
   value,
   displayContent,
-  onSave,
+  isDirty,
+  disabled,
+  onChange,
 }: EditableCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftValue>(
     toDraftValue(value, definition.type),
   );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isEditing) setDraft(toDraftValue(value, definition.type));
-  }, [value, definition.type, isEditing]);
-
-  const cancel = () => {
     setDraft(toDraftValue(value, definition.type));
 
-    setError(null);
-    setIsEditing(false);
-  };
+    if (!isDirty) setIsEditing(false);
+  }, [value, definition.type, isDirty]);
 
-  const parseDraft = (): EditableValue => {
-    if (definition.type === "boolean") return draft === true;
+  const parseDraft = (draftValue: DraftValue): EditableValue => {
+    if (definition.type === "boolean") return draftValue === true;
 
-    const text = String(draft);
+    const text = String(draftValue);
 
     if (text === "") {
       if (definition.nullable) return null;
@@ -69,105 +63,134 @@ const EditableCell = ({
     }
 
     if (definition.type === "number") {
-      const parsedValue = Number(text);
+      const numberValue = Number(text);
 
-      if (!Number.isFinite(parsedValue))
+      if (!Number.isFinite(numberValue))
         throw new Error(`${definition.label} must be a number`);
 
-      return parsedValue;
+      return numberValue;
     }
 
     return text;
   };
 
-  const save = async () => {
+  const commit = (draftValue = draft) => {
     try {
       setError(null);
 
-      const parsedValue = parseDraft();
-
-      if (Object.is(parsedValue, value)) {
-        setIsEditing(false);
-        return;
-      }
-
-      setIsSaving(true);
-
-      await onSave(parsedValue);
+      onChange(parseDraft(draftValue));
 
       setIsEditing(false);
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "Failed to update value",
-      );
-    } finally {
-      setIsSaving(false);
+      setError(error instanceof Error ? error.message : "Invalid value");
     }
-
-    if (!isEditing)
-      return (
-        <Box
-          minH="24px"
-          cursor="text"
-          onDoubleClick={() => {
-            setError(null);
-            setIsEditing(true);
-          }}
-        >
-          {displayContent}
-        </Box>
-      );
   };
 
-  const editor = (() => {
-    if (definition.type === "string" && definition.control === "textarea")
-      return (
-        <Textarea
-          value={String(draft)}
-          onChange={(event) => setDraft(event.target.value)}
-          size="sm"
-          minH="80px"
-          maxH="160px"
-          resize="vertical"
-          disabled={isSaving}
-          autoFocus
-        />
-      );
+  const cancelEditing = () => {
+    setDraft(toDraftValue(value, definition.type));
 
-    if (definition.type === "choice")
-      return (
-        <NativeSelect.Root size="sm" disabled={isSaving}>
-          <NativeSelect.Field
-            value={String(draft)}
-            onChange={(event) => setDraft(event.target.value)}
-            autoFocus
-          >
-            {definition.nullable && <option value="">-</option>}
+    setError(null);
+    setIsEditing(false);
+  };
 
-            {definition.choices?.map((choice) => (
-              <option key={choice.value} value={choice.value}>
-                {choice.label}
-              </option>
-            ))}
-          </NativeSelect.Field>
-        </NativeSelect.Root>
-      );
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelEditing;
+      return;
+    }
 
-    if (definition.type === "boolean")
-      return (
-        <Checkbox.Root
-          checked={draft === true}
-          disabled={isSaving}
-          onCheckedChange={({ checked }) => setDraft(checked === true)}
-        >
-          <Checkbox.HiddenInput />
-          <Checkbox.Control>
-            <Checkbox.Indicator />
-          </Checkbox.Control>
-        </Checkbox.Root>
-      );
+    const shouldCommit =
+      event.key === "Enter" &&
+      (definition.control !== "textarea" || event.ctrlKey);
 
+    if (shouldCommit) {
+      event.preventDefault();
+      commit();
+    }
+  };
+
+  if (!isEditing) {
     return (
+      <Box
+        minH="24px"
+        cursor={disabled ? "default" : "text"}
+        onDoubleClick={() => {
+          if (!disabled) {
+            setError(null);
+            setIsEditing(true);
+          }
+        }}
+      >
+        {displayContent}
+      </Box>
+    );
+  }
+
+  if (definition.type === "choice") {
+    return (
+      <NativeSelect.Root size="sm" disabled={disabled}>
+        <NativeSelect.Field
+          value={String(draft)}
+          autoFocus
+          onChange={(event) => {
+            const nextDraft = event.target.value;
+
+            setDraft(nextDraft);
+            commit(nextDraft);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") cancelEditing();
+          }}
+        >
+          {definition.nullable && <option value="">-</option>}
+          {definition.choices?.map((choice) => (
+            <option key={choice.value} value={choice.value}>
+              {choice.value}
+            </option>
+          ))}
+        </NativeSelect.Field>
+
+        <NativeSelect.Indicator />
+      </NativeSelect.Root>
+    );
+  }
+
+  if (definition.type === "boolean") {
+    return (
+      <Checkbox.Root
+        checked={draft === true}
+        disabled={disabled}
+        onCheckedChange={({ checked }) => {
+          const nextDraft = checked === true;
+          setDraft(nextDraft);
+          commit(nextDraft);
+        }}
+      >
+        <Checkbox.HiddenInput />
+        <Checkbox.Control>
+          <Checkbox.Indicator />
+        </Checkbox.Control>
+      </Checkbox.Root>
+    );
+  }
+
+  const input =
+    definition.type === "string" && definition.control === "textarea" ? (
+      <Textarea
+        value={String(draft)}
+        autoFocus
+        minH="80px"
+        maxH="160px"
+        resize="vertical"
+        disabled={disabled}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => commit()}
+        onKeyDown={handleKeyDown}
+      />
+    ) : (
       <Input
         type={
           definition.type === "number"
@@ -177,44 +200,21 @@ const EditableCell = ({
               : "text"
         }
         value={String(draft)}
-        onChange={(event) => setDraft(event.target.value)}
-        size="sm"
-        disabled={isSaving}
         autoFocus
+        size="sm"
+        disabled={disabled}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={() => commit()}
+        onKeyDown={handleKeyDown}
       />
     );
-  })();
 
   return (
     <Stack gap={1}>
-      <HStack alignItems="flex-start" gap={1}>
-        <Box flex="1" minW={0}>
-          {editor}
-        </Box>
-
-        <IconButton
-          aria-label="Save value"
-          size="xs"
-          variant="ghost"
-          disabled={isSaving}
-          onClick={() => void save()}
-        >
-          {isSaving ? <Spinner size="xs" /> : <LuCheck />}
-        </IconButton>
-
-        <IconButton
-          aria-label="Cancel editing"
-          size="xs"
-          variant="ghost"
-          disabled={isSaving}
-          onClick={cancel}
-        >
-          <LuX />
-        </IconButton>
-      </HStack>
+      {input}
 
       {error && (
-        <Text fontSize="xs" color="fg.error" whiteSpace="normal">
+        <Text color="fg.error" fontSize="xs" whiteSpace="normal">
           {error}
         </Text>
       )}

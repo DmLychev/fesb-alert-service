@@ -9,7 +9,9 @@ const DataTable = <TData,>({
   showSkeleton,
   pageSize,
   editableFields,
-  onUpdateCell,
+  pendingChanges = {},
+  isApplyingChanges = false,
+  onDraftChange,
 }: TableViewProps<TData>) => {
   return (
     <Table.ScrollArea
@@ -185,53 +187,65 @@ const DataTable = <TData,>({
             // 3. RENDER REAL DATA ROWS NATIVELY
             table.getRowModel().rows.map((row) => (
               <Table.Row key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <Table.Cell
-                    key={cell.id}
-                    verticalAlign="top"
-                    whiteSpace="nowrap"
-                    overflow="hidden"
-                    textOverflow="ellipsis"
-                    borderBottomWidth="1px"
-                    borderBottomColor="border.muted"
-                    bg={cell.column.getIsPinned() ? "bg.panel" : undefined}
-                    style={{
-                      width: cell.column.getSize(),
-                      minWidth: cell.column.getSize(),
-                      maxWidth: cell.column.getSize(),
+                {row.getVisibleCells().map((cell) => {
+                  const editableDefinition = editableFields?.[cell.column.id];
 
-                      ...getPinnedColumnStyles(cell.column),
-                    }}
-                  >
-                    {(() => {
-                      const displayContent = flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      );
+                  const rowChanges = pendingChanges[row.id];
 
-                      const editableDefinition =
-                        editableFields?.[cell.column.id];
+                  const isDirty = Object.prototype.hasOwnProperty.call(
+                    rowChanges ?? {},
+                    cell.column.id,
+                  );
 
-                      if (!editableDefinition || !onUpdateCell)
-                        return displayContent;
+                  const displayContent = flexRender(
+                    cell.column.columnDef.cell,
+                    cell.getContext(),
+                  );
 
-                      return (
+                  return (
+                    <Table.Cell
+                      key={cell.id}
+                      verticalAlign="top"
+                      whiteSpace="nowrap"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
+                      borderBottomWidth="1px"
+                      borderBottomColor="border.muted"
+                      bg={
+                        isDirty
+                          ? "yellow.subtle"
+                          : cell.column.getIsPinned()
+                            ? "bg.panel"
+                            : undefined
+                      }
+                      style={{
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.getSize(),
+                        maxWidth: cell.column.getSize(),
+
+                        ...getPinnedColumnStyles(cell.column),
+                      }}
+                    >
+                      {editableDefinition && onDraftChange ? (
                         <EditableCell
                           definition={editableDefinition}
                           value={cell.getValue() as EditableValue}
                           displayContent={displayContent}
-                          onSave={(value) =>
-                            onUpdateCell({
+                          isDirty={isDirty}
+                          onChange={(value) =>
+                            onDraftChange({
                               rowId: row.id,
                               fieldId: cell.column.id,
                               value,
                             })
                           }
                         />
-                      );
-                    })()}
-                  </Table.Cell>
-                ))}
+                      ) : (
+                        displayContent
+                      )}
+                    </Table.Cell>
+                  );
+                })}
               </Table.Row>
             ))
           )}

@@ -11,7 +11,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
-import type { DataTableProps, UiFilterRow, UpdateCellParams } from "./types";
+import type {
+  DataTableProps,
+  DraftCellChange,
+  EditableValue,
+  PendingChanges,
+  UiFilterRow,
+  UpdateCellParams,
+} from "./types";
 import {
   ACTIONS_COLUMN_ID,
   page_size_options,
@@ -29,6 +36,8 @@ import LiveUpdateToggle from "./components/LiveUpdateToggle";
 import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
 import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
 import DeleteRowButton from "./components/DeleteRowButton";
+import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
+import ReseAllChangesButton from "./components/ReseAllChangesButton";
 
 const DataTable = <TData,>({
   storageKey,
@@ -58,6 +67,8 @@ const DataTable = <TData,>({
     isRefreshing: false,
     rowSelection: {},
     isMutating: false,
+    pendingChanges: {},
+    isApplyingChanges: false,
   });
 
   const [data, setData] = useState<TData[]>([]);
@@ -415,8 +426,152 @@ const DataTable = <TData,>({
     .filter(([, selected]) => selected)
     .map(([rowId]) => rowId);
 
+  const hasFilterFields = Object.keys(filterFields).length > 0;
+
+  const getEditableValue = (row: TData, fieldId: string): EditableValue => {
+    return (row as Record<string, EditableValue>)[fieldId];
+  };
+
+  const handleDraftChange = useCallback(
+    ({ rowId, fieldId, value }: DraftCellChange) => {
+      const originalRow = data.find((row) => getRowId?.(row) === rowId);
+
+      if (!originalRow) return;
+
+      const originalValue = getEditableValue(originalRow, fieldId);
+
+      updateUiState("pendingChanges", (previous) => {
+        const previousRowChanges = previous[rowId] ?? {};
+
+        const nextChanges = { ...previous };
+
+        if (Object.is(value, originalValue)) {
+          const nextRowChanges = { ...previousRowChanges };
+
+          delete nextRowChanges[fieldId];
+
+          if (Object.keys(nextRowChanges).length === 0) {
+            delete nextChanges[rowId];
+          } else {
+            nextChanges[rowId] = nextRowChanges;
+          }
+
+          return nextChanges;
+        }
+
+        nextChanges[rowId] = { ...previousRowChanges, [fieldId]: value };
+
+        return nextChanges;
+      });
+    },
+    [data, getRowId, updateUiState],
+  );
+
+  const displayedData = useMemo(() => {
+    if (
+      !editing ||
+      !getRowId ||
+      Object.keys(uiState.pendingChanges).length === 0
+    )
+      return data;
+
+    return data.map((row) => {
+      const rowId = getRowId(row);
+
+      const rowChanges = uiState.pendingChanges[rowId];
+
+      if (!rowChanges) return row;
+
+      return { ...row, ...rowChanges } as TData;
+    });
+  }, [data, editing, getRowId, uiState.pendingChanges]);
+
+  const handleResetChanges = useCallback(
+    () => updateUiState("pendingChanges", {}),
+    [updateUiState],
+  );
+
+  const handleApplyChanges = useCallback(async () => {
+    if (!editing?.updateRow || !getRowId) return;
+
+    const entries = Object.entries(uiState.pendingChanges);
+
+    if (entries.length === 0) return;
+
+    const controller = new AbortController();
+
+    updateUiState("isApplyingChanges", true);
+
+    try {
+      const results = await Promise.allSettled(
+        entries.map(([rowId, changes]) =>
+          editing.updateRow!({ rowId, changes, signal: controller.signal }),
+        ),
+      );
+
+      const updatedRows = new Map<string, TData>();
+      const failedChanges: PendingChanges = {};
+      const errorMessages: string[] = [];
+
+      results.forEach((result, index) => {
+        const [rowId, changes] = entries[index];
+
+        if (result.status === "fulfilled") {
+          updatedRows.set(rowId, result.value);
+          return;
+        }
+
+        failedChanges[rowId] = changes;
+
+        errorMessages.push(
+          result.reason instanceof Error
+            ? result.reason.message
+            : `Failed to update row ${rowId}`,
+        );
+      });
+
+      setData((previousRows) =>
+        previousRows.map((row) => {
+          const rowId = getRowId(row);
+
+          return updatedRows.get(rowId) ?? row;
+        }),
+      );
+
+      updateUiState("pendingChanges", failedChanges);
+
+      if (updatedRows.size > 0) {
+        toaster.create({
+          title: `Updated rows: ${updatedRows.size}`,
+          type: "success",
+          duration: 3000,
+        });
+      }
+
+      if (errorMessages.length > 0) {
+        toaster.create({
+          title: "Some rows could not be updated",
+          description: errorMessages.join("; "),
+          type: "error",
+          duration: 6000,
+        });
+      }
+    } finally {
+      updateUiState("isApplyingChanges", false);
+    }
+  }, [editing, getRowId, uiState.pendingChanges, updateUiState]);
+
+  const changeRowsCount = Object.keys(uiState.pendingChanges).length;
+
+  const changedCellsCount = Object.values(uiState.pendingChanges).reduce(
+    (count, changes) => count + Object.keys(changes).length,
+    0,
+  );
+
+  const hasPendingChanges = changedCellsCount > 0;
+
   const table = useReactTable<TData>({
-    data,
+    data: displayedData,
     columns: effectiveColumns,
     getRowId,
 
@@ -486,8 +641,6 @@ const DataTable = <TData,>({
     enableMultiSort: false,
   });
 
-  const hasFilterFields = Object.keys(filterFields).length > 0;
-
   return (
     <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
       <Flex justifyContent="space-between" gap={4} flexShrink={0}>
@@ -497,13 +650,30 @@ const DataTable = <TData,>({
           onSubmit={handleSearchSubmit}
         />
 
-        {/* Кнопка удаления строк */}
-        {editing && selectedRowsIds.length > 0 && (
-          <DeleteSelectedRowsButton
-            disabled={uiState.isMutating}
-            onClick={() => void handleDeleteRows(selectedRowsIds)}
-          />
-        )}
+        <HStack gap={2}>
+          {editing && selectedRowsIds.length > 0 && (
+            // Кнопка удаления строк
+            <DeleteSelectedRowsButton
+              disabled={uiState.isMutating}
+              onClick={() => void handleDeleteRows(selectedRowsIds)}
+            />
+          )}
+
+          {/* Кнопки применения и сброса изменений */}
+          {editing?.updateRow && hasPendingChanges && (
+            <>
+              <ApplyAllChangesButton
+                isApplying={uiState.isApplyingChanges}
+                changesCount={changeRowsCount}
+                onClick={() => void handleApplyChanges()}
+              />
+              <ReseAllChangesButton
+                isApplying={uiState.isApplyingChanges}
+                onClick={handleResetChanges}
+              />
+            </>
+          )}
+        </HStack>
 
         <HStack gap={2}>
           {/* Кнопка обновления */}
@@ -568,7 +738,9 @@ const DataTable = <TData,>({
         showSkeleton={uiState.showSkeleton}
         pageSize={preferences.pageSize}
         editableFields={editing?.updateRow ? editing.fields : undefined}
-        onUpdateCell={editing?.updateRow ? handleUpdateCell : undefined}
+        pendingChanges={uiState.pendingChanges}
+        isApplyingChanges={uiState.isApplyingChanges}
+        onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
       />
 
       {/* Пагинация */}

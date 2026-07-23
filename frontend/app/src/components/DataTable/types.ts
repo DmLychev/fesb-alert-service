@@ -45,6 +45,8 @@ export interface TableUiState {
   isRefreshing: boolean;
   rowSelection: RowSelectionState;
   isMutating: boolean;
+  pendingChanges: PendingChanges;
+  isApplyingChanges: boolean;
 }
 
 export type FilterFieldType =
@@ -147,7 +149,11 @@ export interface TableViewProps<TData> {
 
   editableFields?: EditableFieldRegistry;
 
-  onUpdateCell?: (params: UpdateCellParams) => Promise<void>;
+  pendingChanges?: PendingChanges;
+
+  isApplyingChanges?: boolean;
+
+  onDraftChange?: (change: DraftCellChange) => void;
 }
 
 export interface GlobalSearchProps {
@@ -203,6 +209,16 @@ export interface TablePaginationProps {
 }
 
 export type EditableValue = string | number | boolean | null;
+
+export type RowChanges = Record<string, EditableValue>;
+
+export type PendingChanges = Record<string, RowChanges>;
+
+export interface DraftCellChange {
+  rowId: string;
+  fieldId: string;
+  value: EditableValue;
+}
 
 export interface UpdateRowParams {
   rowId: string;

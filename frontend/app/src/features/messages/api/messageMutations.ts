@@ -99,10 +99,8 @@ export const updateMessage = async ({
   changes,
   signal,
 }: UpdateRowParams): Promise<Message> => {
-  const response = await api.post<
-    GraphQLResponse<{ updateMesssaage: Message }>
-  >(
-    "api/graphql/",
+  const response = await api.post<GraphQLResponse<{ updateMessage: Message }>>(
+    "/api/graphql/",
     {
       query: UPDATE_MESSAGE_MUTATION,
 
@@ -121,5 +119,5 @@ export const updateMessage = async ({
     "Update mutation returned no data",
   );
 
-  return data.updateMesssaage;
+  return data.updateMessage;
 };
