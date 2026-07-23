@@ -155,10 +155,10 @@ class DeleteMessagesPayload:
     deleted_ids: list[strawberry.ID]
 
 
-@strawberry.type
+@strawberry.input
 class UpdateMessageInput:
     id: strawberry.ID
-    status = strawberry.Maybe[str | None]
+    status: strawberry.Maybe[str | None]
 
 
 @strawberry.type
