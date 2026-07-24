@@ -19,11 +19,7 @@ import type {
   UiFilterRow,
   ToolbarMode,
 } from "./types";
-import {
-  ACTIONS_COLUMN_ID,
-  page_size_options,
-  SELECT_COLUMN_ID,
-} from "./constants";
+import { page_size_options, SELECT_COLUMN_ID } from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
 import FilterButton from "./components/FilterButton";
 import TablePagination from "./components/TablePagination";
@@ -32,14 +28,14 @@ import TableView from "./components/TableView";
 import RefreshButton from "./components/RefreshButton";
 import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
 import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
-import DeleteRowButton from "./components/DeleteRowButton";
 import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
 import ResetAllChangesButton from "./components/ResetAllChangesButton";
 import TableToolbar from "./components/TableToolbar";
 import FilterPanel from "./components/FilterPanel";
 import TableSettings from "./components/TableSettings";
 import EditingModeButton from "./components/EditingModeButton";
-import { LuListChecks, LuPencil } from "react-icons/lu";
+import { LuListChecks, LuLogOut, LuPencil } from "react-icons/lu";
+import DeleteRowsDialog from "./components/DeleteRowsDialog";
 
 const DataTable = <TData,>({
   storageKey,
@@ -76,6 +72,7 @@ const DataTable = <TData,>({
   });
 
   const [data, setData] = useState<TData[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSearchSubmit = (value: string) => {
     updateUiState("globalSearch", value);
@@ -184,7 +181,7 @@ const DataTable = <TData,>({
 
   const handleDeleteRows = useCallback(
     async (rowIds: string[]): Promise<void> => {
-      if (!editing || rowIds.length === 0) return;
+      if (!editing?.deleteRows || rowIds.length === 0) return;
 
       const controller = new AbortController();
 
@@ -347,8 +344,12 @@ const DataTable = <TData,>({
     uiState.isEditingMode,
   ]);
 
+  const selectionEnabled = Boolean(
+    uiState.isEditingMode && editing?.deleteRows,
+  );
+
   const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
-    if (!editing) return columns;
+    if (!selectionEnabled) return columns;
 
     const selectionColumn: ColumnDef<TData, unknown> = {
       id: SELECT_COLUMN_ID,
@@ -363,7 +364,7 @@ const DataTable = <TData,>({
 
       header: ({ table }) => (
         <RowSelectionCheckbox
-          disabled={uiState.isEditingMode || uiState.isMutating}
+          disabled={uiState.isMutating || uiState.isApplyingChanges}
           checked={
             table.getIsAllPageRowsSelected()
               ? true
@@ -380,48 +381,18 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <RowSelectionCheckbox
           checked={row.getIsSelected()}
-          disabled={
-            uiState.isEditingMode ||
-            uiState.isMutating ||
-            editing.canDeleteRow?.(row.original) === false
-          }
+          disabled={uiState.isMutating || uiState.isApplyingChanges}
           onCheckedChange={(checked) => row.toggleSelected(checked)}
         />
       ),
     };
 
-    const actionsColumn: ColumnDef<TData, unknown> = {
-      id: ACTIONS_COLUMN_ID,
-
-      size: 48,
-      minSize: 48,
-      maxSize: 48,
-
-      enableSorting: false,
-      enableHiding: false,
-      enableResizing: false,
-
-      header: () => null,
-
-      cell: ({ row }) => (
-        <DeleteRowButton
-          disabled={
-            uiState.isEditingMode ||
-            uiState.isMutating ||
-            editing.canDeleteRow?.(row.original) === false
-          }
-          onDelete={() => void handleDeleteRows([row.id])}
-        />
-      ),
-    };
-
-    return [selectionColumn, ...columns, actionsColumn];
+    return [selectionColumn, ...columns];
   }, [
     columns,
-    editing,
+    selectionEnabled,
     uiState.isMutating,
-    handleDeleteRows,
-    uiState.isEditingMode,
+    uiState.isApplyingChanges,
   ]);
 
   const selectedRowsIds = Object.entries(uiState.rowSelection)
@@ -563,8 +534,6 @@ const DataTable = <TData,>({
     }
   }, [editing, getRowId, uiState.pendingChanges, updateUiState]);
 
-  const changeRowsCount = Object.keys(uiState.pendingChanges).length;
-
   const changedCellsCount = Object.values(uiState.pendingChanges).reduce(
     (count, changes) => count + Object.keys(changes).length,
     0,
@@ -585,10 +554,10 @@ const DataTable = <TData,>({
         pageIndex: uiState.pageIndex,
       },
       rowSelection: uiState.rowSelection,
-      columnPinning: editing
+      columnPinning: selectionEnabled
         ? {
             left: [SELECT_COLUMN_ID],
-            right: [ACTIONS_COLUMN_ID],
+            right: [],
           }
         : {
             left: [],
@@ -599,7 +568,9 @@ const DataTable = <TData,>({
     manualSorting: true,
     rowCount: uiState.totalCount,
     enableColumnResizing: true,
-    enableRowSelection: true,
+    enableRowSelection: selectionEnabled
+      ? (row) => editing?.canDeleteRow?.(row.original) !== false
+      : false,
     columnResizeMode: "onChange",
 
     onColumnSizingChange: (updater) => {
@@ -660,10 +631,9 @@ const DataTable = <TData,>({
       return;
     }
 
+    updateUiState("rowSelection", {});
     updateUiState("isEditingMode", false);
-
-    requestRefresh();
-  }, [hasPendingChanges, requestRefresh, updateUiState]);
+  }, [hasPendingChanges, updateUiState]);
 
   const toolbarMode: ToolbarMode = uiState.isEditingMode
     ? "editing"
@@ -701,7 +671,14 @@ const DataTable = <TData,>({
   );
 
   const editingRight = (
-    <HStack gap={2}>
+    <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
+      {editing?.deleteRows && selectedRowsIds.length > 0 && (
+        <DeleteSelectedRowsButton
+          disabled={uiState.isMutating || uiState.isApplyingChanges}
+          onClick={() => setIsDeleteDialogOpen(true)}
+        />
+      )}
+
       <ResetAllChangesButton
         isApplying={uiState.isApplyingChanges}
         disabled={!hasPendingChanges}
@@ -715,8 +692,17 @@ const DataTable = <TData,>({
         onClick={() => void handleApplyChanges()}
       />
 
-      <Button size="sm" variant="outline" onClick={handleExitEditing}>
-        Завершить
+      <Button
+        aria-label="Завершить"
+        size="sm"
+        variant="outline"
+        width={{ base: "36px", md: "132px" }}
+        minWidth={{ base: "36px", md: "132px" }}
+        paddingInline={{ base: 0, md: 3 }}
+        onClick={handleExitEditing}
+      >
+        <LuLogOut />
+        <Text hideBelow="md">Завершить</Text>
       </Button>
     </HStack>
   );
@@ -729,36 +715,13 @@ const DataTable = <TData,>({
 
       <DeleteSelectedRowsButton
         disabled={uiState.isMutating}
-        onClick={() => handleDeleteRows(selectedRowsIds)}
+        onClick={() => setIsDeleteDialogOpen(true)}
       />
     </HStack>
   );
 
   const defaultRight = (
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
-      {editing && selectedRowsIds.length > 0 && (
-        <DeleteSelectedRowsButton
-          disabled={uiState.isMutating}
-          onClick={() => void handleDeleteRows(selectedRowsIds)}
-        />
-      )}
-
-      {editing?.updateRow && hasPendingChanges && (
-        <>
-          <ApplyAllChangesButton
-            isApplying={uiState.isApplyingChanges}
-            disabled={!hasPendingChanges}
-            changesCount={changeRowsCount}
-            onClick={() => void handleApplyChanges()}
-          />
-          <ResetAllChangesButton
-            isApplying={uiState.isApplyingChanges}
-            disabled={!hasPendingChanges}
-            onClick={handleResetChanges}
-          />
-        </>
-      )}
-
       {editing?.updateRow && (
         <EditingModeButton
           isEditingMode={uiState.isEditingMode}
@@ -844,6 +807,7 @@ const DataTable = <TData,>({
         isApplyingChanges={uiState.isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
         isEditingMode={uiState.isEditingMode}
+        isSelectionDisabled={uiState.isMutating || uiState.isApplyingChanges}
       />
 
       {/* Пагинация */}
@@ -863,6 +827,18 @@ const DataTable = <TData,>({
           />
         </Box>
       )}
+
+      <DeleteRowsDialog
+        open={isDeleteDialogOpen}
+        rowsCount={selectedRowsIds.length}
+        isDeleting={uiState.isMutating}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={async () => {
+          await handleDeleteRows(selectedRowsIds);
+
+          setIsDeleteDialogOpen(false);
+        }}
+      />
     </Stack>
   );
 };

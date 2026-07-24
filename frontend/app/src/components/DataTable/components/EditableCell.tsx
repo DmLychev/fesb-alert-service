@@ -95,7 +95,7 @@ const EditableCell = ({
   ) => {
     if (event.key === "Escape") {
       event.preventDefault();
-      cancelEditing;
+      cancelEditing();
       return;
     }
 

@@ -3,6 +3,7 @@ import type { EditableValue, TableViewProps } from "../types";
 import { flexRender } from "@tanstack/react-table";
 import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
 import EditableCell from "./EditableCell";
+import { SELECT_COLUMN_ID } from "../constants";
 
 const DataTable = <TData,>({
   table,
@@ -11,6 +12,7 @@ const DataTable = <TData,>({
   editableFields,
   pendingChanges = {},
   isApplyingChanges = false,
+  isSelectionDisabled = false,
   isEditingMode,
   onDraftChange,
 }: TableViewProps<TData>) => {
@@ -219,7 +221,6 @@ const DataTable = <TData,>({
               <Table.Row key={row.id}>
                 {row.getVisibleCells().map((cell) => {
                   const editableDefinition = editableFields?.[cell.column.id];
-
                   const rowChanges = pendingChanges[row.id];
 
                   const isDirty = Object.prototype.hasOwnProperty.call(
@@ -232,10 +233,20 @@ const DataTable = <TData,>({
                     cell.getContext(),
                   );
 
+                  const isSelectionCell = cell.column.id === SELECT_COLUMN_ID;
+
+                  const canToggleSelection =
+                    isSelectionCell &&
+                    row.getCanSelect() &&
+                    !isSelectionDisabled;
+
                   return (
                     <Table.Cell
                       key={cell.id}
-                      verticalAlign="top"
+                      verticalAlign={isSelectionCell ? "middle" : "top"}
+                      textAlign={isSelectionCell ? "center" : "start"}
+                      padding={isSelectionCell ? 0 : undefined}
+                      cursor={canToggleSelection ? "pointer" : undefined}
                       whiteSpace="nowrap"
                       overflow="hidden"
                       textOverflow="ellipsis"
@@ -255,6 +266,20 @@ const DataTable = <TData,>({
 
                         ...getPinnedColumnStyles(cell.column),
                       }}
+                      onClick={
+                        canToggleSelection
+                          ? () => row.toggleSelected()
+                          : undefined
+                      }
+                      _hover={
+                        canToggleSelection
+                          ? {
+                              bg: row.getIsSelected()
+                                ? "blue.subtle"
+                                : "bg.muted",
+                            }
+                          : undefined
+                      }
                     >
                       {editableDefinition && onDraftChange ? (
                         <EditableCell

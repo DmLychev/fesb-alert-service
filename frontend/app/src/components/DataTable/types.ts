@@ -160,6 +160,7 @@ export interface TableViewProps<TData> {
   onDraftChange?: (change: DraftCellChange) => void;
 
   isEditingMode: boolean;
+  isSelectionDisabled?: boolean;
 }
 
 export interface GlobalSearchProps {
@@ -216,7 +217,7 @@ export interface DataTableEditingConfig<TData> {
 
   updateRow?: (params: UpdateRowParams) => Promise<TData>;
 
-  deleteRows: (params: DeleteRowsParams) => Promise<void>;
+  deleteRows?: (params: DeleteRowsParams) => Promise<void>;
 
   canDeleteRow?: (row: TData) => boolean;
 }
@@ -228,4 +229,4 @@ export interface EditableControlProps {
   onChange: (value: EditableValue) => void;
 }
 
-export type ToolbarMode = "default" | "editing" | "selection";
+export type ToolbarMode = "default" | "editing";

@@ -40,4 +40,3 @@ export const bool_values = createListCollection({
 });
 
 export const SELECT_COLUMN_ID = "__select";
-export const ACTIONS_COLUMN_ID = "__actions";

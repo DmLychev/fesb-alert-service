@@ -15,8 +15,9 @@ const RowSelectionCheckbox = ({
     <Checkbox.Root
       checked={checked}
       disabled={disabled}
-      onCheckedChange={({ checked }) => onCheckedChange(checked === true)}
       size="sm"
+      onClick={(event) => event.stopPropagation()}
+      onCheckedChange={({ checked }) => onCheckedChange(checked === true)}
     >
       <Checkbox.HiddenInput />
       <Checkbox.Control>
