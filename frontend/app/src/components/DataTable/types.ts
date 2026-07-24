@@ -156,6 +156,8 @@ export interface TableViewProps<TData> {
   isApplyingChanges?: boolean;
 
   onDraftChange?: (change: DraftCellChange) => void;
+
+  isEditingMode: boolean;
 }
 
 export interface GlobalSearchProps {

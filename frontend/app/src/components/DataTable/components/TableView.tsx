@@ -11,6 +11,7 @@ const DataTable = <TData,>({
   editableFields,
   pendingChanges = {},
   isApplyingChanges = false,
+  isEditingMode,
   onDraftChange,
 }: TableViewProps<TData>) => {
   return (
@@ -239,6 +240,7 @@ const DataTable = <TData,>({
                               value,
                             })
                           }
+                          isEditingMode={isEditingMode}
                         />
                       ) : (
                         displayContent

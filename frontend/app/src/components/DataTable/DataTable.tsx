@@ -774,6 +774,7 @@ const DataTable = <TData,>({
         pendingChanges={uiState.pendingChanges}
         isApplyingChanges={uiState.isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
+        isEditingMode={uiState.isEditingMode}
       />
 
       {/* Пагинация */}

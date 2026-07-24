@@ -16,6 +16,7 @@ interface EditableCellProps {
   displayContent: ReactNode;
   isDirty: boolean;
   disabled?: boolean;
+  isEditingMode: boolean;
 
   onChange: (value: EditableValue) => void;
 }
@@ -38,6 +39,7 @@ const EditableCell = ({
   isDirty,
   disabled,
   onChange,
+  isEditingMode,
 }: EditableCellProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<DraftValue>(
@@ -47,9 +49,9 @@ const EditableCell = ({
 
   useEffect(() => {
     setDraft(toDraftValue(value, definition.type));
-
-    if (!isDirty) setIsEditing(false);
-  }, [value, definition.type, isDirty]);
+    setError(null);
+    setIsEditing(isEditingMode);
+  }, [value, definition.type, isEditingMode]);
 
   const parseDraft = (draftValue: DraftValue): EditableValue => {
     if (definition.type === "boolean") return draftValue === true;
@@ -77,10 +79,7 @@ const EditableCell = ({
   const commit = (draftValue = draft) => {
     try {
       setError(null);
-
       onChange(parseDraft(draftValue));
-
-      setIsEditing(false);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Invalid value");
     }
@@ -88,9 +87,7 @@ const EditableCell = ({
 
   const cancelEditing = () => {
     setDraft(toDraftValue(value, definition.type));
-
     setError(null);
-    setIsEditing(false);
   };
 
   const handleKeyDown = (
@@ -113,20 +110,7 @@ const EditableCell = ({
   };
 
   if (!isEditing) {
-    return (
-      <Box
-        minH="24px"
-        cursor={disabled ? "default" : "text"}
-        onDoubleClick={() => {
-          if (!disabled) {
-            setError(null);
-            setIsEditing(true);
-          }
-        }}
-      >
-        {displayContent}
-      </Box>
-    );
+    return <Box minHeight="24px">{displayContent}</Box>;
   }
 
   if (definition.type === "choice") {
@@ -134,7 +118,6 @@ const EditableCell = ({
       <NativeSelect.Root size="sm" disabled={disabled}>
         <NativeSelect.Field
           value={String(draft)}
-          autoFocus
           onChange={(event) => {
             const nextDraft = event.target.value;
 
@@ -181,7 +164,6 @@ const EditableCell = ({
     definition.type === "string" && definition.control === "textarea" ? (
       <Textarea
         value={String(draft)}
-        autoFocus
         minH="80px"
         maxH="160px"
         resize="vertical"
@@ -200,7 +182,6 @@ const EditableCell = ({
               : "text"
         }
         value={String(draft)}
-        autoFocus
         size="sm"
         disabled={disabled}
         onChange={(event) => setDraft(event.target.value)}
