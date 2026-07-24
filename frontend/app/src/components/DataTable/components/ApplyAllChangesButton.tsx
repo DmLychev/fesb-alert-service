@@ -3,12 +3,14 @@ import { LuCheck } from "react-icons/lu";
 
 interface ApplyAllChangesButtonProps {
   isApplying: boolean;
+  disabled: boolean;
   changesCount: number;
   onClick: () => void;
 }
 
 const ApplyAllChangesButton = ({
   isApplying,
+  disabled,
   changesCount,
   onClick,
 }: ApplyAllChangesButtonProps) => {

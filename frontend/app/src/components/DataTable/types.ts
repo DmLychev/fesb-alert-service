@@ -47,6 +47,7 @@ export interface TableUiState {
   pendingChanges: PendingChanges;
   isApplyingChanges: boolean;
   liveUpdateStatus: LiveUpdateStatus;
+  isEditingMode: boolean;
 }
 
 export type FilterFieldType =

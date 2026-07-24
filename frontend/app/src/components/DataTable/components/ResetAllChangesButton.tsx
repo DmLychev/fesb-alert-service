@@ -3,11 +3,13 @@ import { LuUndo2 } from "react-icons/lu";
 
 interface ResetAllChangesButtonProps {
   isApplying: boolean;
+  disabled: boolean;
   onClick: () => void;
 }
 
 const ResetAllChangesButton = ({
   isApplying,
+  disabled,
   onClick,
 }: ResetAllChangesButtonProps) => {
   return (
