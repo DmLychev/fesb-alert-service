@@ -14,7 +14,6 @@ interface EditableCellProps {
   definition: EditableFieldDefinition;
   value: EditableValue;
   displayContent: ReactNode;
-  isDirty: boolean;
   disabled?: boolean;
   isEditingMode: boolean;
 
@@ -36,12 +35,10 @@ const EditableCell = ({
   definition,
   value,
   displayContent,
-  isDirty,
   disabled,
   onChange,
   isEditingMode,
 }: EditableCellProps) => {
-  const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<DraftValue>(
     toDraftValue(value, definition.type),
   );
@@ -50,7 +47,6 @@ const EditableCell = ({
   useEffect(() => {
     setDraft(toDraftValue(value, definition.type));
     setError(null);
-    setIsEditing(isEditingMode);
   }, [value, definition.type, isEditingMode]);
 
   const parseDraft = (draftValue: DraftValue): EditableValue => {
@@ -109,7 +105,7 @@ const EditableCell = ({
     }
   };
 
-  if (!isEditing) {
+  if (!isEditingMode) {
     return <Box minHeight="24px">{displayContent}</Box>;
   }
 

@@ -295,7 +295,6 @@ const DataTable = <TData,>({
                           definition={editableDefinition}
                           value={cell.getValue() as EditableValue}
                           displayContent={displayContent}
-                          isDirty={isDirty}
                           onChange={(value) =>
                             onDraftChange({
                               rowId: row.id,
