@@ -24,6 +24,7 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   liveUpdateStatus: LiveUpdateStatus;
+  disabled?: boolean;
 }
 
 const TablePagination = ({
@@ -34,6 +35,7 @@ const TablePagination = ({
   onPageChange,
   onPageSizeChange,
   liveUpdateStatus,
+  disabled,
 }: TablePaginationProps) => {
   const firstVisibleRow = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
   const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, totalCount);
@@ -73,21 +75,24 @@ const TablePagination = ({
         <ButtonGroup variant="ghost" size="sm" attached={false}>
           <HStack gap={1}>
             <Pagination.PrevTrigger asChild>
-              <IconButton>
+              <IconButton disabled={disabled}>
                 <LuChevronLeft />
               </IconButton>
             </Pagination.PrevTrigger>
 
             <Pagination.Items
               render={(page) => (
-                <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                <IconButton
+                  variant={{ base: "ghost", _selected: "outline" }}
+                  disabled={disabled}
+                >
                   {page.value}
                 </IconButton>
               )}
             />
 
             <Pagination.NextTrigger asChild>
-              <IconButton>
+              <IconButton disabled={disabled}>
                 <LuChevronRight />
               </IconButton>
             </Pagination.NextTrigger>
@@ -105,6 +110,7 @@ const TablePagination = ({
           }}
           size="sm"
           width="110px"
+          disabled={disabled}
         >
           <Select.HiddenSelect />
           <Select.Control>

@@ -240,6 +240,11 @@ const DataTable = <TData,>({
       return;
     }
 
+    if (uiState.isEditingMode) {
+      updateUiState("liveUpdateStatus", "paused");
+      return;
+    }
+
     updateUiState("liveUpdateStatus", "connecting");
 
     const controller = new AbortController();
@@ -335,7 +340,12 @@ const DataTable = <TData,>({
 
       if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     };
-  }, [preferences.isLiveUpdatesEnabled, liveUpdates, requestRefresh]);
+  }, [
+    preferences.isLiveUpdatesEnabled,
+    liveUpdates,
+    requestRefresh,
+    uiState.isEditingMode,
+  ]);
 
   const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
     if (!editing) return columns;
@@ -353,6 +363,7 @@ const DataTable = <TData,>({
 
       header: ({ table }) => (
         <RowSelectionCheckbox
+          disabled={uiState.isEditingMode || uiState.isMutating}
           checked={
             table.getIsAllPageRowsSelected()
               ? true
@@ -369,7 +380,11 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <RowSelectionCheckbox
           checked={row.getIsSelected()}
-          disabled={!row.getCanSelect()}
+          disabled={
+            uiState.isEditingMode ||
+            uiState.isMutating ||
+            editing.canDeleteRow?.(row.original) === false
+          }
           onCheckedChange={(checked) => row.toggleSelected(checked)}
         />
       ),
@@ -391,7 +406,9 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <DeleteRowButton
           disabled={
-            uiState.isMutating || editing.canDeleteRow?.(row.original) === false
+            uiState.isEditingMode ||
+            uiState.isMutating ||
+            editing.canDeleteRow?.(row.original) === false
           }
           onDelete={() => void handleDeleteRows([row.id])}
         />
@@ -399,7 +416,13 @@ const DataTable = <TData,>({
     };
 
     return [selectionColumn, ...columns, actionsColumn];
-  }, [columns, editing, uiState.isMutating, handleDeleteRows]);
+  }, [
+    columns,
+    editing,
+    uiState.isMutating,
+    handleDeleteRows,
+    uiState.isEditingMode,
+  ]);
 
   const selectedRowsIds = Object.entries(uiState.rowSelection)
     .filter(([, selected]) => selected)
@@ -638,7 +661,9 @@ const DataTable = <TData,>({
     }
 
     updateUiState("isEditingMode", false);
-  }, [hasPendingChanges, updateUiState]);
+
+    requestRefresh();
+  }, [hasPendingChanges, requestRefresh, updateUiState]);
 
   const toolbarMode: ToolbarMode = uiState.isEditingMode
     ? "editing"
@@ -834,6 +859,7 @@ const DataTable = <TData,>({
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
             liveUpdateStatus={uiState.liveUpdateStatus}
+            disabled={uiState.isEditingMode}
           />
         </Box>
       )}

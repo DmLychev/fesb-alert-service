@@ -88,7 +88,18 @@ const DataTable = <TData,>({
                         pe="8px"
                         overflow="hidden"
                         borderRadius={0}
-                        onClick={header.column.getToggleSortingHandler()}
+                        onClick={
+                          isEditingMode
+                            ? undefined
+                            : header.column.getToggleSortingHandler()
+                        }
+                        cursor={
+                          isEditingMode
+                            ? "default"
+                            : header.column.getCanSort()
+                              ? "pointer"
+                              : "default"
+                        }
                       >
                         <Box
                           overflow="hidden"
