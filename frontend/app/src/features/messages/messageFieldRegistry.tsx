@@ -3,6 +3,7 @@ import { formatDateTime } from "../../components/DataTable/utils/date";
 import StatusCell from "./components/StatusCell";
 import type { Message } from "./types";
 import ScrollableTextCell from "./components/ScrollableTextCell";
+import MessageStatusEditor from "./components/MessageStatusEditor";
 
 export const MESSAGE_FIELD_REGISTRY = {
   "route.domainName": {
@@ -56,7 +57,7 @@ export const MESSAGE_FIELD_REGISTRY = {
     },
 
     filter: true,
-    edit: true,
+    edit: { renderEditor: (props) => <MessageStatusEditor {...props} /> },
   },
 
   startDate: {

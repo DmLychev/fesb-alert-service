@@ -113,6 +113,9 @@ const EditableCell = ({
     return <Box minHeight="24px">{displayContent}</Box>;
   }
 
+  if (definition.renderEditor)
+    return definition.renderEditor({ value, disabled, onChange });
+
   if (definition.type === "choice") {
     return (
       <NativeSelect.Root size="sm" disabled={disabled}>

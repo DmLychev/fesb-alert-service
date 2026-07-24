@@ -42,6 +42,9 @@ const DataTable = <TData,>({
             <Table.Row key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 const sortDirection = header.column.getIsSorted();
+                const isEditableColumn = Boolean(
+                  editableFields?.[header.column.id],
+                );
 
                 return (
                   <Table.ColumnHeader
@@ -49,7 +52,11 @@ const DataTable = <TData,>({
                     whiteSpace="nowrap"
                     overflow="hidden"
                     textOverflow="ellipsis"
-                    bg="bg.muted"
+                    bg={
+                      isEditingMode && isEditableColumn
+                        ? "yellow.subtle"
+                        : "bg.muted"
+                    }
                     style={{
                       width: header.getSize(),
                       minWidth: header.getSize(),
@@ -57,6 +64,17 @@ const DataTable = <TData,>({
 
                       ...getPinnedColumnStyles(header.column, true),
                     }}
+                    title={
+                      isEditableColumn ? "Редактируемый столбец" : undefined
+                    }
+                    borderBottomWidth={isEditableColumn ? "2px" : "1px"}
+                    borderBottomColor={
+                      isEditableColumn
+                        ? isEditingMode
+                          ? "yellow.solid"
+                          : "yellow.muted"
+                        : "border.muted"
+                    }
                   >
                     {header.isPlaceholder ? null : (
                       <Button

@@ -8,6 +8,7 @@ import {
   type Table,
   type VisibilityState,
 } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 
 export interface UiFilterRow {
   id: string;
@@ -76,9 +77,8 @@ export interface FilterFieldDefinition {
   choices?: readonly FilterChoice[];
 }
 
-export interface EditableFieldDefinition extends FilterFieldDefinition {
-  control?: "input" | "textarea";
-}
+export interface EditableFieldDefinition
+  extends FilterFieldDefinition, EditDefinition {}
 
 export type FilterFieldRegistry = Record<string, FilterFieldDefinition>;
 
@@ -95,6 +95,8 @@ export type RegistryColumnDef<TData> = DistributiveOmit<
 
 export interface EditDefinition {
   control?: "input" | "textarea";
+
+  renderEditor?: (props: EditableControlProps) => ReactNode;
 }
 
 export interface TableFieldDefinition<TData> {
@@ -218,3 +220,12 @@ export interface DataTableEditingConfig<TData> {
 
   canDeleteRow?: (row: TData) => boolean;
 }
+
+export interface EditableControlProps {
+  value: EditableValue;
+  disabled?: boolean;
+
+  onChange: (value: EditableValue) => void;
+}
+
+export type ToolbarMode = "default" | "editing" | "selection";

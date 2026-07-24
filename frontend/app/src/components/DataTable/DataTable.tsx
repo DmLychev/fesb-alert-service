@@ -17,6 +17,7 @@ import type {
   EditableValue,
   PendingChanges,
   UiFilterRow,
+  ToolbarMode,
 } from "./types";
 import {
   ACTIONS_COLUMN_ID,
@@ -38,7 +39,7 @@ import TableToolbar from "./components/TableToolbar";
 import FilterPanel from "./components/FilterPanel";
 import TableSettings from "./components/TableSettings";
 import EditingModeButton from "./components/EditingModeButton";
-import { LuPencil } from "react-icons/lu";
+import { LuListChecks, LuPencil } from "react-icons/lu";
 
 const DataTable = <TData,>({
   storageKey,
@@ -639,108 +640,151 @@ const DataTable = <TData,>({
     updateUiState("isEditingMode", false);
   }, [hasPendingChanges, updateUiState]);
 
-  const toolbarMode = uiState.isEditingMode ? "editing" : "default";
+  const toolbarMode: ToolbarMode = uiState.isEditingMode
+    ? "editing"
+    : selectedRowsIds.length > 0
+      ? "selection"
+      : "default";
+
+  const handleClearSelection = useCallback(
+    () => updateUiState("rowSelection", {}),
+    [updateUiState],
+  );
+
+  const editingLeft = (
+    <HStack gap={2}>
+      <LuPencil />
+
+      <Text fontWeight="medium">Режим редактирования</Text>
+
+      {hasPendingChanges && (
+        <Badge colorPalette="yellow">{changedCellsCount}</Badge>
+      )}
+    </HStack>
+  );
+
+  const selectionLeft = (
+    <HStack gap={2}>
+      <LuListChecks />
+
+      <Text fontWeight="medium">Выбрано строк {selectedRowsIds.length}</Text>
+    </HStack>
+  );
+
+  const defaultLeft = (
+    <GlobalSearch value={uiState.globalSearch} onSubmit={handleSearchSubmit} />
+  );
+
+  const editingRight = (
+    <HStack gap={2}>
+      <ResetAllChangesButton
+        isApplying={uiState.isApplyingChanges}
+        disabled={!hasPendingChanges}
+        onClick={handleResetChanges}
+      />
+
+      <ApplyAllChangesButton
+        isApplying={uiState.isApplyingChanges}
+        changesCount={changedCellsCount}
+        disabled={!hasPendingChanges}
+        onClick={() => void handleApplyChanges()}
+      />
+
+      <Button size="sm" variant="outline" onClick={handleExitEditing}>
+        Завершить
+      </Button>
+    </HStack>
+  );
+
+  const selectionRight = (
+    <HStack gap={2}>
+      <Button size="sm" variant="outline" onClick={handleClearSelection}>
+        Снять выбор
+      </Button>
+
+      <DeleteSelectedRowsButton
+        disabled={uiState.isMutating}
+        onClick={() => handleDeleteRows(selectedRowsIds)}
+      />
+    </HStack>
+  );
+
+  const defaultRight = (
+    <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
+      {editing && selectedRowsIds.length > 0 && (
+        <DeleteSelectedRowsButton
+          disabled={uiState.isMutating}
+          onClick={() => void handleDeleteRows(selectedRowsIds)}
+        />
+      )}
+
+      {editing?.updateRow && hasPendingChanges && (
+        <>
+          <ApplyAllChangesButton
+            isApplying={uiState.isApplyingChanges}
+            disabled={!hasPendingChanges}
+            changesCount={changeRowsCount}
+            onClick={() => void handleApplyChanges()}
+          />
+          <ResetAllChangesButton
+            isApplying={uiState.isApplyingChanges}
+            disabled={!hasPendingChanges}
+            onClick={handleResetChanges}
+          />
+        </>
+      )}
+
+      {editing?.updateRow && (
+        <EditingModeButton
+          isEditingMode={uiState.isEditingMode}
+          onClick={
+            uiState.isEditingMode ? handleExitEditing : handleStartEditing
+          }
+        />
+      )}
+
+      <RefreshButton
+        onRefresh={requestRefresh}
+        isRefreshing={uiState.isRefreshing}
+      />
+
+      {hasFilterFields && (
+        <FilterButton
+          isOpen={uiState.isFilterBlockOpen}
+          activeFiltersCount={uiState.displayedFilters.length}
+          onToggle={() =>
+            updateUiState("isFilterBlockOpen", !uiState.isFilterBlockOpen)
+          }
+        />
+      )}
+
+      <TableSettings
+        table={table}
+        columns={preferences.columnOrder}
+        isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
+        onColumnOrderChange={(newOrder) =>
+          updatePreferences("columnOrder", newOrder)
+        }
+        onLiveUpdatesEnabledChange={(enabled) =>
+          updatePreferences("isLiveUpdatesEnabled", enabled)
+        }
+      />
+    </HStack>
+  );
 
   const toolbarLeft =
-    toolbarMode === "editing" ? (
-      <HStack gap={2}>
-        <LuPencil />
-
-        <Text fontWeight="medium">Режим редактирования</Text>
-
-        {hasPendingChanges && (
-          <Badge colorPalette="yellow">{changedCellsCount}</Badge>
-        )}
-      </HStack>
-    ) : (
-      <GlobalSearch
-        value={uiState.globalSearch}
-        onSubmit={handleSearchSubmit}
-      />
-    );
+    toolbarMode === "editing"
+      ? editingLeft
+      : toolbarMode === "selection"
+        ? selectionLeft
+        : defaultLeft;
 
   const toolbarRight =
-    toolbarMode === "editing" ? (
-      <HStack gap={2}>
-        <ResetAllChangesButton
-          isApplying={uiState.isApplyingChanges}
-          disabled={!hasPendingChanges}
-          onClick={handleResetChanges}
-        />
-
-        <ApplyAllChangesButton
-          isApplying={uiState.isApplyingChanges}
-          changesCount={changedCellsCount}
-          disabled={!hasPendingChanges}
-          onClick={() => void handleApplyChanges()}
-        />
-
-        <Button size="sm" variant="outline" onClick={handleExitEditing}>
-          Завершить
-        </Button>
-      </HStack>
-    ) : (
-      <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
-        {editing && selectedRowsIds.length > 0 && (
-          <DeleteSelectedRowsButton
-            disabled={uiState.isMutating}
-            onClick={() => void handleDeleteRows(selectedRowsIds)}
-          />
-        )}
-
-        {editing?.updateRow && hasPendingChanges && (
-          <>
-            <ApplyAllChangesButton
-              isApplying={uiState.isApplyingChanges}
-              disabled={!hasPendingChanges}
-              changesCount={changeRowsCount}
-              onClick={() => void handleApplyChanges()}
-            />
-            <ResetAllChangesButton
-              isApplying={uiState.isApplyingChanges}
-              disabled={!hasPendingChanges}
-              onClick={handleResetChanges}
-            />
-          </>
-        )}
-
-        {editing?.updateRow && (
-          <EditingModeButton
-            isEditingMode={uiState.isEditingMode}
-            onClick={
-              uiState.isEditingMode ? handleExitEditing : handleStartEditing
-            }
-          />
-        )}
-
-        <RefreshButton
-          onRefresh={requestRefresh}
-          isRefreshing={uiState.isRefreshing}
-        />
-
-        {hasFilterFields && (
-          <FilterButton
-            isOpen={uiState.isFilterBlockOpen}
-            activeFiltersCount={uiState.displayedFilters.length}
-            onToggle={() =>
-              updateUiState("isFilterBlockOpen", !uiState.isFilterBlockOpen)
-            }
-          />
-        )}
-
-        <TableSettings
-          table={table}
-          columns={preferences.columnOrder}
-          isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
-          onColumnOrderChange={(newOrder) =>
-            updatePreferences("columnOrder", newOrder)
-          }
-          onLiveUpdatesEnabledChange={(enabled) =>
-            updatePreferences("isLiveUpdatesEnabled", enabled)
-          }
-        />
-      </HStack>
-    );
+    toolbarMode === "editing"
+      ? editingRight
+      : toolbarMode === "selection"
+        ? selectionRight
+        : defaultRight;
 
   return (
     <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
