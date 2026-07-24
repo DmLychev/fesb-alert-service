@@ -1,4 +1,3 @@
-import type { ListCollection } from "@chakra-ui/react";
 import {
   type Column,
   type ColumnDef,
@@ -180,18 +179,6 @@ export interface FilterPanelProps {
   filterFields: FilterFieldRegistry;
   onFiltersChange: React.Dispatch<React.SetStateAction<UiFilterRow[]>>;
   onFiltersSubmit: (filters: UiFilterRow[]) => void;
-}
-
-export interface TablePaginationProps {
-  pageIndex: number;
-  pageSize: number;
-  totalCount: number;
-  pageSizeOptions: ListCollection<{
-    value: string;
-    label: string;
-  }>;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
 }
 
 export type EditableValue = string | number | boolean | null;

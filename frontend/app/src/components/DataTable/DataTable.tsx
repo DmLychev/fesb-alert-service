@@ -37,7 +37,6 @@ import ResetAllChangesButton from "./components/ResetAllChangesButton";
 import TableToolbar from "./components/TableToolbar";
 import FilterPanel from "./components/FilterPanel";
 import TableSettings from "./components/TableSettings";
-import LiveUpdateStatusIndicator from "./components/LiveUpdateStatusIndicator";
 
 const DataTable = <TData,>({
   storageKey,
@@ -229,8 +228,13 @@ const DataTable = <TData,>({
   );
 
   useEffect(() => {
-    if (!preferences.isLiveUpdatesEnabled || !liveUpdates?.createConnectionUrl)
+    if (
+      !preferences.isLiveUpdatesEnabled ||
+      !liveUpdates?.createConnectionUrl
+    ) {
       updateUiState("liveUpdateStatus", "off");
+      return;
+    }
 
     updateUiState("liveUpdateStatus", "connecting");
 
@@ -704,8 +708,6 @@ const DataTable = <TData,>({
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
       />
 
-      <LiveUpdateStatusIndicator status={uiState.liveUpdateStatus} />
-
       {/* Пагинация */}
       {uiState.totalCount > 0 && (
         <Box flexShrink={0}>
@@ -718,6 +720,7 @@ const DataTable = <TData,>({
               table.setPageIndex(newPage - 1);
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
+            liveUpdateStatus={uiState.liveUpdateStatus}
           />
         </Box>
       )}

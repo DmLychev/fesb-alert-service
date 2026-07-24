@@ -1,4 +1,5 @@
 import {
+  type ListCollection,
   ButtonGroup,
   Flex,
   HStack,
@@ -6,9 +7,24 @@ import {
   Pagination,
   Portal,
   Select,
+  Text,
 } from "@chakra-ui/react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
-import type { TablePaginationProps } from "../types";
+import type { LiveUpdateStatus } from "../types";
+import LiveUpdateStatusIndicator from "./LiveUpdateStatusIndicator";
+
+interface TablePaginationProps {
+  pageIndex: number;
+  pageSize: number;
+  totalCount: number;
+  pageSizeOptions: ListCollection<{
+    value: string;
+    label: string;
+  }>;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  liveUpdateStatus: LiveUpdateStatus;
+}
 
 const TablePagination = ({
   pageIndex,
@@ -17,7 +33,12 @@ const TablePagination = ({
   pageSizeOptions,
   onPageChange,
   onPageSizeChange,
+  liveUpdateStatus,
 }: TablePaginationProps) => {
+  const firstVisibleRow = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
+  const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, totalCount);
+  const rangeLabel = `${firstVisibleRow}-${lastVisibleRow}  из ${totalCount}`;
+
   return (
     <Pagination.Root
       pageSize={pageSize}
@@ -27,19 +48,27 @@ const TablePagination = ({
       onPageChange={(details) => onPageChange(details.page)}
     >
       <Flex
-        width="full"
-        justifyContent="space-between"
+        minHeight="40px"
         alignItems="center"
-        wrap="wrap"
-        gap={4}
+        justifyContent="space-between"
+        gap={3}
+        paddingInline={3}
+        paddingBlock={1}
+        flexShrink={0}
+        borderWidth="1px"
+        borderColor="border.muted"
+        borderRadius="md"
+        bg="bg.panel"
       >
-        <Pagination.PageText
-          format={() =>
-            totalCount > 0
-              ? `${pageIndex * pageSize + 1} - ${Math.min((pageIndex + 1) * pageSize, totalCount)} из ${totalCount}`
-              : "0 - 0 из 0"
-          }
-        />
+        <HStack gap={3}>
+          <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">
+            {rangeLabel}
+          </Text>
+
+          {liveUpdateStatus && (
+            <LiveUpdateStatusIndicator status={liveUpdateStatus} />
+          )}
+        </HStack>
 
         <ButtonGroup variant="ghost" size="sm" attached={false}>
           <HStack gap={1}>
