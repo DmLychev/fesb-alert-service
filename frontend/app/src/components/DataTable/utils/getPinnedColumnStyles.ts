@@ -1,9 +1,17 @@
 import type { CSSProperties } from "react";
 import type { Column } from "@tanstack/react-table";
 
+interface PinnedColumnStylesOptions {
+  isHeader?: boolean;
+  showBoundaryShadow?: boolean;
+}
+
 export const getPinnedColumnStyles = <TData>(
   column: Column<TData>,
-  isHeader = false,
+  {
+    isHeader = false,
+    showBoundaryShadow = true,
+  }: PinnedColumnStylesOptions = {},
 ): CSSProperties => {
   const pinned = column.getIsPinned();
 
@@ -17,10 +25,11 @@ export const getPinnedColumnStyles = <TData>(
     left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
     right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
     zIndex: isHeader ? (pinned ? 4 : 3) : pinned ? 2 : 0,
-    boxShadow: isLastLeftColumn
-      ? "-4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"
-      : isFirstRightColumn
-        ? "4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"
-        : undefined,
+    boxShadow:
+      showBoundaryShadow && isLastLeftColumn
+        ? "-4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"
+        : isFirstRightColumn
+          ? "4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"
+          : undefined,
   };
 };

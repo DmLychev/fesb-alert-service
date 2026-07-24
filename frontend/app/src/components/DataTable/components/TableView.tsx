@@ -64,7 +64,11 @@ const DataTable = <TData,>({
                       minWidth: header.getSize(),
                       maxWidth: header.getSize(),
 
-                      ...getPinnedColumnStyles(header.column, true),
+                      ...getPinnedColumnStyles(header.column, {
+                        isHeader: true,
+                        showBoundaryShadow:
+                          header.column.id !== SELECT_COLUMN_ID,
+                      }),
                     }}
                     title={
                       isEditableColumn ? "Редактируемый столбец" : undefined
@@ -191,7 +195,9 @@ const DataTable = <TData,>({
                       minWidth: column.getSize(),
                       maxWidth: column.getSize(),
 
-                      ...getPinnedColumnStyles(column),
+                      ...getPinnedColumnStyles(column, {
+                        showBoundaryShadow: column.id !== SELECT_COLUMN_ID,
+                      }),
                     }}
                   >
                     {/* Chakra UI v3 Skeleton line animation */}
@@ -264,7 +270,10 @@ const DataTable = <TData,>({
                         minWidth: cell.column.getSize(),
                         maxWidth: cell.column.getSize(),
 
-                        ...getPinnedColumnStyles(cell.column),
+                        ...getPinnedColumnStyles(cell.column, {
+                          showBoundaryShadow:
+                            cell.column.id !== SELECT_COLUMN_ID,
+                        }),
                       }}
                       onClick={
                         canToggleSelection
