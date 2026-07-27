@@ -40,7 +40,7 @@ const TablePagination = ({
 }: TablePaginationProps) => {
   const firstVisibleRow = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
   const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, totalCount);
-  const rangeLabel = `${firstVisibleRow}-${lastVisibleRow}  из ${totalCount}`;
+  const rangeLabel = `${firstVisibleRow}-${lastVisibleRow} из ${totalCount}`;
   const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
@@ -52,20 +52,24 @@ const TablePagination = ({
       onPageChange={(details) => onPageChange(details.page)}
     >
       <Flex
+        width="full"
         minHeight="40px"
+        direction={{ base: "column", md: "row" }}
+        alignItems={{ base: "stretch", md: "center" }}
         justifyContent="space-between"
+        gap={{ base: 2, md: 3 }}
         paddingInline={3}
-        paddingBlock={1}
-        flexShrink={0}
+        paddingBlock={1.5}
         borderWidth="1px"
         borderColor="border.muted"
         borderRadius="md"
         bg="bg.panel"
-        direction={{ base: "column", md: "row" }}
-        alignItems={{ base: "stretch", md: "center" }}
-        gap={2}
       >
-        <HStack gap={3}>
+        <HStack
+          width={{ base: "full", md: "auto" }}
+          justifyContent={{ base: "space-between", md: "flex-start" }}
+          gap={3}
+        >
           <Text fontSize="sm" color="fg.muted" whiteSpace="nowrap">
             {rangeLabel}
           </Text>
@@ -75,38 +79,60 @@ const TablePagination = ({
           )}
         </HStack>
 
-        <Text hideFrom="md" fontSize="sm" whiteSpace="nowrap">
-          Стр. {pageIndex + 1} {pageCount}
-        </Text>
+        <HStack
+          width={{ base: "full", md: "auto" }}
+          justifyContent="space-between"
+          gap={1}
+        >
+          <Pagination.PrevTrigger asChild>
+            <IconButton
+              area-label="Предыдущая страница"
+              size="sm"
+              variant="ghost"
+              disabled={disabled}
+            >
+              <LuChevronLeft />
+            </IconButton>
+          </Pagination.PrevTrigger>
 
-        <ButtonGroup variant="ghost" size="sm" attached={false}>
-          <HStack gap={1}>
-            <Pagination.PrevTrigger asChild>
-              <IconButton disabled={disabled}>
-                <LuChevronLeft />
-              </IconButton>
-            </Pagination.PrevTrigger>
+          <Text
+            hideFrom="md"
+            minWidth="150px"
+            textAlign="center"
+            fontSize="sm"
+            whiteSpace="nowrap"
+          >
+            Стр. {pageIndex + 1} из {pageCount}
+          </Text>
 
-            <Box hideBelow="md">
-              <Pagination.Items
-                render={(page) => (
-                  <IconButton
-                    variant={{ base: "ghost", _selected: "outline" }}
-                    disabled={disabled}
-                  >
-                    {page.value}
-                  </IconButton>
-                )}
-              />
-            </Box>
+          <ButtonGroup hideBelow="md" variant="ghost" size="sm">
+            <HStack gap={1}>
+              <Box hideBelow="md">
+                <Pagination.Items
+                  render={(page) => (
+                    <IconButton
+                      variant={{ base: "ghost", _selected: "outline" }}
+                      disabled={disabled}
+                    >
+                      {page.value}
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            </HStack>
+          </ButtonGroup>
 
-            <Pagination.NextTrigger asChild>
-              <IconButton disabled={disabled}>
-                <LuChevronRight />
-              </IconButton>
-            </Pagination.NextTrigger>
-          </HStack>
-        </ButtonGroup>
+          <Pagination.NextTrigger asChild>
+            <IconButton
+              aria-label="Следующая страница"
+              size="sm"
+              variant="ghost"
+              disabled={disabled}
+            >
+              <LuChevronRight />
+            </IconButton>
+          </Pagination.NextTrigger>
+        </HStack>
 
         <Box hideBelow="md">
           <Select.Root
