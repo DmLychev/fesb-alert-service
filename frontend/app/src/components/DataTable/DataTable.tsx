@@ -232,6 +232,8 @@ const DataTable = <TData,>({
     [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
   );
 
+  const isLiveUpdatesPaused = uiState.isEditingMode || uiState.pageIndex !== 0;
+
   useEffect(() => {
     if (
       !preferences.isLiveUpdatesEnabled ||
@@ -241,7 +243,7 @@ const DataTable = <TData,>({
       return;
     }
 
-    if (uiState.isEditingMode) {
+    if (isLiveUpdatesPaused) {
       updateUiState("liveUpdateStatus", "paused");
       return;
     }
@@ -345,7 +347,7 @@ const DataTable = <TData,>({
     preferences.isLiveUpdatesEnabled,
     liveUpdates,
     requestRefresh,
-    uiState.isEditingMode,
+    isLiveUpdatesPaused,
   ]);
 
   const selectionEnabled = Boolean(
