@@ -25,8 +25,9 @@ export const getPinnedColumnStyles = <TData>(
     left: pinned === "left" ? `${column.getStart("left")}px` : undefined,
     right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
     zIndex: isHeader ? (pinned ? 4 : 3) : pinned ? 2 : 0,
-    boxShadow:
-      showBoundaryShadow && isLastLeftColumn
+    boxShadow: !showBoundaryShadow
+      ? undefined
+      : isLastLeftColumn
         ? "-4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"
         : isFirstRightColumn
           ? "4px 0 4px -4px var(--chakra-colors-border-emphasized) inset"

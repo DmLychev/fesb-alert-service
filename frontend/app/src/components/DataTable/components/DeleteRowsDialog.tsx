@@ -20,7 +20,11 @@ const DeleteRowsDialog = ({
     <Dialog.Root
       open={open}
       onOpenChange={({ open }) => onOpenChange(open)}
-      size={{ base: "full", md: "sm" }}
+      size={{ smDown: "xs", sm: "sm" }}
+      placement="center"
+      role="alertdialog"
+      closeOnEscape={!isDeleting}
+      closeOnInteractOutside={!isDeleting}
     >
       <Portal>
         <Dialog.Backdrop />

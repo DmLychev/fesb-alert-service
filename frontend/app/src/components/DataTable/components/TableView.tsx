@@ -106,6 +106,7 @@ const DataTable = <TData,>({
                               ? "pointer"
                               : "default"
                         }
+                        disabled={isEditingMode}
                       >
                         <Box
                           overflow="hidden"

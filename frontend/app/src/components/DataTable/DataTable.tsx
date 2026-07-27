@@ -34,7 +34,7 @@ import TableToolbar from "./components/TableToolbar";
 import FilterPanel from "./components/FilterPanel";
 import TableSettings from "./components/TableSettings";
 import EditingModeButton from "./components/EditingModeButton";
-import { LuListChecks, LuLogOut, LuPencil } from "react-icons/lu";
+import { LuLogOut, LuPencil } from "react-icons/lu";
 import DeleteRowsDialog from "./components/DeleteRowsDialog";
 
 const DataTable = <TData,>({
@@ -180,8 +180,8 @@ const DataTable = <TData,>({
   ]);
 
   const handleDeleteRows = useCallback(
-    async (rowIds: string[]): Promise<void> => {
-      if (!editing?.deleteRows || rowIds.length === 0) return;
+    async (rowIds: string[]): Promise<Boolean> => {
+      if (!editing?.deleteRows || rowIds.length === 0) return false;
 
       const controller = new AbortController();
 
@@ -212,6 +212,8 @@ const DataTable = <TData,>({
           type: "success",
           duration: 3000,
         });
+
+        return true;
       } catch (error: unknown) {
         toaster.create({
           title:
@@ -221,6 +223,8 @@ const DataTable = <TData,>({
           type: "error",
           duration: 6000,
         });
+
+        return false;
       } finally {
         updateUiState("isMutating", false);
       }
@@ -637,14 +641,7 @@ const DataTable = <TData,>({
 
   const toolbarMode: ToolbarMode = uiState.isEditingMode
     ? "editing"
-    : selectedRowsIds.length > 0
-      ? "selection"
-      : "default";
-
-  const handleClearSelection = useCallback(
-    () => updateUiState("rowSelection", {}),
-    [updateUiState],
-  );
+    : "default";
 
   const editingLeft = (
     <HStack gap={2}>
@@ -655,14 +652,6 @@ const DataTable = <TData,>({
       {hasPendingChanges && (
         <Badge colorPalette="yellow">{changedCellsCount}</Badge>
       )}
-    </HStack>
-  );
-
-  const selectionLeft = (
-    <HStack gap={2}>
-      <LuListChecks />
-
-      <Text fontWeight="medium">Выбрано строк {selectedRowsIds.length}</Text>
     </HStack>
   );
 
@@ -707,19 +696,6 @@ const DataTable = <TData,>({
     </HStack>
   );
 
-  const selectionRight = (
-    <HStack gap={2}>
-      <Button size="sm" variant="outline" onClick={handleClearSelection}>
-        Снять выбор
-      </Button>
-
-      <DeleteSelectedRowsButton
-        disabled={uiState.isMutating}
-        onClick={() => setIsDeleteDialogOpen(true)}
-      />
-    </HStack>
-  );
-
   const defaultRight = (
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
       {editing?.updateRow && (
@@ -760,19 +736,9 @@ const DataTable = <TData,>({
     </HStack>
   );
 
-  const toolbarLeft =
-    toolbarMode === "editing"
-      ? editingLeft
-      : toolbarMode === "selection"
-        ? selectionLeft
-        : defaultLeft;
+  const toolbarLeft = toolbarMode === "editing" ? editingLeft : defaultLeft;
 
-  const toolbarRight =
-    toolbarMode === "editing"
-      ? editingRight
-      : toolbarMode === "selection"
-        ? selectionRight
-        : defaultRight;
+  const toolbarRight = toolbarMode === "editing" ? editingRight : defaultRight;
 
   return (
     <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
@@ -834,9 +800,9 @@ const DataTable = <TData,>({
         isDeleting={uiState.isMutating}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={async () => {
-          await handleDeleteRows(selectedRowsIds);
+          const wasDeleted = await handleDeleteRows(selectedRowsIds);
 
-          setIsDeleteDialogOpen(false);
+          if (wasDeleted) setIsDeleteDialogOpen(false);
         }}
       />
     </Stack>
