@@ -36,18 +36,13 @@ export interface TablePreferences {
 
 export interface TableUiState {
   globalSearch: string;
-  displayedFilters: UiFilterRow[];
+  draftFilters: UiFilterRow[];
   pageIndex: number;
-  totalCount: number;
-  isFilterBlockOpen: boolean;
-  showSkeleton: boolean;
-  refreshVersion: number;
-  isRefreshing: boolean;
+  isFilterPaneOpen: boolean;
   rowSelection: RowSelectionState;
-  isMutating: boolean;
+  isDeleting: boolean;
   pendingChanges: PendingChanges;
   isApplyingChanges: boolean;
-  liveUpdateStatus: LiveUpdateStatus;
   isEditingMode: boolean;
 }
 

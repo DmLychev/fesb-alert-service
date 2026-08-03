@@ -5,7 +5,7 @@ import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
 import EditableCell from "./EditableCell";
 import { SELECT_COLUMN_ID } from "../constants";
 
-const DataTable = <TData,>({
+const TableViewport = <TData,>({
   table,
   showSkeleton,
   pageSize,
@@ -320,4 +320,4 @@ const DataTable = <TData,>({
   );
 };
 
-export default DataTable;
+export default TableViewport;

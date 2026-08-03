@@ -31,7 +31,7 @@ interface TablePaginationProps {
   disabled?: boolean;
 }
 
-const TablePagination = ({
+const TableFooter = ({
   pageIndex,
   pageSize,
   totalCount,
@@ -224,4 +224,4 @@ const TablePagination = ({
   );
 };
 
-export default TablePagination;
+export default TableFooter;

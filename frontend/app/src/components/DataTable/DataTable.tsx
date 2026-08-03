@@ -7,7 +7,7 @@ import {
   type Updater,
   useReactTable,
 } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toaster } from "../ui/toaster";
 
 import useTablePreferences from "./hooks/useTablePreferences";
@@ -22,20 +22,22 @@ import type {
 import { page_size_options, SELECT_COLUMN_ID } from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
 import FilterButton from "./components/FilterButton";
-import TablePagination from "./components/TablePagination";
+import TableFooter from "./components/TableFooter";
 import useUiState from "./hooks/useUiState";
-import TableView from "./components/TableView";
+import TableViewport from "./components/TableViewport";
 import RefreshButton from "./components/RefreshButton";
 import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
 import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
 import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
 import ResetAllChangesButton from "./components/ResetAllChangesButton";
-import TableToolbar from "./components/TableToolbar";
 import FilterPanel from "./components/FilterPanel";
 import TableSettings from "./components/TableSettings";
 import EditingModeButton from "./components/EditingModeButton";
 import { LuLogOut, LuPencil } from "react-icons/lu";
 import DeleteRowsDialog from "./components/DeleteRowsDialog";
+import useLiveUpdates from "./hooks/useLiveUpdates";
+import useTableData from "./hooks/useTableData";
+import TableToolbar from "./components/TableToolbar";
 
 const DataTable = <TData,>({
   storageKey,
@@ -56,22 +58,31 @@ const DataTable = <TData,>({
   // Временные параметры отображения таблицы
   const { uiState, updateUiState } = useUiState({
     globalSearch: "",
-    displayedFilters: preferences.filters,
+    draftFilters: preferences.filters,
     pageIndex: 0,
-    totalCount: 0,
-    isFilterBlockOpen: false,
-    showSkeleton: false,
-    refreshVersion: 0,
-    isRefreshing: false,
+    isFilterPaneOpen: false,
     rowSelection: {},
-    isMutating: false,
+    isDeleting: false,
     pendingChanges: {},
     isApplyingChanges: false,
-    liveUpdateStatus: "off",
     isEditingMode: false,
   });
 
-  const [data, setData] = useState<TData[]>([]);
+  const {
+    rows: data,
+    setRows: setData,
+    totalCount,
+    showSkeleton,
+    isRefreshing,
+    refresh: requestRefresh,
+  } = useTableData<TData>({
+    fetchPage,
+    pageIndex: uiState.pageIndex,
+    pageSize: preferences.pageSize,
+    sorting: preferences.sorting,
+    search: uiState.globalSearch,
+    filters: preferences.filters,
+  });
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSearchSubmit = (value: string) => {
@@ -80,7 +91,7 @@ const DataTable = <TData,>({
   };
 
   const handleFilterSubmit = (submittedFilters: UiFilterRow[]) => {
-    updateUiState("displayedFilters", submittedFilters);
+    updateUiState("draftFilters", submittedFilters);
     updateUiState("pageIndex", 0);
     updatePreferences("filters", submittedFilters);
   };
@@ -103,82 +114,6 @@ const DataTable = <TData,>({
     }
   };
 
-  const requestRefresh = useCallback(() => {
-    updateUiState("isRefreshing", true);
-    updateUiState("refreshVersion", (prev) => prev + 1);
-  }, [updateUiState]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    let skeletonTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const load = async () => {
-      const refreshStartedAt = performance.now();
-
-      try {
-        skeletonTimer = setTimeout(() => {
-          updateUiState("showSkeleton", true);
-        }, 200);
-
-        const result = await fetchPage({
-          pagination: {
-            pageIndex: uiState.pageIndex,
-            pageSize: preferences.pageSize,
-          },
-          sorting: preferences.sorting,
-          search: uiState.globalSearch,
-          filters: preferences.filters,
-          signal: controller.signal,
-        });
-
-        if (controller.signal.aborted) return;
-
-        setData(result.rows);
-        updateUiState("totalCount", result.totalCount);
-      } catch (error: unknown) {
-        if (controller.signal.aborted) return;
-
-        toaster.create({
-          title: error instanceof Error ? error.message : "Error loading data",
-          type: "error",
-          duration: 6000,
-        });
-      } finally {
-        if (skeletonTimer) clearTimeout(skeletonTimer);
-
-        const elapsed = performance.now() - refreshStartedAt;
-        const remainingAnimationTime = Math.max(0, 300 - elapsed);
-        if (remainingAnimationTime > 0) {
-          await new Promise<void>((resolve) =>
-            setTimeout(resolve, remainingAnimationTime),
-          );
-        }
-
-        if (!controller.signal.aborted) {
-          updateUiState("showSkeleton", false);
-          updateUiState("isRefreshing", false);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      controller.abort();
-
-      if (skeletonTimer) clearTimeout(skeletonTimer);
-    };
-  }, [
-    fetchPage,
-    uiState.pageIndex,
-    preferences.pageSize,
-    preferences.sorting,
-    preferences.filters,
-    uiState.globalSearch,
-    uiState.refreshVersion,
-  ]);
-
   const handleDeleteRows = useCallback(
     async (rowIds: string[]): Promise<Boolean> => {
       if (!editing?.deleteRows || rowIds.length === 0) return false;
@@ -186,7 +121,7 @@ const DataTable = <TData,>({
       const controller = new AbortController();
 
       try {
-        updateUiState("isMutating", true);
+        updateUiState("isDeleting", true);
 
         await editing.deleteRows({ rowIds, signal: controller.signal });
 
@@ -226,129 +161,24 @@ const DataTable = <TData,>({
 
         return false;
       } finally {
-        updateUiState("isMutating", false);
+        updateUiState("isDeleting", false);
       }
     },
     [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
   );
 
-  const isLiveUpdatesPaused = uiState.isEditingMode || uiState.pageIndex !== 0;
+  const liveUpdatePauseReason = uiState.isEditingMode
+    ? "editing"
+    : uiState.pageIndex !== 0
+      ? "not-first-page"
+      : null;
 
-  useEffect(() => {
-    if (
-      !preferences.isLiveUpdatesEnabled ||
-      !liveUpdates?.createConnectionUrl
-    ) {
-      updateUiState("liveUpdateStatus", "off");
-      return;
-    }
-
-    if (isLiveUpdatesPaused) {
-      updateUiState("liveUpdateStatus", "paused");
-      return;
-    }
-
-    updateUiState("liveUpdateStatus", "connecting");
-
-    const controller = new AbortController();
-    let socket: WebSocket | null = null;
-    let closedByCleanup = false;
-    let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const connect = async () => {
-      try {
-        const connectionUrl = await liveUpdates.createConnectionUrl(
-          controller.signal,
-        );
-
-        if (controller.signal.aborted) return;
-
-        socket = new WebSocket(connectionUrl);
-
-        socket.onopen = () => updateUiState("liveUpdateStatus", "connected");
-
-        socket.onmessage = (message) => {
-          try {
-            const payload: unknown = JSON.parse(message.data);
-
-            if (typeof payload !== "object" || payload === null) return;
-
-            const eventType =
-              "type" in payload
-                ? (payload as { type?: unknown }).type
-                : undefined;
-
-            if (liveUpdates.eventType && eventType !== liveUpdates.eventType)
-              return;
-
-            if (refreshTimer) clearTimeout(refreshTimer);
-
-            refreshTimer = setTimeout(
-              () => requestRefresh(),
-              liveUpdates.debounceMs,
-            );
-          } catch {
-            toaster.create({
-              title: `Invalid WebSocket message:${message.data}`,
-              type: "error",
-              duration: 6000,
-            });
-          }
-        };
-
-        socket.onerror = () => {
-          updateUiState("liveUpdateStatus", "disconnected");
-
-          toaster.create({
-            title: "WebSocket connection error",
-            type: "error",
-            duration: 6000,
-          });
-        };
-
-        socket.onclose = () => {
-          if (closedByCleanup) return;
-
-          updateUiState("liveUpdateStatus", "disconnected");
-
-          toaster.create({
-            title: "Соединение автообновления закрыто",
-            description:
-              "Включите автообновление повторно, чтобы переподключиться",
-            type: "warning",
-            duration: 6000,
-          });
-        };
-      } catch (error: unknown) {
-        if (controller.signal.aborted) return;
-
-        updateUiState("liveUpdateStatus", "disconnected");
-
-        toaster.create({
-          title: "Не удалось получить WebSocket ticket",
-          description: error instanceof Error ? error.message : undefined,
-          type: "error",
-          duration: 6000,
-        });
-      }
-    };
-
-    void connect();
-
-    return () => {
-      closedByCleanup = true;
-      controller.abort();
-
-      if (refreshTimer) clearTimeout(refreshTimer);
-
-      if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
-    };
-  }, [
-    preferences.isLiveUpdatesEnabled,
-    liveUpdates,
-    requestRefresh,
-    isLiveUpdatesPaused,
-  ]);
+  const { status: liveUpdateStatus } = useLiveUpdates({
+    config: liveUpdates,
+    enabled: preferences.isLiveUpdatesEnabled,
+    pauseReason: liveUpdatePauseReason,
+    onEvent: requestRefresh,
+  });
 
   const selectionEnabled = Boolean(
     uiState.isEditingMode && editing?.deleteRows,
@@ -370,7 +200,7 @@ const DataTable = <TData,>({
 
       header: ({ table }) => (
         <RowSelectionCheckbox
-          disabled={uiState.isMutating || uiState.isApplyingChanges}
+          disabled={uiState.isDeleting || uiState.isApplyingChanges}
           checked={
             table.getIsAllPageRowsSelected()
               ? true
@@ -387,7 +217,7 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <RowSelectionCheckbox
           checked={row.getIsSelected()}
-          disabled={uiState.isMutating || uiState.isApplyingChanges}
+          disabled={uiState.isDeleting || uiState.isApplyingChanges}
           onCheckedChange={(checked) => row.toggleSelected(checked)}
         />
       ),
@@ -397,7 +227,7 @@ const DataTable = <TData,>({
   }, [
     columns,
     selectionEnabled,
-    uiState.isMutating,
+    uiState.isDeleting,
     uiState.isApplyingChanges,
   ]);
 
@@ -446,7 +276,7 @@ const DataTable = <TData,>({
     [data, getRowId, updateUiState],
   );
 
-  const displayedData = useMemo(() => {
+  const rowsWithPendingChanges = useMemo(() => {
     if (
       !editing ||
       !getRowId ||
@@ -546,7 +376,7 @@ const DataTable = <TData,>({
   );
 
   const table = useReactTable<TData>({
-    data: displayedData,
+    data: rowsWithPendingChanges,
     columns: effectiveColumns,
     getRowId,
 
@@ -572,7 +402,7 @@ const DataTable = <TData,>({
     },
     manualPagination: true,
     manualSorting: true,
-    rowCount: uiState.totalCount,
+    rowCount: totalCount,
     enableColumnResizing: true,
     enableRowSelection: selectionEnabled
       ? (row) => editing?.canDeleteRow?.(row.original) !== false
@@ -622,7 +452,7 @@ const DataTable = <TData,>({
 
   const handleStartEditing = useCallback(() => {
     updateUiState("rowSelection", {});
-    updateUiState("isFilterBlockOpen", false);
+    updateUiState("isFilterPaneOpen", false);
     updateUiState("isEditingMode", true);
   }, [updateUiState]);
 
@@ -665,7 +495,7 @@ const DataTable = <TData,>({
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
       {editing?.deleteRows && selectedRowsIds.length > 0 && (
         <DeleteSelectedRowsButton
-          disabled={uiState.isMutating || uiState.isApplyingChanges}
+          disabled={uiState.isDeleting || uiState.isApplyingChanges}
           onClick={() => setIsDeleteDialogOpen(true)}
         />
       )}
@@ -709,17 +539,14 @@ const DataTable = <TData,>({
         />
       )}
 
-      <RefreshButton
-        onRefresh={requestRefresh}
-        isRefreshing={uiState.isRefreshing}
-      />
+      <RefreshButton onRefresh={requestRefresh} isRefreshing={isRefreshing} />
 
       {hasFilterFields && (
         <FilterButton
-          isOpen={uiState.isFilterBlockOpen}
-          activeFiltersCount={uiState.displayedFilters.length}
+          isOpen={uiState.isFilterPaneOpen}
+          activeFiltersCount={uiState.draftFilters.length}
           onToggle={() =>
-            updateUiState("isFilterBlockOpen", !uiState.isFilterBlockOpen)
+            updateUiState("isFilterPaneOpen", !uiState.isFilterPaneOpen)
           }
         />
       )}
@@ -747,50 +574,50 @@ const DataTable = <TData,>({
       <TableToolbar left={toolbarLeft} right={toolbarRight} />
 
       {/* Панель фильтрации */}
-      {hasFilterFields && uiState.isFilterBlockOpen && (
+      {hasFilterFields && uiState.isFilterPaneOpen && (
         <Box flexShrink={0}>
           <FilterPanel
-            activeFilters={uiState.displayedFilters}
+            activeFilters={uiState.draftFilters}
             committedFilters={preferences.filters}
             filterFields={filterFields}
             onFiltersChange={(updater) => {
               const nextFilters =
                 typeof updater === "function"
-                  ? updater(uiState.displayedFilters)
+                  ? updater(uiState.draftFilters)
                   : updater;
 
-              updateUiState("displayedFilters", nextFilters);
+              updateUiState("draftFilters", nextFilters);
             }}
             onFiltersSubmit={handleFilterSubmit}
           />
         </Box>
       )}
 
-      <TableView
+      <TableViewport
         table={table}
-        showSkeleton={uiState.showSkeleton}
+        showSkeleton={showSkeleton}
         pageSize={preferences.pageSize}
         editableFields={editing?.updateRow ? editing.fields : undefined}
         pendingChanges={uiState.pendingChanges}
         isApplyingChanges={uiState.isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
         isEditingMode={uiState.isEditingMode}
-        isSelectionDisabled={uiState.isMutating || uiState.isApplyingChanges}
+        isSelectionDisabled={uiState.isDeleting || uiState.isApplyingChanges}
       />
 
       {/* Пагинация */}
-      {uiState.totalCount > 0 && (
+      {totalCount > 0 && (
         <Box flexShrink={0}>
-          <TablePagination
+          <TableFooter
             pageIndex={uiState.pageIndex}
             pageSize={preferences.pageSize}
-            totalCount={uiState.totalCount}
+            totalCount={totalCount}
             pageSizeOptions={page_size_options}
             onPageChange={(newPage: number) => {
               table.setPageIndex(newPage - 1);
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
-            liveUpdateStatus={uiState.liveUpdateStatus}
+            liveUpdateStatus={liveUpdateStatus}
             disabled={uiState.isEditingMode}
           />
         </Box>
@@ -799,7 +626,7 @@ const DataTable = <TData,>({
       <DeleteRowsDialog
         open={isDeleteDialogOpen}
         rowsCount={selectedRowsIds.length}
-        isDeleting={uiState.isMutating}
+        isDeleting={uiState.isDeleting}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={async () => {
           const wasDeleted = await handleDeleteRows(selectedRowsIds);
