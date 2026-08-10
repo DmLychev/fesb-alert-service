@@ -28,7 +28,6 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   liveUpdateStatus: LiveUpdateStatus;
-  disabled?: boolean;
 }
 
 const TableFooter = ({
@@ -39,7 +38,6 @@ const TableFooter = ({
   onPageChange,
   onPageSizeChange,
   liveUpdateStatus,
-  disabled,
 }: TablePaginationProps) => {
   const firstVisibleRow = totalCount === 0 ? 0 : pageIndex * pageSize + 1;
   const lastVisibleRow = Math.min((pageIndex + 1) * pageSize, totalCount);
@@ -95,7 +93,6 @@ const TableFooter = ({
                 aria-label="Предыдущая страница"
                 size="sm"
                 variant="ghost"
-                disabled={disabled}
               >
                 <LuChevronLeft />
               </IconButton>
@@ -103,7 +100,6 @@ const TableFooter = ({
 
             <Button
               hideFrom="md"
-              disabled={disabled}
               minWidth="150px"
               size="sm"
               variant="ghost"
@@ -157,7 +153,6 @@ const TableFooter = ({
                 aria-label="Следующая страница"
                 size="sm"
                 variant="ghost"
-                disabled={disabled}
               >
                 <LuChevronRight />
               </IconButton>
@@ -176,7 +171,6 @@ const TableFooter = ({
               }}
               size="sm"
               width="110px"
-              disabled={disabled}
             >
               <Select.HiddenSelect />
               <Select.Control>

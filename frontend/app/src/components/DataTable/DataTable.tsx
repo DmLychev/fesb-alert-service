@@ -355,7 +355,7 @@ const DataTable = <TData,>({
       />
 
       {/* Пагинация */}
-      {totalCount > 0 && (
+      {totalCount > 0 && !isEditingMode && (
         <Box flexShrink={0}>
           <TableFooter
             pageIndex={uiState.pageIndex}
@@ -367,7 +367,6 @@ const DataTable = <TData,>({
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
             liveUpdateStatus={liveUpdateStatus}
-            disabled={isEditingMode}
           />
         </Box>
       )}

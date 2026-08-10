@@ -255,6 +255,7 @@ const FilterPanel = ({
                         size="sm"
                         disabled
                         placeholder="Значение..."
+                        value=""
                         flex="1"
                         bg="bg.panel"
                       />

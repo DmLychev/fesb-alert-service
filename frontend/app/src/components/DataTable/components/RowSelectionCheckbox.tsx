@@ -16,11 +16,12 @@ const RowSelectionCheckbox = ({
       checked={checked}
       disabled={disabled}
       size="sm"
+      cursor={disabled ? "not-allowed" : "pointer"}
       onClick={(event) => event.stopPropagation()}
       onCheckedChange={({ checked }) => onCheckedChange(checked === true)}
     >
       <Checkbox.HiddenInput />
-      <Checkbox.Control>
+      <Checkbox.Control cursor="inherit">
         <Checkbox.Indicator />
       </Checkbox.Control>
     </Checkbox.Root>
