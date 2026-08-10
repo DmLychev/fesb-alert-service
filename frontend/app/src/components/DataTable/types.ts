@@ -3,7 +3,6 @@ import {
   type ColumnDef,
   type ColumnSizingState,
   type PaginationState,
-  type RowSelectionState,
   type SortingState,
   type Table,
   type VisibilityState,
@@ -39,11 +38,6 @@ export interface TableUiState {
   draftFilters: UiFilterRow[];
   pageIndex: number;
   isFilterPaneOpen: boolean;
-  rowSelection: RowSelectionState;
-  isDeleting: boolean;
-  pendingChanges: PendingChanges;
-  isApplyingChanges: boolean;
-  isEditingMode: boolean;
 }
 
 export type FilterFieldType =

@@ -26,9 +26,7 @@ const ApplyAllChangesButton = ({
       onClick={onClick}
     >
       <LuCheck />
-      <Text hideBelow="md">
-        {isApplying ? "Applying..." : `Применить (${changesCount})`}
-      </Text>
+      <Text hideBelow="md">{isApplying ? "Applying..." : "Применить"}</Text>
     </Button>
   );
 };

@@ -7,18 +7,10 @@ import {
   type Updater,
   useReactTable,
 } from "@tanstack/react-table";
-import { useCallback, useMemo, useState } from "react";
-import { toaster } from "../ui/toaster";
+import { useMemo, useState } from "react";
 
 import useTablePreferences from "./hooks/useTablePreferences";
-import type {
-  DataTableProps,
-  DraftCellChange,
-  EditableValue,
-  PendingChanges,
-  UiFilterRow,
-  ToolbarMode,
-} from "./types";
+import type { DataTableProps, UiFilterRow } from "./types";
 import { page_size_options, SELECT_COLUMN_ID } from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
 import TableFooter from "./components/TableFooter";
@@ -33,6 +25,7 @@ import useTableData from "./hooks/useTableData";
 import TableToolbar from "./components/TableToolbar";
 import EditingToolbarActions from "./components/EditingToolbarActions";
 import DefaultToolbarActions from "./components/DefaultToolbarActions";
+import useTableEditing from "./hooks/useTableEditing";
 
 const DataTable = <TData,>({
   storageKey,
@@ -56,11 +49,6 @@ const DataTable = <TData,>({
     draftFilters: preferences.filters,
     pageIndex: 0,
     isFilterPaneOpen: false,
-    rowSelection: {},
-    isDeleting: false,
-    pendingChanges: {},
-    isApplyingChanges: false,
-    isEditingMode: false,
   });
 
   const {
@@ -78,6 +66,36 @@ const DataTable = <TData,>({
     search: uiState.globalSearch,
     filters: preferences.filters,
   });
+
+  const {
+    isEditingMode,
+    isApplyingChanges,
+    isDeleting,
+    pendingChanges,
+    rowSelection,
+    selectedRowIds,
+    selectionEnabled,
+    rowsWithPendingChanges,
+    changedCellsCount,
+    hasPendingChanges,
+    canDeleteRow,
+    handleRowSelectionChange,
+    handleDraftChange,
+    handleResetChanges,
+    handleApplyChanges,
+    handleDeleteRows,
+    startEditing,
+    exitEditing,
+  } = useTableEditing<TData>({
+    rows: data,
+    setRows: setData,
+    editing,
+    getRowId,
+    pageIndex: uiState.pageIndex,
+    onPageIndexChange: (pageIndex) => updateUiState("pageIndex", pageIndex),
+    refresh: requestRefresh,
+  });
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleSearchSubmit = (value: string) => {
@@ -109,60 +127,7 @@ const DataTable = <TData,>({
     }
   };
 
-  const handleDeleteRows = useCallback(
-    async (rowIds: string[]): Promise<Boolean> => {
-      if (!editing?.deleteRows || rowIds.length === 0) return false;
-
-      const controller = new AbortController();
-
-      try {
-        updateUiState("isDeleting", true);
-
-        await editing.deleteRows({ rowIds, signal: controller.signal });
-
-        updateUiState("rowSelection", {});
-
-        const remainingRows = data.filter((row) => {
-          const rowId = getRowId?.(row);
-
-          return rowId === undefined || !rowIds.includes(rowId);
-        });
-
-        if (remainingRows.length === 0 && uiState.pageIndex > 0) {
-          updateUiState("pageIndex", uiState.pageIndex - 1);
-        } else {
-          requestRefresh();
-        }
-
-        toaster.create({
-          title:
-            rowIds.length === 1
-              ? "Запись удалена"
-              : `Удалено записей: ${rowIds.length}`,
-          type: "success",
-          duration: 3000,
-        });
-
-        return true;
-      } catch (error: unknown) {
-        toaster.create({
-          title:
-            error instanceof Error
-              ? error.message
-              : "Не удалось удалить записи",
-          type: "error",
-          duration: 6000,
-        });
-
-        return false;
-      } finally {
-        updateUiState("isDeleting", false);
-      }
-    },
-    [data, editing, getRowId, requestRefresh, uiState.pageIndex, updateUiState],
-  );
-
-  const liveUpdatePauseReason = uiState.isEditingMode
+  const liveUpdatePauseReason = isEditingMode
     ? "editing"
     : uiState.pageIndex !== 0
       ? "not-first-page"
@@ -174,10 +139,6 @@ const DataTable = <TData,>({
     pauseReason: liveUpdatePauseReason,
     onEvent: requestRefresh,
   });
-
-  const selectionEnabled = Boolean(
-    uiState.isEditingMode && editing?.deleteRows,
-  );
 
   const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
     if (!selectionEnabled) return columns;
@@ -195,7 +156,7 @@ const DataTable = <TData,>({
 
       header: ({ table }) => (
         <RowSelectionCheckbox
-          disabled={uiState.isDeleting || uiState.isApplyingChanges}
+          disabled={isDeleting || isApplyingChanges}
           checked={
             table.getIsAllPageRowsSelected()
               ? true
@@ -212,163 +173,16 @@ const DataTable = <TData,>({
       cell: ({ row }) => (
         <RowSelectionCheckbox
           checked={row.getIsSelected()}
-          disabled={uiState.isDeleting || uiState.isApplyingChanges}
+          disabled={isDeleting || isApplyingChanges}
           onCheckedChange={(checked) => row.toggleSelected(checked)}
         />
       ),
     };
 
     return [selectionColumn, ...columns];
-  }, [
-    columns,
-    selectionEnabled,
-    uiState.isDeleting,
-    uiState.isApplyingChanges,
-  ]);
-
-  const selectedRowsIds = Object.entries(uiState.rowSelection)
-    .filter(([, selected]) => selected)
-    .map(([rowId]) => rowId);
+  }, [columns, selectionEnabled, isDeleting, isApplyingChanges]);
 
   const hasFilterFields = Object.keys(filterFields).length > 0;
-
-  const getEditableValue = (row: TData, fieldId: string): EditableValue => {
-    return (row as Record<string, EditableValue>)[fieldId];
-  };
-
-  const handleDraftChange = useCallback(
-    ({ rowId, fieldId, value }: DraftCellChange) => {
-      const originalRow = data.find((row) => getRowId?.(row) === rowId);
-
-      if (!originalRow) return;
-
-      const originalValue = getEditableValue(originalRow, fieldId);
-
-      updateUiState("pendingChanges", (previous) => {
-        const previousRowChanges = previous[rowId] ?? {};
-
-        const nextChanges = { ...previous };
-
-        if (Object.is(value, originalValue)) {
-          const nextRowChanges = { ...previousRowChanges };
-
-          delete nextRowChanges[fieldId];
-
-          if (Object.keys(nextRowChanges).length === 0) {
-            delete nextChanges[rowId];
-          } else {
-            nextChanges[rowId] = nextRowChanges;
-          }
-
-          return nextChanges;
-        }
-
-        nextChanges[rowId] = { ...previousRowChanges, [fieldId]: value };
-
-        return nextChanges;
-      });
-    },
-    [data, getRowId, updateUiState],
-  );
-
-  const rowsWithPendingChanges = useMemo(() => {
-    if (
-      !editing ||
-      !getRowId ||
-      Object.keys(uiState.pendingChanges).length === 0
-    )
-      return data;
-
-    return data.map((row) => {
-      const rowId = getRowId(row);
-
-      const rowChanges = uiState.pendingChanges[rowId];
-
-      if (!rowChanges) return row;
-
-      return { ...row, ...rowChanges } as TData;
-    });
-  }, [data, editing, getRowId, uiState.pendingChanges]);
-
-  const handleResetChanges = useCallback(
-    () => updateUiState("pendingChanges", {}),
-    [updateUiState],
-  );
-
-  const handleApplyChanges = useCallback(async () => {
-    if (!editing?.updateRow || !getRowId) return;
-
-    const entries = Object.entries(uiState.pendingChanges);
-
-    if (entries.length === 0) return;
-
-    const controller = new AbortController();
-
-    updateUiState("isApplyingChanges", true);
-
-    try {
-      const results = await Promise.allSettled(
-        entries.map(([rowId, changes]) =>
-          editing.updateRow!({ rowId, changes, signal: controller.signal }),
-        ),
-      );
-
-      const updatedRows = new Map<string, TData>();
-      const failedChanges: PendingChanges = {};
-      const errorMessages: string[] = [];
-
-      results.forEach((result, index) => {
-        const [rowId, changes] = entries[index];
-
-        if (result.status === "fulfilled") {
-          updatedRows.set(rowId, result.value);
-          return;
-        }
-
-        failedChanges[rowId] = changes;
-
-        errorMessages.push(
-          result.reason instanceof Error
-            ? result.reason.message
-            : `Failed to update row ${rowId}`,
-        );
-      });
-
-      setData((previousRows) =>
-        previousRows.map((row) => {
-          const rowId = getRowId(row);
-
-          return updatedRows.get(rowId) ?? row;
-        }),
-      );
-
-      updateUiState("pendingChanges", failedChanges);
-
-      if (updatedRows.size > 0) {
-        toaster.create({
-          title: `Updated rows: ${updatedRows.size}`,
-          type: "success",
-          duration: 3000,
-        });
-      }
-
-      if (errorMessages.length > 0) {
-        toaster.create({
-          title: "Some rows could not be updated",
-          description: errorMessages.join("; "),
-          type: "error",
-          duration: 6000,
-        });
-      }
-    } finally {
-      updateUiState("isApplyingChanges", false);
-    }
-  }, [editing, getRowId, uiState.pendingChanges, updateUiState]);
-
-  const changedCellsCount = Object.values(uiState.pendingChanges).reduce(
-    (count, changes) => count + Object.keys(changes).length,
-    0,
-  );
 
   const table = useReactTable<TData>({
     data: rowsWithPendingChanges,
@@ -384,7 +198,7 @@ const DataTable = <TData,>({
         pageSize: preferences.pageSize,
         pageIndex: uiState.pageIndex,
       },
-      rowSelection: uiState.rowSelection,
+      rowSelection: rowSelection,
       columnPinning: selectionEnabled
         ? {
             left: [SELECT_COLUMN_ID],
@@ -400,7 +214,7 @@ const DataTable = <TData,>({
     rowCount: totalCount,
     enableColumnResizing: true,
     enableRowSelection: selectionEnabled
-      ? (row) => editing?.canDeleteRow?.(row.original) !== false
+      ? (row) => canDeleteRow?.(row.original) !== false
       : false,
     columnResizeMode: "onChange",
 
@@ -432,43 +246,17 @@ const DataTable = <TData,>({
         functionalUpdate(updater, preferences.columnOrder),
       ),
 
-    onRowSelectionChange: (updater) =>
-      updateUiState(
-        "rowSelection",
-        functionalUpdate(updater, uiState.rowSelection),
-      ),
+    onRowSelectionChange: handleRowSelectionChange,
 
     onPaginationChange: handlePaginationChange,
     getCoreRowModel: getCoreRowModel(),
     enableMultiSort: false,
   });
 
-  const hasPendingChanges = changedCellsCount > 0;
-
-  const handleStartEditing = useCallback(() => {
-    updateUiState("rowSelection", {});
+  const handleStartEditing = () => {
     updateUiState("isFilterPaneOpen", false);
-    updateUiState("isEditingMode", true);
-  }, [updateUiState]);
-
-  const handleExitEditing = useCallback(() => {
-    if (hasPendingChanges) {
-      toaster.create({
-        title: " Сначала примените или отмените изменения",
-        type: "warning",
-        duration: 4000,
-      });
-
-      return;
-    }
-
-    updateUiState("rowSelection", {});
-    updateUiState("isEditingMode", false);
-  }, [hasPendingChanges, updateUiState]);
-
-  const toolbarMode: ToolbarMode = uiState.isEditingMode
-    ? "editing"
-    : "default";
+    startEditing();
+  };
 
   const editingLeft = (
     <HStack gap={2}>
@@ -489,16 +277,16 @@ const DataTable = <TData,>({
   const editingRight = (
     <EditingToolbarActions
       showDeleteButton={
-        Boolean(editing?.deleteRows) && selectedRowsIds.length > 0
+        Boolean(editing?.deleteRows) && selectedRowIds.length > 0
       }
-      isDeleting={uiState.isDeleting}
-      isApplyingChanges={uiState.isApplyingChanges}
+      isDeleting={isDeleting}
+      isApplyingChanges={isApplyingChanges}
       hasPendingChanges={hasPendingChanges}
       changedCellsCount={changedCellsCount}
       onDeleteSelectedRows={() => setIsDeleteDialogOpen(true)}
       onResetChanges={handleResetChanges}
       onApplyChanges={handleApplyChanges}
-      onExitEditing={handleExitEditing}
+      onExitEditing={exitEditing}
     />
   );
 
@@ -526,9 +314,9 @@ const DataTable = <TData,>({
     />
   );
 
-  const toolbarLeft = toolbarMode === "editing" ? editingLeft : defaultLeft;
+  const toolbarLeft = isEditingMode ? editingLeft : defaultLeft;
 
-  const toolbarRight = toolbarMode === "editing" ? editingRight : defaultRight;
+  const toolbarRight = isEditingMode ? editingRight : defaultRight;
 
   return (
     <Stack width="full" height="full" minHeight={0} gap={5} overflow="hidden">
@@ -559,11 +347,11 @@ const DataTable = <TData,>({
         showSkeleton={showSkeleton}
         pageSize={preferences.pageSize}
         editableFields={editing?.updateRow ? editing.fields : undefined}
-        pendingChanges={uiState.pendingChanges}
-        isApplyingChanges={uiState.isApplyingChanges}
+        pendingChanges={pendingChanges}
+        isApplyingChanges={isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
-        isEditingMode={uiState.isEditingMode}
-        isSelectionDisabled={uiState.isDeleting || uiState.isApplyingChanges}
+        isEditingMode={isEditingMode}
+        isSelectionDisabled={isDeleting || isApplyingChanges}
       />
 
       {/* Пагинация */}
@@ -579,18 +367,18 @@ const DataTable = <TData,>({
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
             liveUpdateStatus={liveUpdateStatus}
-            disabled={uiState.isEditingMode}
+            disabled={isEditingMode}
           />
         </Box>
       )}
 
       <DeleteRowsDialog
         open={isDeleteDialogOpen}
-        rowsCount={selectedRowsIds.length}
-        isDeleting={uiState.isDeleting}
+        rowsCount={selectedRowIds.length}
+        isDeleting={isDeleting}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={async () => {
-          const wasDeleted = await handleDeleteRows(selectedRowsIds);
+          const wasDeleted = await handleDeleteRows(selectedRowIds);
 
           if (wasDeleted) setIsDeleteDialogOpen(false);
         }}
