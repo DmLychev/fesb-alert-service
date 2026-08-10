@@ -1,5 +1,5 @@
 import { NativeSelect } from "@chakra-ui/react";
-import type { EditableControlProps } from "../../../components/DataTable/types";
+import type { EditableControlProps } from "../../../components/DataTable";
 
 const getStatusBackground = (status: string | null) => {
   if (status === "ERROR") return "red.subtle";

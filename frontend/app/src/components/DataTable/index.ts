@@ -3,14 +3,18 @@ export { createTableDefinitions } from "./createTableDefinitions";
 
 export type {
   DataTableProps,
+  DataTableEditingConfig,
+  EditableControlProps,
   FetchPageParams,
+  PageResult,
   FilterFieldDefinition,
   FilterFieldRegistry,
-  PageResult,
+  LiveUpdateConfig,
   TableDefinitions,
   TableFieldDefinition,
   TableFieldRegistry,
   TablePreferences,
-  TableUiState,
   UiFilterRow,
+  DeleteRowsParams,
+  UpdateRowParams,
 } from "./types";

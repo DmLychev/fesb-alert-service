@@ -12,10 +12,18 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import type { FilterPanelProps, UiFilterRow } from "../types";
+import type { FilterFieldRegistry, UiFilterRow } from "../types";
 import { getBeginningOfCurrentDayString } from "../utils/date";
 import { all_filter_operations, bool_values } from "../constants";
 import { LuTrash2 } from "react-icons/lu";
+
+interface FilterPanelProps {
+  activeFilters: UiFilterRow[];
+  committedFilters: UiFilterRow[];
+  filterFields: FilterFieldRegistry;
+  onFiltersChange: React.Dispatch<React.SetStateAction<UiFilterRow[]>>;
+  onFiltersSubmit: (filters: UiFilterRow[]) => void;
+}
 
 const FilterPanel = ({
   activeFilters,

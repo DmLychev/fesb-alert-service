@@ -1,4 +1,4 @@
-import type { DataTableEditingConfig } from "../../components/DataTable/types";
+import type { DataTableEditingConfig } from "../../components/DataTable";
 import { deleteMessages, updateMessage } from "./api/messageMutations";
 import { messageEditableFields } from "./messageTableDefinitions";
 import type { Message } from "./types";

@@ -1,6 +1,11 @@
 import { Badge, Button, Text } from "@chakra-ui/react";
-import type { FilterButtonProps } from "../types";
 import { LuFilter } from "react-icons/lu";
+
+interface FilterButtonProps {
+  isOpen: boolean;
+  activeFiltersCount: number;
+  onToggle: () => void;
+}
 
 const FilterButton = ({
   isOpen,

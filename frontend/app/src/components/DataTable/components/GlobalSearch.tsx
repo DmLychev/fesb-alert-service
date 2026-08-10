@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import type { GlobalSearchProps } from "../types";
 import {
   Button,
   CloseButton,
@@ -8,6 +7,11 @@ import {
   InputGroup,
 } from "@chakra-ui/react";
 import { LuSearch } from "react-icons/lu";
+
+interface GlobalSearchProps {
+  value: string;
+  onSubmit: (value: string) => void;
+}
 
 const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
   const [inputValue, setInputValue] = useState(value);

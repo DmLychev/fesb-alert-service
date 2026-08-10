@@ -1,9 +1,31 @@
 import { Box, Button, Skeleton, Table, Text } from "@chakra-ui/react";
-import type { EditableValue, TableViewProps } from "../types";
-import { flexRender } from "@tanstack/react-table";
+import type {
+  DraftCellChange,
+  EditableFieldRegistry,
+  EditableValue,
+  PendingChanges,
+} from "../types";
+import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
 import EditableCell from "./EditableCell";
 import { SELECT_COLUMN_ID } from "../constants";
+
+interface TableViewportProps<TData> {
+  table: TanstackTable<TData>;
+  showSkeleton: boolean;
+  pageSize: number;
+
+  editableFields?: EditableFieldRegistry;
+
+  pendingChanges?: PendingChanges;
+
+  isApplyingChanges?: boolean;
+
+  onDraftChange?: (change: DraftCellChange) => void;
+
+  isEditingMode: boolean;
+  isSelectionDisabled?: boolean;
+}
 
 const TableViewport = <TData,>({
   table,
@@ -15,7 +37,7 @@ const TableViewport = <TData,>({
   isSelectionDisabled = false,
   isEditingMode,
   onDraftChange,
-}: TableViewProps<TData>) => {
+}: TableViewportProps<TData>) => {
   return (
     <Table.ScrollArea
       borderWidth="1px"

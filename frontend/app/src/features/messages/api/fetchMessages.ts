@@ -2,7 +2,7 @@ import api from "../../../api";
 import type {
   FetchPageParams,
   PageResult,
-} from "../../../components/DataTable/types";
+} from "../../../components/DataTable";
 import type { Message } from "../types";
 import { compileMessageFilters } from "../utils/compileMessageFilters";
 import { compileMessageSorting } from "../utils/compileMessageSorting";

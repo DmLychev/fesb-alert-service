@@ -2,7 +2,7 @@ import api from "../../../api";
 import type {
   DeleteRowsParams,
   UpdateRowParams,
-} from "../../../components/DataTable/types";
+} from "../../../components/DataTable";
 import type { Message } from "../types";
 
 interface GraphQLErrorItem {

@@ -1,5 +1,5 @@
 import api from "../../../api";
-import type { LiveUpdateConfig } from "../../../components/DataTable/types";
+import type { LiveUpdateConfig } from "../../../components/DataTable";
 
 interface WebSocketTicketResponse {
   ticket: string;

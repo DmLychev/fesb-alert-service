@@ -1,5 +1,12 @@
 import { useCallback, useState } from "react";
-import type { TableUiState } from "../types";
+import type { UiFilterRow } from "../types";
+
+interface TableUiState {
+  globalSearch: string;
+  draftFilters: UiFilterRow[];
+  pageIndex: number;
+  isFilterPaneOpen: boolean;
+}
 
 const useUiState = (defaults: TableUiState) => {
   const [uiState, setUiState] = useState<TableUiState>(defaults);

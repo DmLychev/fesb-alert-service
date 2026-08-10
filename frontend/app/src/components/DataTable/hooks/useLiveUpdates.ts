@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import type { LiveUpdateConfig, LiveUpdateStatus } from "../types";
 import { toaster } from "../../ui/toaster";
-
-export type LiveUpdatePauseReason = "editing" | "not-first-page" | null;
+import type {
+  LiveUpdateConfig,
+  LiveUpdatePauseReason,
+  LiveUpdateStatus,
+} from "../types/liveUpdates";
 
 interface UseLiveUpdatesParams {
   config?: LiveUpdateConfig;
