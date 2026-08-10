@@ -1,4 +1,4 @@
-import { Badge, Box, Button, HStack, Stack, Text } from "@chakra-ui/react";
+import { Badge, Box, HStack, Stack, Text } from "@chakra-ui/react";
 import {
   type ColumnDef,
   functionalUpdate,
@@ -21,23 +21,18 @@ import type {
 } from "./types";
 import { page_size_options, SELECT_COLUMN_ID } from "./constants";
 import GlobalSearch from "./components/GlobalSearch";
-import FilterButton from "./components/FilterButton";
 import TableFooter from "./components/TableFooter";
 import useUiState from "./hooks/useUiState";
 import TableViewport from "./components/TableViewport";
-import RefreshButton from "./components/RefreshButton";
 import RowSelectionCheckbox from "./components/RowSelectionCheckbox";
-import DeleteSelectedRowsButton from "./components/DeleteSelectedRowsButton";
-import ApplyAllChangesButton from "./components/ApplyAllChangesButton";
-import ResetAllChangesButton from "./components/ResetAllChangesButton";
 import FilterPanel from "./components/FilterPanel";
-import TableSettings from "./components/TableSettings";
-import EditingModeButton from "./components/EditingModeButton";
-import { LuLogOut, LuPencil } from "react-icons/lu";
+import { LuPencil } from "react-icons/lu";
 import DeleteRowsDialog from "./components/DeleteRowsDialog";
 import useLiveUpdates from "./hooks/useLiveUpdates";
 import useTableData from "./hooks/useTableData";
 import TableToolbar from "./components/TableToolbar";
+import EditingToolbarActions from "./components/EditingToolbarActions";
+import DefaultToolbarActions from "./components/DefaultToolbarActions";
 
 const DataTable = <TData,>({
   storageKey,
@@ -492,77 +487,43 @@ const DataTable = <TData,>({
   );
 
   const editingRight = (
-    <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
-      {editing?.deleteRows && selectedRowsIds.length > 0 && (
-        <DeleteSelectedRowsButton
-          disabled={uiState.isDeleting || uiState.isApplyingChanges}
-          onClick={() => setIsDeleteDialogOpen(true)}
-        />
-      )}
-
-      <ResetAllChangesButton
-        isApplying={uiState.isApplyingChanges}
-        disabled={!hasPendingChanges}
-        onClick={handleResetChanges}
-      />
-
-      <ApplyAllChangesButton
-        isApplying={uiState.isApplyingChanges}
-        changesCount={changedCellsCount}
-        disabled={!hasPendingChanges}
-        onClick={() => void handleApplyChanges()}
-      />
-
-      <Button
-        aria-label="Завершить"
-        size="sm"
-        variant="outline"
-        width={{ base: "36px", md: "132px" }}
-        minWidth={{ base: "36px", md: "132px" }}
-        paddingInline={{ base: 0, md: 3 }}
-        onClick={handleExitEditing}
-      >
-        <LuLogOut />
-        <Text hideBelow="md">Завершить</Text>
-      </Button>
-    </HStack>
+    <EditingToolbarActions
+      showDeleteButton={
+        Boolean(editing?.deleteRows) && selectedRowsIds.length > 0
+      }
+      isDeleting={uiState.isDeleting}
+      isApplyingChanges={uiState.isApplyingChanges}
+      hasPendingChanges={hasPendingChanges}
+      changedCellsCount={changedCellsCount}
+      onDeleteSelectedRows={() => setIsDeleteDialogOpen(true)}
+      onResetChanges={handleResetChanges}
+      onApplyChanges={handleApplyChanges}
+      onExitEditing={handleExitEditing}
+    />
   );
 
   const defaultRight = (
-    <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
-      {editing?.updateRow && (
-        <EditingModeButton
-          isEditingMode={uiState.isEditingMode}
-          onClick={
-            uiState.isEditingMode ? handleExitEditing : handleStartEditing
-          }
-        />
-      )}
-
-      <RefreshButton onRefresh={requestRefresh} isRefreshing={isRefreshing} />
-
-      {hasFilterFields && (
-        <FilterButton
-          isOpen={uiState.isFilterPaneOpen}
-          activeFiltersCount={uiState.draftFilters.length}
-          onToggle={() =>
-            updateUiState("isFilterPaneOpen", !uiState.isFilterPaneOpen)
-          }
-        />
-      )}
-
-      <TableSettings
-        table={table}
-        columns={preferences.columnOrder}
-        isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
-        onColumnOrderChange={(newOrder) =>
-          updatePreferences("columnOrder", newOrder)
-        }
-        onLiveUpdatesEnabledChange={(enabled) =>
-          updatePreferences("isLiveUpdatesEnabled", enabled)
-        }
-      />
-    </HStack>
+    <DefaultToolbarActions
+      table={table}
+      showEditButton={Boolean(editing?.updateRow)}
+      isRefreshing={isRefreshing}
+      hasFilterFields={hasFilterFields}
+      isFilterPanelOpen={uiState.isFilterPaneOpen}
+      activeFiltersCount={uiState.draftFilters.length}
+      columns={preferences.columnOrder}
+      isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
+      onStartEditing={handleStartEditing}
+      onRefresh={requestRefresh}
+      onToggleFilters={() =>
+        updateUiState("isFilterPaneOpen", !uiState.isFilterPaneOpen)
+      }
+      onColumnOrderChange={(newOrder) =>
+        updatePreferences("columnOrder", newOrder)
+      }
+      onLiveUpdatesEnabledChange={(enabled) =>
+        updatePreferences("isLiveUpdatesEnabled", enabled)
+      }
+    />
   );
 
   const toolbarLeft = toolbarMode === "editing" ? editingLeft : defaultLeft;

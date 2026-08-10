@@ -92,7 +92,7 @@ const TableFooter = ({
           >
             <Pagination.PrevTrigger asChild>
               <IconButton
-                area-label="Предыдущая страница"
+                aria-label="Предыдущая страница"
                 size="sm"
                 variant="ghost"
                 disabled={disabled}
@@ -103,6 +103,7 @@ const TableFooter = ({
 
             <Button
               hideFrom="md"
+              disabled={disabled}
               minWidth="150px"
               size="sm"
               variant="ghost"
@@ -114,16 +115,6 @@ const TableFooter = ({
             <ButtonGroup hideBelow="md" variant="ghost" size="sm">
               <HStack gap={1}>
                 <Box hideBelow="md">
-                  {/* <Pagination.Items
-                  render={(page) => (
-                    <IconButton
-                      variant={{ base: "ghost", _selected: "outline" }}
-                      disabled={disabled}
-                    >
-                      {page.value}
-                    </IconButton>
-                  )}
-                /> */}
                   <Pagination.Context>
                     {({ pages }) =>
                       pages.map((item, index) => {
@@ -217,7 +208,7 @@ const TableFooter = ({
         open={isPageDialogOpen}
         currentPage={pageIndex + 1}
         pageCount={pageCount}
-        onOpenchange={setIsPageDialogOpen}
+        onOpenChange={setIsPageDialogOpen}
         onSubmit={onPageChange}
       />
     </>

@@ -6,7 +6,7 @@ interface GoToPageDialogProps {
   currentPage: number;
   pageCount: number;
 
-  onOpenchange: (open: boolean) => void;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (page: number) => void;
 }
 
@@ -14,7 +14,7 @@ const GoToPageDialog = ({
   open,
   currentPage,
   pageCount,
-  onOpenchange,
+  onOpenChange,
   onSubmit,
 }: GoToPageDialogProps) => {
   const [value, setValue] = useState(String(currentPage));
@@ -36,13 +36,13 @@ const GoToPageDialog = ({
     }
 
     onSubmit(page);
-    onOpenchange(false);
+    onOpenChange(false);
   };
 
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={({ open }) => onOpenchange(open)}
+      onOpenChange={({ open }) => onOpenChange(open)}
       size="sm"
       placement="bottom"
     >
@@ -77,7 +77,7 @@ const GoToPageDialog = ({
 
             <Dialog.Footer>
               <HStack>
-                <Button variant="outline" onClick={() => onOpenchange(false)}>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Отмена
                 </Button>
 
