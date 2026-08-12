@@ -21,8 +21,8 @@ const ApplyAllChangesButton = ({
       width={{ base: "36px", md: "132px" }}
       minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
-      colorPalette="yellow"
-      disabled={isApplying}
+      colorPalette="blue"
+      disabled={disabled || isApplying}
       onClick={onClick}
     >
       <LuCheck />

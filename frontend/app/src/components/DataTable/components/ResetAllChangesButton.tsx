@@ -16,10 +16,11 @@ const ResetAllChangesButton = ({
     <Button
       aria-label=" Отменить изменения"
       size="sm"
+      variant="ghost"
       width={{ base: "36px", md: "132px" }}
       minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
-      disabled={isApplying}
+      disabled={disabled || isApplying}
       onClick={onClick}
     >
       <LuUndo2 />

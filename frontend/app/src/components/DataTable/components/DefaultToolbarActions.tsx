@@ -38,9 +38,7 @@ const DefaultToolbarActions = <TData,>({
 }: DefaultToolbarActionsProps<TData>) => {
   return (
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
-      {showEditButton && (
-        <EditingModeButton isEditingMode={false} onClick={onStartEditing} />
-      )}
+      {showEditButton && <EditingModeButton onClick={onStartEditing} />}
 
       <RefreshButton onRefresh={onRefresh} isRefreshing={isRefreshing} />
 

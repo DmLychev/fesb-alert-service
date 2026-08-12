@@ -2,14 +2,10 @@ import { Button, Text } from "@chakra-ui/react";
 import { LuPencil } from "react-icons/lu";
 
 interface EditingModeButtonProps {
-  isEditingMode: boolean;
   onClick: () => void;
 }
 
-const EditingModeButton = ({
-  isEditingMode,
-  onClick,
-}: EditingModeButtonProps) => {
+const EditingModeButton = ({ onClick }: EditingModeButtonProps) => {
   return (
     <Button
       aria-label="Редактировать"
@@ -17,15 +13,12 @@ const EditingModeButton = ({
       width={{ base: "36px", md: "132px" }}
       minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
-      colorPalette={isEditingMode ? "yellow" : undefined}
-      variant={isEditingMode ? "solid" : "outline"}
+      variant={"outline"}
       onClick={onClick}
     >
       <LuPencil />
 
-      <Text hideBelow="md">
-        {isEditingMode ? "Завершить" : "Редактировать"}
-      </Text>
+      <Text hideBelow="md">Редактировать</Text>
     </Button>
   );
 };

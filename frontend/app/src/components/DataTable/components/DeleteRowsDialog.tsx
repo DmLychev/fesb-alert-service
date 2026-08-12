@@ -36,7 +36,7 @@ const DeleteRowsDialog = ({
             </Dialog.Header>
 
             <Dialog.Body>
-              <Text>Будет удалено записей {rowsCount}</Text>
+              <Text>Будет удалено записей: {rowsCount}</Text>
 
               <Text mt={2} color="fg.muted" fontSize="sm">
                 Операцию невозможно отменить.

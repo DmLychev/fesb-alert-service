@@ -14,10 +14,11 @@ const DeleteSelectedRowsButton = ({
     <Button
       aria-label="Удалить выбранные"
       size="sm"
+      variant="outline"
+      colorPalette="red"
       width={{ base: "36px", md: "132px" }}
       minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
-      colorPalette="red"
       disabled={disabled}
       onClick={() => onClick()}
     >

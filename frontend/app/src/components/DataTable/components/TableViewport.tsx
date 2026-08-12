@@ -78,7 +78,7 @@ const TableViewport = <TData,>({
                     textOverflow="ellipsis"
                     bg={
                       isEditingMode && isEditableColumn
-                        ? "yellow.subtle"
+                        ? "orange.subtle"
                         : "bg.muted"
                     }
                     style={{
@@ -99,8 +99,8 @@ const TableViewport = <TData,>({
                     borderBottomColor={
                       isEditableColumn
                         ? isEditingMode
-                          ? "yellow.solid"
-                          : "yellow.muted"
+                          ? "orange.solid"
+                          : "orange.emphasized"
                         : "border.muted"
                     }
                   >
@@ -283,7 +283,7 @@ const TableViewport = <TData,>({
                       borderBottomColor="border.muted"
                       bg={
                         isDirty
-                          ? "yellow.subtle"
+                          ? "orange.muted"
                           : cell.column.getIsPinned()
                             ? "bg.panel"
                             : undefined

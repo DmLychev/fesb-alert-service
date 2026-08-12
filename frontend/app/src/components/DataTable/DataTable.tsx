@@ -265,7 +265,7 @@ const DataTable = <TData,>({
       <Text fontWeight="medium">Режим редактирования</Text>
 
       {hasPendingChanges && (
-        <Badge colorPalette="yellow">{changedCellsCount}</Badge>
+        <Badge colorPalette="orange">{changedCellsCount}</Badge>
       )}
     </HStack>
   );
