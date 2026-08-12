@@ -182,6 +182,14 @@ const DataTable = <TData,>({
     return [selectionColumn, ...columns];
   }, [columns, selectionEnabled, isDeleting, isApplyingChanges]);
 
+  const filteredColumnIds = useMemo(
+    () =>
+      new Set(
+        preferences.filters.map((filter) => filter.column).filter(Boolean),
+      ),
+    [preferences.filters],
+  );
+
   const hasFilterFields = Object.keys(filterFields).length > 0;
 
   const table = useReactTable<TData>({
@@ -297,7 +305,7 @@ const DataTable = <TData,>({
       isRefreshing={isRefreshing}
       hasFilterFields={hasFilterFields}
       isFilterPanelOpen={uiState.isFilterPaneOpen}
-      activeFiltersCount={uiState.draftFilters.length}
+      activeFiltersCount={preferences.filters.length}
       columns={preferences.columnOrder}
       isLiveUpdatesEnabled={preferences.isLiveUpdatesEnabled}
       onStartEditing={handleStartEditing}
@@ -352,6 +360,7 @@ const DataTable = <TData,>({
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
         isEditingMode={isEditingMode}
         isSelectionDisabled={isDeleting || isApplyingChanges}
+        filteredColumnIds={filteredColumnIds}
       />
 
       {/* Пагинация */}

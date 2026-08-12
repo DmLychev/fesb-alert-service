@@ -16,6 +16,7 @@ interface TableViewportProps<TData> {
   pageSize: number;
 
   editableFields?: EditableFieldRegistry;
+  filteredColumnIds?: ReadonlySet<string>;
 
   pendingChanges?: PendingChanges;
 
@@ -32,6 +33,7 @@ const TableViewport = <TData,>({
   showSkeleton,
   pageSize,
   editableFields,
+  filteredColumnIds,
   pendingChanges = {},
   isApplyingChanges = false,
   isSelectionDisabled = false,
@@ -69,6 +71,8 @@ const TableViewport = <TData,>({
                 const isEditableColumn = Boolean(
                   editableFields?.[header.column.id],
                 );
+                const isFilteredColumn =
+                  filteredColumnIds?.has(header.column.id) ?? false;
 
                 return (
                   <Table.ColumnHeader
@@ -79,7 +83,9 @@ const TableViewport = <TData,>({
                     bg={
                       isEditingMode && isEditableColumn
                         ? "orange.subtle"
-                        : "bg.muted"
+                        : !isEditingMode && isFilteredColumn
+                          ? "blue.subtle"
+                          : "bg.muted"
                     }
                     style={{
                       width: header.getSize(),
@@ -95,12 +101,12 @@ const TableViewport = <TData,>({
                     title={
                       isEditableColumn ? "Редактируемый столбец" : undefined
                     }
-                    borderBottomWidth={isEditableColumn ? "2px" : "1px"}
+                    borderBottomWidth={
+                      isEditingMode && isEditableColumn ? "4px" : "1px"
+                    }
                     borderBottomColor={
-                      isEditableColumn
-                        ? isEditingMode
-                          ? "orange.solid"
-                          : "orange.emphasized"
+                      isEditingMode && isEditableColumn
+                        ? "orange.solid"
                         : "border.muted"
                     }
                   >
