@@ -57,7 +57,8 @@ const useTableData = <TData>({
         if (controller.signal.aborted) return;
 
         toaster.create({
-          title: error instanceof Error ? error.message : "Error loading data",
+          title:
+            error instanceof Error ? error.message : "Ошибка загрузки данных",
           type: "error",
           duration: 6000,
         });

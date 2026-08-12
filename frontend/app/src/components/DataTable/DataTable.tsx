@@ -356,7 +356,6 @@ const DataTable = <TData,>({
         pageSize={preferences.pageSize}
         editableFields={editing?.updateRow ? editing.fields : undefined}
         pendingChanges={pendingChanges}
-        isApplyingChanges={isApplyingChanges}
         onDraftChange={editing?.updateRow ? handleDraftChange : undefined}
         isEditingMode={isEditingMode}
         isSelectionDisabled={isDeleting || isApplyingChanges}

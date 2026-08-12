@@ -4,6 +4,7 @@ import {
   Button,
   ButtonGroup,
   Flex,
+  Grid,
   HStack,
   IconButton,
   Pagination,
@@ -55,12 +56,10 @@ const TableFooter = ({
         defaultPage={1}
         onPageChange={(details) => onPageChange(details.page)}
       >
-        <Flex
+        <Grid
           width="full"
-          minHeight="40px"
-          direction={{ base: "column", md: "row" }}
-          alignItems={{ base: "stretch", md: "center" }}
-          justifyContent="space-between"
+          gridTemplateColumns={{ base: "1fr", md: "1fr auto 1fr" }}
+          alignItems="center"
           gap={{ base: 2, md: 3 }}
           paddingInline={3}
           paddingBlock={1.5}
@@ -70,7 +69,8 @@ const TableFooter = ({
           bg="bg.panel"
         >
           <HStack
-            width={{ base: "full", md: "auto" }}
+            width="fit-content"
+            justifySelf={{ base: "stretch", md: "start" }}
             justifyContent={{ base: "space-between", md: "flex-start" }}
             gap={3}
           >
@@ -83,11 +83,7 @@ const TableFooter = ({
             )}
           </HStack>
 
-          <HStack
-            width={{ base: "full", md: "auto" }}
-            justifyContent="space-between"
-            gap={1}
-          >
+          <HStack justifySelf="center" justifyContent="center" gap={1}>
             <Pagination.PrevTrigger asChild>
               <IconButton
                 aria-label="Предыдущая страница"
@@ -159,7 +155,7 @@ const TableFooter = ({
             </Pagination.NextTrigger>
           </HStack>
 
-          <Box hideBelow="md">
+          <Box hideBelow="md" justifySelf="end">
             <Select.Root
               collection={pageSizeOptions}
               value={[pageSize.toString()]}
@@ -195,7 +191,7 @@ const TableFooter = ({
               </Portal>
             </Select.Root>
           </Box>
-        </Flex>
+        </Grid>
       </Pagination.Root>
 
       <GoToPageDialog

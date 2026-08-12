@@ -20,8 +20,6 @@ interface TableViewportProps<TData> {
 
   pendingChanges?: PendingChanges;
 
-  isApplyingChanges?: boolean;
-
   onDraftChange?: (change: DraftCellChange) => void;
 
   isEditingMode: boolean;
@@ -35,7 +33,6 @@ const TableViewport = <TData,>({
   editableFields,
   filteredColumnIds,
   pendingChanges = {},
-  isApplyingChanges = false,
   isSelectionDisabled = false,
   isEditingMode,
   onDraftChange,

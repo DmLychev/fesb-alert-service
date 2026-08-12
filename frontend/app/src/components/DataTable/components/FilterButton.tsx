@@ -20,8 +20,8 @@ const FilterButton = ({
       size="sm"
       colorPalette={isOpen || hasActiveFilters ? "blue" : "gray"}
       variant={isOpen ? "subtle" : "outline"}
-      width={{ base: "36px", md: "132px" }}
-      minWidth={{ base: "36px", md: "132px" }}
+      width={{ base: activeFiltersCount > 0 ? "72px" : "36px", md: "132px" }}
+      minWidth={{ base: activeFiltersCount > 0 ? "72px" : "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
       onClick={onToggle}
     >

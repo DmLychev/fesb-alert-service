@@ -170,14 +170,14 @@ const useTableEditing = <TData>({
 
       if (updateRows.size > 0)
         toaster.create({
-          title: `Updated rows: ${updateRows.size}`,
+          title: `Обновлено строк: ${updateRows.size}`,
           type: "success",
           duration: 3000,
         });
 
       if (errorMessages.length > 0)
         toaster.create({
-          title: "Some rows could not be updated",
+          title: `Не удалось обновить записей: ${errorMessages.length}`,
           description: errorMessages.join("; "),
           type: "error",
           duration: 6000,
