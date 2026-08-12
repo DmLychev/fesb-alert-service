@@ -27,7 +27,7 @@ from alert_service.views import CreateUserView, SystemSettingsView, MessageListV
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from redis_listener.views import WebSocketTicketView
 
-from alert_service.schema import schema
+from alert_service.graphql.schema import schema
 
 urlpatterns = [
     path('admin/', admin.site.urls),

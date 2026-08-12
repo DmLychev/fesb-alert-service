@@ -13,20 +13,10 @@ from graphql import GraphQLError
 from typing import List, Optional
 import datetime
 
-from .models import Message, Route
-from .permissions import IsAuthenticated
-
-
-@strawberry_django.type(Route)
-class RouteType:
-    id: strawberry.ID
-    name: str
-    description: str
-    domain_name: str
-    is_active: bool
-    is_tracked: bool
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+from ..models import Message, Route
+from ..permissions import IsAuthenticated, CanDeleteMessages
+from .routes import RouteFilter, RouteOrder, RouteType
+from .common import Page
 
 
 @strawberry_django.type(Message)
@@ -46,19 +36,6 @@ class MessageType:
     route: RouteType
 
 
-@strawberry_django.filter_type(Route, lookups=True)
-class RouteFilter:
-    name: auto
-    description: auto
-    domain_name: auto
-    is_active: auto
-    is_tracked: auto
-
-    AND: Optional[list[Self]] = strawberry.UNSET
-    OR: Optional[list[Self]] = strawberry.UNSET
-    NOT: Optional[list[Self]] = strawberry.UNSET
-
-
 @strawberry_django.filter_type(Message, lookups=True)
 class MessageFilter:
     exchange_id: auto
@@ -74,15 +51,6 @@ class MessageFilter:
     AND: Optional[list[Self]] = strawberry.UNSET
     OR: Optional[list[Self]] = strawberry.UNSET
     NOT: Optional[list[Self]] = strawberry.UNSET
-
-
-@strawberry_django.order_type(Route)
-class RouteOrder:
-    name: auto
-    description: auto
-    domain_name: auto
-    is_active: auto
-    is_tracked: auto
 
 
 @strawberry_django.order_type(Message)
@@ -101,15 +69,23 @@ class MessageOrder:
     route: Optional[RouteOrder]
 
 
-@strawberry.type
-class MessagePaginationResult:
-    count: int
-    results: List[MessageType]
+
+
+@strawberry.input
+class UpdateMessageInput:
+    id: strawberry.ID
+    status: strawberry.Maybe[str | None]
 
 
 @strawberry.type
-class Query:
-    @strawberry.field()
+class DeleteMessagesPayload:
+    deleted_count: int
+    deleted_ids: list[strawberry.ID]
+
+
+@strawberry.type
+class MessageQuery:
+    @strawberry.field(permission_classes=[IsAuthenticated])
     def messages_page(
             self,
             filters: Optional[MessageFilter] = None,
@@ -117,7 +93,7 @@ class Query:
             order: Optional[MessageOrder] = None,
             page: int = 1,
             size: int = 10,
-    ) -> MessagePaginationResult:
+    ) -> Page[MessageType]:
 
         queryset = Message.objects.all().select_related('route')
 
@@ -143,27 +119,14 @@ class Query:
         end = start + size
         paginated_queryset = queryset[start:end]
 
-        return MessagePaginationResult(
+        return Page(
             count=total_count,
             results=list(paginated_queryset)
         )
 
-
 @strawberry.type
-class DeleteMessagesPayload:
-    deleted_count: int
-    deleted_ids: list[strawberry.ID]
-
-
-@strawberry.input
-class UpdateMessageInput:
-    id: strawberry.ID
-    status: strawberry.Maybe[str | None]
-
-
-@strawberry.type
-class Mutation:
-    @strawberry.mutation(permission_classes=[IsAuthenticated, ])
+class MessageMutation:
+    @strawberry.mutation(permission_classes=[IsAuthenticated, CanDeleteMessages])
     @transaction.atomic
     def delete_messages(self, ids: list[strawberry.ID]) -> DeleteMessagesPayload:
         numeric_ids = [int(_id) for _id in ids]
@@ -209,7 +172,3 @@ class Mutation:
         message.save(update_fields=[*changed_fields, "updated_at", ])
 
         return message
-
-
-# Instantiate the execution instance for urls.py
-schema = strawberry.Schema(query=Query, mutation=Mutation)
