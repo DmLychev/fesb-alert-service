@@ -1,0 +1,156 @@
+import datetime
+from typing import Optional
+
+import strawberry
+import strawberry_django
+from strawberry import auto
+
+from typing_extensions import Self
+
+from django.db.models import Q
+from django.db import transaction
+from django.core.exceptions import ValidationError
+
+from graphql import GraphQLError
+
+from ..models import Issue
+from .issue_types import IssueTypeType, IssueTypeFilter
+from ..permissions import IsAuthenticated
+from .common import Page
+
+
+@strawberry_django.type(Issue)
+class IssueType:
+    id: strawberry.ID
+    text: str
+    route_id: str
+    domain_name: str
+    is_notified: bool
+    is_solved: bool
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+    type = IssueTypeType
+
+
+@strawberry_django.filter_type(Issue)
+class IssueFilter:
+    text: auto
+    route_id: auto
+    domain_name: auto
+    is_notified: auto
+    is_solved: auto
+    created_at: auto
+    updated_at: auto
+
+    type: Optional[IssueTypeFilter]
+
+    AND: Optional[list[Self]] = strawberry.UNSET
+    OR: Optional[list[Self]] = strawberry.UNSET
+    NOT: Optional[list[Self]] = strawberry.UNSET
+
+
+@strawberry_django.order_type(Issue)
+class IssueOrder:
+    text: auto
+    route_id: auto
+    domain_name: auto
+    is_notified: auto
+    is_solved: auto
+    created_at: auto
+    updated_at: auto
+
+    type: Optional[IssueTypeFilter]
+
+
+@strawberry.input
+class UpdateIssueInput:
+    id: strawberry.ID
+    status: strawberry.Maybe[str | None]
+
+
+@strawberry.type
+class DeleteIssuesPayload:
+    deleted_count: int
+    deleted_ids: list[strawberry.ID]
+
+
+@strawberry.type
+class IssueQuery:
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    def issue_page(
+            self,
+            filters: Optional[IssueFilter] = None,
+            search: Optional[str] = None,
+            order: Optional[IssueOrder] = None,
+            page: int = 1,
+            size: int = 10,
+    ) -> Page[IssueType]:
+
+        queryset = Issue.objects.all().select_related('type')
+
+        if filters:
+            queryset = strawberry_django.filters.apply(filters, queryset)
+
+        if search and search.strip():
+            search_query = search.strip()
+            queryset = queryset.filter(
+                Q(text__icontains=search_query) |
+                Q(route_id__icontains=search_query) |
+                Q(domain_name__icontains=search_query)
+            )
+
+        if order:
+            queryset = strawberry_django.ordering.apply(order, queryset)
+
+        total_count = queryset.count()
+
+        start = (page - 1) * size
+        end = start + size
+        paginated_queryset = queryset[start:end]
+
+        return Page(
+            count=total_count,
+            results=list(paginated_queryset),
+        )
+
+
+@strawberry.type
+class IssueMutation:
+    @strawberry.mutation(permission_classes=[IsAuthenticated, ])
+    @transaction.atomic
+    def delete_issues(self, ids: list[strawberry.ID]) -> DeleteIssuesPayload:
+        numeric_ids = [int(_id) for _id in ids]
+
+        queryset = Issue.objects.filter(pk__in=numeric_ids, )
+
+        existing_ids = list(queryset.values_list('id', flat=True))
+
+        queryset.delete()
+
+        return DeleteIssuesPayload(
+            deleted_count=len(existing_ids),
+            deleted_ids=[strawberry.ID(str(_id)) for _id in existing_ids],
+        )
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def update_issue(self, data: UpdateIssueInput) -> IssueType:
+        try:
+            issue = Issue.objects.select_related('type').get(pk=data.id)
+        except Issue.DoesNotExist as error:
+            raise GraphQLError("Issue not found") from error
+
+        changed_fields: list[str] = []
+
+        if not changed_fields:
+            return issue
+
+        try:
+            issue.full_clean()
+        except ValidationError as error:
+            raise GraphQLError("; ".join(error.messages)) from error
+
+        issue.save(update_fields=[*changed_fields, "updated_at", ])
+
+        return issue

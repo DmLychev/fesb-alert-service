@@ -10,10 +10,10 @@ from django.core.exceptions import ValidationError
 
 from graphql import GraphQLError
 
-from typing import List, Optional
+from typing import Optional
 import datetime
 
-from ..models import Message, Route
+from ..models import Message
 from ..permissions import IsAuthenticated, CanDeleteMessages
 from .routes import RouteFilter, RouteOrder, RouteType
 from .common import Page
@@ -69,8 +69,6 @@ class MessageOrder:
     route: Optional[RouteOrder]
 
 
-
-
 @strawberry.input
 class UpdateMessageInput:
     id: strawberry.ID
@@ -123,6 +121,7 @@ class MessageQuery:
             count=total_count,
             results=list(paginated_queryset)
         )
+
 
 @strawberry.type
 class MessageMutation:
