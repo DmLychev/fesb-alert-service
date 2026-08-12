@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ..models import Issue
-from .issue_types import IssueTypeType, IssueTypeFilter
+from .issue_types import IssueTypeType, IssueTypeFilter, IssueTypeOrder
 from ..permissions import IsAuthenticated
 from .common import Page
 
@@ -30,7 +30,7 @@ class IssueType:
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
-    type = IssueTypeType
+    type: IssueTypeType
 
 
 @strawberry_django.filter_type(Issue)
@@ -60,13 +60,14 @@ class IssueOrder:
     created_at: auto
     updated_at: auto
 
-    type: Optional[IssueTypeFilter]
+    type: Optional[IssueTypeOrder]
 
 
 @strawberry.input
 class UpdateIssueInput:
     id: strawberry.ID
-    status: strawberry.Maybe[str | None]
+    is_notified: strawberry.Maybe[bool]
+    is_solved: strawberry.Maybe[bool]
 
 
 @strawberry.type
@@ -78,7 +79,7 @@ class DeleteIssuesPayload:
 @strawberry.type
 class IssueQuery:
     @strawberry.field(permission_classes=[IsAuthenticated])
-    def issue_page(
+    def issues_page(
             self,
             filters: Optional[IssueFilter] = None,
             search: Optional[str] = None,
@@ -142,6 +143,14 @@ class IssueMutation:
             raise GraphQLError("Issue not found") from error
 
         changed_fields: list[str] = []
+        
+        if data.is_solved is not None:
+            issue.is_solved = data.is_solved.value
+            changed_fields.append("is_solved")
+            
+        if data.is_notified is not None:
+            issue.is_notified = data.is_notified.value
+            changed_fields.append("is_notified")
 
         if not changed_fields:
             return issue

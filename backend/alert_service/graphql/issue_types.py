@@ -11,9 +11,9 @@ from ..models import IssueType as IssueTypeModel
 
 @strawberry_django.type(IssueTypeModel)
 class IssueTypeType:
-    id = strawberry.ID
-    code = int
-    description = str
+    id: strawberry.ID
+    code: int
+    description: str
 
 
 @strawberry_django.filter_type(IssueTypeModel, lookups=True)
