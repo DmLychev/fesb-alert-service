@@ -33,7 +33,7 @@ class IssueType:
     type: IssueTypeType
 
 
-@strawberry_django.filter_type(Issue)
+@strawberry_django.filter_type(Issue, lookups=True)
 class IssueFilter:
     text: auto
     route_id: auto

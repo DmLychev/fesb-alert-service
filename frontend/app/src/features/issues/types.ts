@@ -9,9 +9,9 @@ export interface IssueType {
 export interface Issue {
   id: string;
   type: IssueType;
-  text: string;
-  routeId: string;
-  domainName: string;
+  text: string | null;
+  routeId: string | null;
+  domainName: string | null;
   isNotified: boolean;
   isSolved: boolean;
   createdAt: DateTimeString;

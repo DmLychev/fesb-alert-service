@@ -6,6 +6,7 @@ import ScrollableTextCell from "./components/ScrollableTextCell";
 export const ISSUE_FIELD_REGISTRY = {
   "type.code": {
     label: "Код",
+    defaultSize: 50,
     column: {
       accessorFn: (issue) => issue.type.code,
       enableSorting: true,
@@ -16,6 +17,7 @@ export const ISSUE_FIELD_REGISTRY = {
 
   "type.description": {
     label: "Описание ошибки",
+    defaultSize: 200,
     column: {
       accessorFn: (issue) => issue.type.description,
       enableSorting: true,
@@ -26,7 +28,7 @@ export const ISSUE_FIELD_REGISTRY = {
 
   text: {
     label: "Текст ошибки",
-    defaultSize: 200,
+    defaultSize: 350,
     column: {
       accessorFn: (issue) => issue.text,
       enableSorting: true,
@@ -38,6 +40,7 @@ export const ISSUE_FIELD_REGISTRY = {
 
   routeId: {
     label: "Route ID",
+    defaultSize: 350,
     column: {
       accessorFn: (issue) => issue.routeId,
       enableSorting: true,
@@ -48,65 +51,60 @@ export const ISSUE_FIELD_REGISTRY = {
 
   domainName: {
     label: "Домен",
+    defaultSize: 80,
     column: {
       accessorFn: (issue) => issue.domainName,
       enableSorting: true,
     },
-    value: {
-      type: "string",
-    },
+    value: { type: "string", nullable: true },
     filter: true,
   },
 
   isNotified: {
-    label: "Уведомление отправлено",
+    label: "Уведомление",
+    defaultSize: 125,
     column: {
       accessorFn: (issue) => issue.isNotified,
       enableSorting: true,
     },
-    value: {
-      type: "boolean",
-    },
+    value: { type: "boolean" },
     filter: true,
     edit: true,
   },
 
   isSolved: {
     label: "Решено",
+    defaultSize: 125,
     column: {
       accessorFn: (issue) => issue.isSolved,
       enableSorting: true,
     },
-    value: {
-      type: "boolean",
-    },
+    value: { type: "boolean" },
     filter: true,
     edit: true,
   },
 
   createdAt: {
-    label: "Уведомление отправлено",
+    label: "Дата создания",
+    defaultSize: 180,
     column: {
       accessorFn: (issue) => issue.createdAt,
       enableSorting: true,
       cell: ({ getValue }) => formatDateTime(getValue()),
     },
-    value: {
-      type: "datetime",
-    },
+    value: { type: "datetime" },
     filter: true,
   },
 
   updatedAt: {
-    label: "Уведомление отправлено",
+    label: "Дата изменения",
+    defaultSize: 180,
     column: {
       accessorFn: (issue) => issue.updatedAt,
       enableSorting: true,
       cell: ({ getValue }) => formatDateTime(getValue()),
     },
-    value: {
-      type: "datetime",
-    },
+    value: { type: "datetime" },
     filter: true,
   },
 } satisfies TableFieldRegistry<Issue>;

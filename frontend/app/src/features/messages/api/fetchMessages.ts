@@ -3,9 +3,20 @@ import type {
   FetchPageParams,
   PageResult,
 } from "../../../components/DataTable";
+import {
+  unwrapGraphQLData,
+  type GraphQLResponse,
+} from "../../../utils/graphql";
 import type { Message } from "../types";
 import { compileMessageFilters } from "../utils/compileMessageFilters";
 import { compileMessageSorting } from "../utils/compileMessageSorting";
+
+interface MessagesPageData {
+  messagesPage: {
+    count: number;
+    results: Message[];
+  };
+}
 
 const GET_MESSAGE_PAGE = `
 query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search: String, $order: MessageOrder) {
@@ -38,7 +49,7 @@ const fetchMessages = async ({
   filters,
   signal,
 }: FetchPageParams): Promise<PageResult<Message>> => {
-  const response = await api.post(
+  const response = await api.post<GraphQLResponse<MessagesPageData>>(
     "/api/graphql/",
     {
       query: GET_MESSAGE_PAGE,
@@ -53,7 +64,12 @@ const fetchMessages = async ({
     { signal },
   );
 
-  const payload = response.data.data.messagesPage;
+  const data = unwrapGraphQLData(
+    response.data,
+    "Ошибка получения данных по сообщениям",
+  );
+
+  const payload = data.messagesPage;
 
   return {
     rows: payload.results,
