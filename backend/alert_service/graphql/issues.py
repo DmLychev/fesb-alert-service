@@ -22,9 +22,9 @@ from .common import Page
 @strawberry_django.type(Issue)
 class IssueType:
     id: strawberry.ID
-    text: str
-    route_id: str
-    domain_name: str
+    text: Optional[str]
+    route_id: Optional[str]
+    domain_name: Optional[str]
     is_notified: bool
     is_solved: bool
     created_at: datetime.datetime
