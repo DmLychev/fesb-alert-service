@@ -3,7 +3,7 @@ import type {
   DeleteRowsParams,
   UpdateRowParams,
 } from "../../../components/DataTable";
-import type { Message } from "../types";
+import type { Issue } from "../types";
 
 interface GraphQLErrorItem {
   message: string;
@@ -26,9 +26,9 @@ const unwrapGraphQLData = <TData>(
   return response.data;
 };
 
-interface DeleteMessagesResponse {
+interface DeleteIssuesResponse {
   data: {
-    deleteMessages: {
+    deleteIssues: {
       deletedCount: number;
       deletedIds: string[];
     };
@@ -37,48 +37,45 @@ interface DeleteMessagesResponse {
   errors?: GraphQLErrorItem[];
 }
 
-const DELETE_MESSAGES_MUTATION = `
-    mutation DeleteMessages(
+const DELETE_ISSUES_MUTATION = `
+    mutation DeleteIssues(
         $ids: [ID!]!
     ) {
-       deleteMessages(ids: $ids) {
+       deleteIssues(ids: $ids) {
             deletedCount
             deletedIds
         }     
     }
 `;
 
-const UPDATE_MESSAGE_MUTATION = `
-    mutation UpdateMessage(
-      $data: UpdateMessageInput!
+const UPDATE_ISSUE_MUTATION = `
+    mutation UpdateIssue(
+      $data: UpdateIssueInput!
     ) {
-      updateMessage(data: $data) {
+      updateIssue(data: $data) {
         id
-        exchangeId
-        requestId
-        errorMessage
-        updateStatusAttempts
-        status
-        startDate
-        endDate
-        warningLevel
-
-        route {
-          id
-          name
-          domainName
+        text
+        routeId
+        domainName
+        isNotified
+        isSolved
+        createdAt
+        updatedAt
+        type {
+          code
+          description
         }
       }  
     }
 `;
 
-export const deleteMessages = async ({
+export const deleteIssues = async ({
   rowIds,
   signal,
 }: DeleteRowsParams): Promise<void> => {
-  const response = await api.post<DeleteMessagesResponse>(
+  const response = await api.post<DeleteIssuesResponse>(
     "/api/graphql/",
-    { query: DELETE_MESSAGES_MUTATION, variables: { ids: rowIds } },
+    { query: DELETE_ISSUES_MUTATION, variables: { ids: rowIds } },
     { signal },
   );
 
@@ -87,22 +84,22 @@ export const deleteMessages = async ({
   if (graphQLErrors?.length)
     throw new Error(graphQLErrors.map((error) => error.message).join("; "));
 
-  const result = response.data.data?.deleteMessages;
+  const result = response.data.data?.deleteIssues;
 
   if (!result) {
     throw new Error("Delete mutation returned no data");
   }
 };
 
-export const updateMessage = async ({
+export const updateIssue = async ({
   rowId,
   changes,
   signal,
-}: UpdateRowParams): Promise<Message> => {
-  const response = await api.post<GraphQLResponse<{ updateMessage: Message }>>(
+}: UpdateRowParams): Promise<Issue> => {
+  const response = await api.post<GraphQLResponse<{ updateIssue: Issue }>>(
     "/api/graphql/",
     {
-      query: UPDATE_MESSAGE_MUTATION,
+      query: UPDATE_ISSUE_MUTATION,
 
       variables: {
         data: {
@@ -119,5 +116,5 @@ export const updateMessage = async ({
     "Update mutation returned no data",
   );
 
-  return data.updateMessage;
+  return data.updateIssue;
 };

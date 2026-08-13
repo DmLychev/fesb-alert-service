@@ -2,6 +2,7 @@ import type { TableFieldRegistry } from "../../components/DataTable";
 import { formatDateTime } from "../../components/DataTable/utils/date";
 import type { Issue } from "./types";
 import ScrollableTextCell from "./components/ScrollableTextCell";
+import BooleanCell from "./components/BooleanCell";
 
 export const ISSUE_FIELD_REGISTRY = {
   "type.code": {
@@ -66,6 +67,7 @@ export const ISSUE_FIELD_REGISTRY = {
     column: {
       accessorFn: (issue) => issue.isNotified,
       enableSorting: true,
+      cell: ({ getValue }) => <BooleanCell value={getValue()} />,
     },
     value: { type: "boolean" },
     filter: true,
@@ -78,6 +80,7 @@ export const ISSUE_FIELD_REGISTRY = {
     column: {
       accessorFn: (issue) => issue.isSolved,
       enableSorting: true,
+      cell: ({ getValue }) => <BooleanCell value={getValue()} />,
     },
     value: { type: "boolean" },
     filter: true,

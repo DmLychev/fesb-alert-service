@@ -1,10 +1,10 @@
 import type { DataTableEditingConfig } from "../../components/DataTable";
-import { deleteMessages, updateMessage } from "./api/messageMutations";
+import { deleteIssues, updateIssue } from "./api/issueMutations";
 import { issueEditableFields } from "./issueTableDefinitions";
 import type { Issue } from "./types";
 
 export const issueEditingConfig: DataTableEditingConfig<Issue> = {
   fields: issueEditableFields,
-  updateRow: updateMessage,
-  deleteRows: deleteMessages,
+  updateRow: updateIssue,
+  deleteRows: deleteIssues,
 };

@@ -16,7 +16,7 @@ const IssueTable = () => {
       fetchPage={fetchIssues}
       getRowId={(issue) => issue.id}
       // liveUpdates={messageLiveUpdateConfig}
-      // editing={issueEditingConfig}
+      editing={issueEditingConfig}
     />
   );
 };
