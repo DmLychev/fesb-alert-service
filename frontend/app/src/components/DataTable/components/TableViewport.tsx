@@ -70,6 +70,7 @@ const TableViewport = <TData,>({
                 );
                 const isFilteredColumn =
                   filteredColumnIds?.has(header.column.id) ?? false;
+                const isSelectionColumn = header.column.id === SELECT_COLUMN_ID;
 
                 return (
                   <Table.ColumnHeader
@@ -107,7 +108,20 @@ const TableViewport = <TData,>({
                         : "border.muted"
                     }
                   >
-                    {header.isPlaceholder ? null : (
+                    {header.isPlaceholder ? null : isSelectionColumn ? (
+                      <Box
+                        width="full"
+                        height="full"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </Box>
+                    ) : (
                       <Button
                         type="button"
                         variant="ghost"
@@ -119,6 +133,8 @@ const TableViewport = <TData,>({
                         pe="8px"
                         overflow="hidden"
                         borderRadius={0}
+                        bg="transparent"
+                        _hover={{ bg: "transparent" }}
                         onClick={
                           isEditingMode
                             ? undefined
@@ -143,6 +159,7 @@ const TableViewport = <TData,>({
                             header.getContext(),
                           )}
                         </Box>
+
                         {sortDirection === "asc" && (
                           <Text as="span" fontSize="xs" flexShrink={0}>
                             ▲
