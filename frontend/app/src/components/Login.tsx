@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import { Controller, useForm } from "react-hook-form";
@@ -25,6 +25,9 @@ const Login = () => {
   });
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const from =
+    (location.state as { from?: string } | null)?.from ?? "/dashboard";
 
   const onSubmit = handleSubmit(async (data: formData) => {
     try {
@@ -34,7 +37,7 @@ const Login = () => {
       });
       localStorage.setItem(ACCESS_TOKEN, res.data.access);
       localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (error: any) {
       reset({
         username: "",

@@ -1,31 +1,49 @@
-import { Box, Link, Tabs } from "@chakra-ui/react";
+import { Box, Tabs } from "@chakra-ui/react";
 import MessageTable from "../../features/messages/MessageTable";
 import IssueTable from "../../features/issues/IssueTable";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
+
+type AnalyticsTab = "messages" | "issues" | "requests";
+
+const isAnalyticsTab = (value: string | undefined): value is AnalyticsTab =>
+  value === "messages" || value === "issues" || value === "requests";
 
 const AnalyticsPage = () => {
+  const { tab } = useParams<{ tab: string }>();
+  const navigate = useNavigate();
+
+  if (!isAnalyticsTab) return <Navigate to="/analytics/issues" replace />;
+
   return (
     <Box height="full" minHeight={0} overflow="hidden">
       <Tabs.Root
-        defaultValue="messages"
+        value={tab}
         variant="line"
+        lazyMount
+        unmountOnExit
         height="full"
         minHeight={0}
         display="flex"
         flexDirection="column"
         overflow="hidden"
+        onValueChange={({ value }) => navigate(`/analytics/${value}`)}
       >
         <Tabs.List flexShrink={0}>
-          <Tabs.Trigger value="messages" asChild>
-            <Link unstyled href="#messages">
-              Сообщения
-            </Link>
-          </Tabs.Trigger>
-          <Tabs.Trigger value="issues" asChild>
-            <Link unstyled href="#issues">
-              Инциденты
-            </Link>
-          </Tabs.Trigger>
+          <Tabs.Trigger value="issues">Инциденты</Tabs.Trigger>
+          <Tabs.Trigger value="messages">Сообщения</Tabs.Trigger>
+          <Tabs.Trigger value="requests">Запросы</Tabs.Trigger>
         </Tabs.List>
+
+        <Tabs.Content
+          value="issues"
+          flex="1"
+          minHeight={0}
+          overflow="auto"
+          pt={4}
+        >
+          <IssueTable />
+        </Tabs.Content>
+
         <Tabs.Content
           value="messages"
           flex="1"
@@ -35,14 +53,15 @@ const AnalyticsPage = () => {
         >
           <MessageTable />
         </Tabs.Content>
+
         <Tabs.Content
-          value="issues"
+          value="requests"
           flex="1"
           minHeight={0}
-          overflow="auto"
+          overflow="hidden"
           pt={4}
         >
-          <IssueTable />
+          <h2>Здесь будут статусы запросов к FESB</h2>
         </Tabs.Content>
       </Tabs.Root>
     </Box>

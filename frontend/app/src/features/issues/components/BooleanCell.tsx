@@ -1,23 +1,27 @@
-import { Icon } from "@chakra-ui/react";
-import { IoMdCheckmarkCircle } from "react-icons/io";
-import { TiDelete } from "react-icons/ti";
+import { Circle } from "@chakra-ui/react";
+import { LuCheck, LuX } from "react-icons/lu";
 
 interface BooleanCellProps {
   value: boolean;
 }
 
 const BooleanCell = ({ value }: BooleanCellProps) => {
-  if (value)
-    return (
-      <Icon color="green" size="sm" asChild>
-        <IoMdCheckmarkCircle />
-      </Icon>
-    );
+  const label = value ? "Да" : "Нет";
 
   return (
-    <Icon color="red" size="md" asChild>
-      <TiDelete />
-    </Icon>
+    <Circle
+      size="18px"
+      bg={value ? "green.500" : "red.500"}
+      color="white"
+      title={label}
+      aria-label={label}
+    >
+      {value ? (
+        <LuCheck size={14} strokeWidth={3} />
+      ) : (
+        <LuX size={14} strokeWidth={3} />
+      )}
+    </Circle>
   );
 };
 

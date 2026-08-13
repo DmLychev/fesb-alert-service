@@ -39,6 +39,10 @@ function App() {
           />
           <Route
             path="/analytics"
+            element={<Navigate to="/analytics/messages" replace />}
+          />
+          <Route
+            path="/analytics/:tab"
             element={
               <ProtectedRoute>
                 <AnalyticsPage />

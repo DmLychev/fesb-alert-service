@@ -1,4 +1,4 @@
-import { Box, Container } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import React from "react";
 import NavBar from "./NavBar";
 import { Outlet } from "react-router-dom";
@@ -15,17 +15,17 @@ const MainLayout: React.FC = () => {
         <NavBar />
       </Box>
 
-      <Container
+      <Box
         as="main"
-        maxW="1200px"
         width="full"
         flex="1"
         minHeight={0}
-        py={4}
+        px={{ base: 2, md: 3 }}
+        py={3}
         overflow="hidden"
       >
         <Outlet />
-      </Container>
+      </Box>
     </Box>
   );
 };

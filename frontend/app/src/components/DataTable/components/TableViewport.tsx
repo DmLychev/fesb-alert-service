@@ -37,17 +37,22 @@ const TableViewport = <TData,>({
   isEditingMode,
   onDraftChange,
 }: TableViewportProps<TData>) => {
+  const tableWidth = table.getTotalSize();
+  const scrollbarSpace = 20;
+
   return (
     <Table.ScrollArea
       borderWidth="1px"
       rounded="md"
-      width="full"
+      width={`min(100%, ${tableWidth + scrollbarSpace}px)`}
+      maxWidth="full"
       minWidth={0}
-      flex="1 1 auto"
+      minHeight={0}
+      alignSelf="center"
+      flex="0 1 auto"
       overflowX="auto"
       overflowY="auto"
       overscrollBehavior="contain"
-      style={{ scrollbarGutter: "stable both-edges" }}
     >
       <Table.Root
         variant="outline"
@@ -55,8 +60,7 @@ const TableViewport = <TData,>({
         interactive
         tableLayout="fixed"
         style={{
-          width: table.getTotalSize(),
-          marginInline: "auto",
+          width: tableWidth,
           borderCollapse: "separate",
           borderSpacing: 0,
         }}
