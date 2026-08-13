@@ -6,12 +6,12 @@ import redis.asyncio as redis
 from channels.layers import get_channel_layer
 from django.core.management.base import BaseCommand
 
-REDIS_CHANNEL = 'messages'
-CHANNELS_GROUP = 'messages'
+REDIS_CHANNELS = ('messages', "issues", "requests")
+CHANNELS_GROUP = 'live_updates'
 
 
 class Command(BaseCommand):
-    help = 'Listen to Redis message events and broadcast them to WebSocket clients.'
+    help = 'Listen to Redis events and broadcast them to WebSocket clients.'
 
     def handle(self, *args, **options):
         asyncio.run(self.listen())
@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         print(f"Starting Redis listener on {redis_url}")
 
-        await pubsub.subscribe(REDIS_CHANNEL)
+        await pubsub.subscribe(*REDIS_CHANNELS)
 
         try:
             async for message in pubsub.listen():
@@ -39,6 +39,6 @@ class Command(BaseCommand):
                     payload,
                 )
         finally:
-            await pubsub.unsubscribe(REDIS_CHANNEL)
+            await pubsub.unsubscribe(*REDIS_CHANNELS)
             await pubsub.aclose()
             await redis_client.aclose()

@@ -1,8 +1,11 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-class MessageConsumer(AsyncJsonWebsocketConsumer):
-    group_name = 'messages'
+class LiveUpdateConsumer(AsyncJsonWebsocketConsumer):
+    group_name = 'live_updates'
 
     async def connect(self):
         user = self.scope['user']
@@ -17,7 +20,7 @@ class MessageConsumer(AsyncJsonWebsocketConsumer):
         )
         await self.accept()
 
-        print(f"Authenticated WebSocket: {user.username}", flush=True)
+        logger.info(f"Authenticated WebSocket: {user.username}")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -26,9 +29,27 @@ class MessageConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def messages_created(self, event):
-        print("Websocket event:", event, flush=True)
+        logger.debug(f"Websocket event: {event}")
 
-        await self.send_json({
-            "type": "messages_created",
-            "count": event["count"]
-        })
+        await self.send_json(event)
+
+    async def messages_updated(self, event):
+        logger.debug(f"Websocket event: {event}")
+
+        await self.send_json(event)
+
+    async def issues_created(self, event):
+        logger.debug(f"Websocket event: {event}")
+
+        await self.send_json(event)
+
+    async def issues_updated(self, event):
+        logger.debug(f"Websocket event: {event}")
+
+        await self.send_json(event)
+
+    async def requests_created(self, event):
+        logger.debug(f"Websocket event: {event}")
+
+        await self.send_json(event)
+

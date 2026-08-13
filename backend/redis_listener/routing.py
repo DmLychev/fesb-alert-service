@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .consumers import MessageConsumer
+from .consumers import LiveUpdateConsumer
 
 websocket_urlpatterns = [
-    path("ws/messages/", MessageConsumer.as_asgi()),
+    path("ws/events/", LiveUpdateConsumer.as_asgi()),
 ]
