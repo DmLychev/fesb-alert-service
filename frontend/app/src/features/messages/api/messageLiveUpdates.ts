@@ -1,36 +1,17 @@
-import api from "../../../api";
-import type { LiveUpdateConfig } from "../../../components/DataTable";
+import { createLiveUpdateConfig } from "../../../lib/liveUpdates";
 
-interface WebSocketTicketResponse {
-  ticket: string;
-  expiresIn: number;
-}
+export const messageLiveUpdateConfig = createLiveUpdateConfig({
+  eventTypes: ["messages_created", "messages_updated"],
+  shouldRefresh: (event, { visibleRowIds }) => {
+    if (event.type === "messages_created") return true;
 
-const createMessageConnectionUrl = async (
-  signal: AbortSignal,
-): Promise<string> => {
-  const response = await api.post<WebSocketTicketResponse>(
-    "/api/websocket-ticket/",
-    {},
-    { signal },
-  );
+    if (event.type === "messages_updated") {
+      if (!Array.isArray(event.ids)) return false;
 
-  const websocketProtocol =
-    window.location.protocol === "https:" ? "wss:" : "ws:";
+      return event.ids.some((id) => visibleRowIds.has(String(id)));
+    }
 
-  const websocketBaseUrl =
-    import.meta.env.VITE_WEBSOCKET_BASE_URL ??
-    `${websocketProtocol}//${window.location.hostname}:8000`;
-
-  const url = new URL("ws/messages/", websocketBaseUrl);
-
-  url.searchParams.set("ticket", response.data.ticket);
-
-  return url.toString();
-};
-
-export const messageLiveUpdateConfig: LiveUpdateConfig = {
-  createConnectionUrl: createMessageConnectionUrl,
-  eventType: "messages_created",
+    return false;
+  },
   debounceMs: 250,
-};
+});

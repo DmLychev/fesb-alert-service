@@ -20,7 +20,7 @@ class WebSocketTicketView(APIView):
         try:
             ticket = issue_websocket_ticket(
                 user_id=request.user.pk,
-                path="/ws/messages/"
+                path="/ws/events/"
             )
         except (RedisError, RuntimeError):
             logger.exception("Failed to issue a WebSocket ticket")

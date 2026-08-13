@@ -277,8 +277,10 @@ const useTableEditing = <TData>({
     setRowSelection({});
     setIsEditingMode(false);
 
+    refresh();
+
     return true;
-  }, [hasPendingChanges]);
+  }, [hasPendingChanges, refresh]);
 
   return {
     isEditingMode,

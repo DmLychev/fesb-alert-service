@@ -1,30 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toaster } from "../../ui/toaster";
 import type {
   LiveUpdateConfig,
   LiveUpdatePauseReason,
   LiveUpdateStatus,
+  LiveUpdateEvent,
 } from "../types/liveUpdates";
 
 interface UseLiveUpdatesParams {
   config?: LiveUpdateConfig;
   enabled: boolean;
-
   pauseReason: LiveUpdatePauseReason;
-
+  visibleRowIds: ReadonlySet<string>;
   onEvent: () => void;
 }
+
+const isLiveUpdateEvent = (payload: unknown): payload is LiveUpdateEvent => {
+  if (typeof payload !== "object" || payload === null) return false;
+  if (!("type" in payload)) return false;
+
+  return typeof (payload as { type?: unknown }).type === "string";
+};
 
 const useLiveUpdates = ({
   config,
   enabled,
   pauseReason,
+  visibleRowIds,
   onEvent,
 }: UseLiveUpdatesParams) => {
   const [status, setStatus] = useState<LiveUpdateStatus>("off");
+  const visibleRowIidsRef = useRef<ReadonlySet<string>>(visibleRowIds);
 
   useEffect(() => {
-    if (!enabled || !config?.createConnectionUrl) {
+    visibleRowIidsRef.current = visibleRowIds;
+  }, [visibleRowIds]);
+
+  useEffect(() => {
+    if (!enabled || !config) {
       setStatus("off");
       return;
     }
@@ -40,6 +53,7 @@ const useLiveUpdates = ({
     let socket: WebSocket | null = null;
     let closedByCleanUp = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+    const acceptedEventTypes = new Set(config.eventTypes);
 
     const connect = async () => {
       try {
@@ -56,15 +70,16 @@ const useLiveUpdates = ({
           try {
             const payload: unknown = JSON.parse(message.data);
 
-            if (typeof payload !== "object" || payload === null) return;
+            if (!isLiveUpdateEvent(payload)) return;
+            if (!acceptedEventTypes.has(payload.type)) return;
 
-            const eventType =
-              "type" in payload
-                ? (payload as { type?: unknown }).type
-                : undefined;
+            const shouldRefresh = config.shouldRefresh
+              ? config.shouldRefresh(payload, {
+                  visibleRowIds: visibleRowIidsRef.current,
+                })
+              : true;
 
-            if (config.eventType && eventType !== config.eventType) return;
-
+            if (!shouldRefresh) return;
             if (refreshTimer) clearTimeout(refreshTimer);
 
             refreshTimer = setTimeout(onEvent, config.debounceMs ?? 300);

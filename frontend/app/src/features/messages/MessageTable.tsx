@@ -5,7 +5,6 @@ import { messageTablePreferences } from "./messageTablePreferences";
 import fetchMessages from "./api/fetchMessages";
 import { messageLiveUpdateConfig } from "./api/messageLiveUpdates";
 import { messageEditingConfig } from "./messageEditionConfig";
-import { createLiveUpdateConfig } from "../../lib/liveUpdates";
 
 const MessageTable = () => {
   return (
@@ -16,7 +15,7 @@ const MessageTable = () => {
       defaultPreferences={messageTablePreferences}
       fetchPage={fetchMessages}
       getRowId={(message) => message.id}
-      liveUpdates={createLiveUpdateConfig("messages_created")}
+      liveUpdates={messageLiveUpdateConfig}
       editing={messageEditingConfig}
     />
   );

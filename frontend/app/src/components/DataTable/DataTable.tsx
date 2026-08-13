@@ -67,6 +67,12 @@ const DataTable = <TData,>({
     filters: preferences.filters,
   });
 
+  const visibleRowIds = useMemo(() => {
+    if (!getRowId) return new Set<string>();
+
+    return new Set(data.map((row) => getRowId(row)));
+  }, [data, getRowId]);
+
   const {
     isEditingMode,
     isApplyingChanges,
@@ -137,6 +143,7 @@ const DataTable = <TData,>({
     config: liveUpdates,
     enabled: preferences.isLiveUpdatesEnabled,
     pauseReason: liveUpdatePauseReason,
+    visibleRowIds,
     onEvent: requestRefresh,
   });
 

@@ -1,6 +1,20 @@
+export interface LiveUpdateEvent {
+  type: string;
+  ids?: readonly (string | number)[];
+  [key: string]: unknown;
+}
+
+export interface LiveUpdateContext {
+  visibleRowIds: ReadonlySet<string>;
+}
+
 export interface LiveUpdateConfig {
   createConnectionUrl: (signal: AbortSignal) => Promise<string>;
-  eventType?: string;
+  eventTypes?: readonly string[];
+  shouldRefresh?: (
+    event: LiveUpdateEvent,
+    context: LiveUpdateContext,
+  ) => boolean;
   debounceMs?: number;
 }
 

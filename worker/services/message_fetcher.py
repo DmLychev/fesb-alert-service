@@ -15,7 +15,7 @@ from .helpers.fesb import (FesbRequestTimeoutError, get_new_messages, get_messag
 from .helpers.db import (get_settings, db_session_maker, DbRequestTimeoutError, save_messages,
                          get_messages_without_status_and_warning, save_issue, save_fesb_request,
                          get_messages_with_errors_without_error_text)
-from .helpers.redis import publish_new_messages
+from .helpers.redis import publish_new_messages, publish_updated_messages
 from .helpers.models import Message
 
 logger = logging.getLogger('message_fetcher')
@@ -106,7 +106,11 @@ async def update_status_for_unfinished_messages() -> None:
                 await save_issue(type_id=302, text=msg)
 
             else:
+                updated_messages_ids: list[int] = []
+
                 for message, route in unfinished_messages:
+                    message_was_updated = False
+
                     try:
                         message = await db_session.merge(message)  # Bind to the session
                         resp = await get_message_info(message.exchange_id)  # The message becomes detached from session
@@ -114,6 +118,7 @@ async def update_status_for_unfinished_messages() -> None:
                         message.end_date = resp["end_date"]
                         message.status = resp["status"]
                         message.update_status_attempts += 1
+                        message_was_updated = True
 
                     except (ClientConnectorError, ClientConnectorDNSError) as e:
                         msg = f"Ошибка соединения с FESB: {type(e)} {e}. Traceback: {traceback.print_exc()}."
@@ -150,7 +155,12 @@ async def update_status_for_unfinished_messages() -> None:
 
                     finally:
                         await db_session.commit()
+                        if message_was_updated:
+                            updated_messages_ids.append(message.id)
                         await asyncio.sleep(await get_settings('fesb_messages_log_interval'))
+
+                if updated_messages_ids:
+                    await publish_updated_messages(updated_messages_ids)
 
             finally:
                 await asyncio.sleep(message_update_interval)
@@ -182,9 +192,13 @@ async def get_error_text_for_messages_with_errors() -> None:
                 await save_issue(type_id=302, text=msg)
 
             async with aiohttp.ClientSession() as http_session:
+                updated_messages_ids: list[int] = []
+
                 for message, route in messages:
+                    message_is_updated = False
+
                     message: Message = await db_session.merge(message)  # Bind to the session
-                    error_text = "Не удалось получить текст ошибки FESB."
+
                     try:
                         error_text = await get_message_error_text(message.exchange_id, message.request_id, http_session)
 
@@ -221,6 +235,7 @@ async def get_error_text_for_messages_with_errors() -> None:
                     try:
                         message.error_message = error_text
                         await db_session.commit()
+                        message_is_updated = True
 
                     except DbRequestTimeoutError as e:
                         msg = f"Превышено время ожидания сохранения текста ошибки в БД приложения: {type(e)} {e}. Traceback: {traceback.print_exc()}."
@@ -231,6 +246,10 @@ async def get_error_text_for_messages_with_errors() -> None:
                         logger.critical(msg)
                         await save_issue(type_id=302, text=msg)
 
-                    # await asyncio.sleep(messages_get_interval)
+                    if message_is_updated:
+                        updated_messages_ids.append(message.id)
+
+                if updated_messages_ids:
+                    await publish_updated_messages(updated_messages_ids)
 
         await asyncio.sleep(messages_get_interval)
