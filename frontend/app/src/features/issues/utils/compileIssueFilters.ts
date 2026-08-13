@@ -1,8 +1,8 @@
 import type { UiFilterRow } from "../../../components/DataTable";
-import { messageFilterFields } from "../messageTableDefinitions";
+import { issueFilterFields } from "../issueTableDefinitions";
 
-export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
-  const fieldRegistry = messageFilterFields;
+export const compileIssueFilters = (filtersList: UiFilterRow[]) => {
+  const fieldRegistry = issueFilterFields;
 
   if (!filtersList || filtersList.length === 0) return null;
 

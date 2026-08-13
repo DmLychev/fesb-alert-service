@@ -1,5 +1,6 @@
 import { Box, Link, Tabs } from "@chakra-ui/react";
 import MessageTable from "../../features/messages/MessageTable";
+import IssueTable from "../../features/issues/IssueTable";
 
 const AnalyticsPage = () => {
   return (
@@ -32,7 +33,6 @@ const AnalyticsPage = () => {
           overflow="hidden"
           pt={4}
         >
-          {/* <MessagePage /> */}
           <MessageTable />
         </Tabs.Content>
         <Tabs.Content
@@ -42,7 +42,7 @@ const AnalyticsPage = () => {
           overflow="auto"
           pt={4}
         >
-          Инциденты
+          <IssueTable />
         </Tabs.Content>
       </Tabs.Root>
     </Box>

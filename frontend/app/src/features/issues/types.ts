@@ -1,22 +1,19 @@
 export type DateTimeString = string;
 
-export type MessageStatus = "SUCCESS" | "ERROR";
-
-export interface Route {
+export interface IssueType {
   id: string;
-  name: string;
-  domainName: string;
+  code: number;
+  description: string;
 }
 
-export interface Message {
+export interface Issue {
   id: string;
-  route: Route;
-  exchangeId: string;
-  requestId: string | null;
-  errorMessage: string | null;
-  updateStatusAttempts: number;
-  status: "SUCCESS" | "ERROR" | null;
-  startDate: DateTimeString;
-  endDate?: DateTimeString | null;
-  warningLevel?: number | null;
+  type: IssueType;
+  text: string;
+  routeId: string;
+  domainName: string;
+  isNotified: boolean;
+  isSolved: boolean;
+  createdAt: DateTimeString;
+  updatedAt: DateTimeString;
 }
