@@ -41,13 +41,13 @@ const TableViewport = <TData,>({
     <Table.ScrollArea
       borderWidth="1px"
       rounded="md"
-      width="fit-content"
-      maxWidth="full"
-      alignSelf="flex-start"
-      flex="0 1 auto"
+      width="full"
+      minWidth={0}
+      flex="1 1 auto"
       overflowX="auto"
       overflowY="auto"
       overscrollBehavior="contain"
+      style={{ scrollbarGutter: "stable both-edges" }}
     >
       <Table.Root
         variant="outline"
@@ -56,6 +56,7 @@ const TableViewport = <TData,>({
         tableLayout="fixed"
         style={{
           width: table.getTotalSize(),
+          marginInline: "auto",
           borderCollapse: "separate",
           borderSpacing: 0,
         }}
