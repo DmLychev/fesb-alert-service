@@ -14,7 +14,7 @@ from aiohttp.client_exceptions import ClientConnectorError, ClientResponseError,
 from .helpers.fesb import (FesbRequestTimeoutError, get_new_messages, get_message_info, get_message_error_text)
 from .helpers.db import (get_settings, db_session_maker, DbRequestTimeoutError, save_messages,
                          get_messages_without_status_and_warning, save_issue, save_fesb_request,
-                         get_messages_with_errors_without_error_text)
+                         get_messages_with_errors_without_error_text, format_fesb_datatime)
 from .helpers.redis import publish_new_messages, publish_updated_messages
 from .helpers.models import Message
 
@@ -115,7 +115,7 @@ async def update_status_for_unfinished_messages() -> None:
                         message = await db_session.merge(message)  # Bind to the session
                         resp = await get_message_info(message.exchange_id)  # The message becomes detached from session
 
-                        message.end_date = resp["end_date"]
+                        message.end_date = format_fesb_datatime(resp["end_date"])
                         message.status = resp["status"]
                         message.update_status_attempts += 1
                         message_was_updated = True

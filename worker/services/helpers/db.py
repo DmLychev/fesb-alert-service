@@ -37,12 +37,15 @@ class DbRequestTimeoutError(Exception):
         self.message = message
 
 
-def _format_fesb_datatime(fesb_datetime: str) -> datetime | None:
+def format_fesb_datatime(fesb_datetime: str) -> datetime | None:
     """
     Преобразует строку времени из формата, используемого FESB, в стандартный ISO формат с учетом часового пояса FESB.
     :param fesb_datetime: Строка с датой и временем в формате FESB.
     :return: Строка с датой и временем в формате ISO.
     """
+    if fesb_datetime is None:
+        return None
+    
     try:
         input_datetime = re.findall(r"/Date\((.*)\)/", fesb_datetime)
         date_obj = datetime.strptime(input_datetime[0], '%Y-%m-%dT%H:%M:%S.%f')
@@ -141,8 +144,8 @@ async def save_messages(messages: list[dict]) -> None:
                 route_id=msg["route_id"],
                 status=msg["status"],
                 error_message=msg.get('error_message', ''),
-                start_date=_format_fesb_datatime(msg["start_date"]),
-                end_date=_format_fesb_datatime(msg["end_date"]) if msg["end_date"] else None,
+                start_date=format_fesb_datatime(msg["start_date"]),
+                end_date=format_fesb_datatime(msg["end_date"]) if msg["end_date"] else None,
             )
 
             insert_route = insert(Route).values(route)
