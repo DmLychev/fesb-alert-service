@@ -12,7 +12,7 @@ const AnalyticsPage = () => {
   const { tab } = useParams<{ tab: string }>();
   const navigate = useNavigate();
 
-  if (!isAnalyticsTab) return <Navigate to="/analytics/issues" replace />;
+  if (!isAnalyticsTab(tab)) return <Navigate to="/analytics/issues" replace />;
 
   return (
     <Box height="full" minHeight={0} overflow="hidden">

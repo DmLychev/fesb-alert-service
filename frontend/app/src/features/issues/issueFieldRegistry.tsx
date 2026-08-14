@@ -1,8 +1,8 @@
 import type { TableFieldRegistry } from "../../components/DataTable";
 import { formatDateTime } from "../../components/DataTable/utils/date";
+import BooleanCell from "../../components/tableCells/BooleanCell";
+import ScrollableTextCell from "../../components/tableCells/ScrollableTextCell";
 import type { Issue } from "./types";
-import ScrollableTextCell from "./components/ScrollableTextCell";
-import BooleanCell from "./components/BooleanCell";
 
 export const ISSUE_FIELD_REGISTRY = {
   "type.code": {

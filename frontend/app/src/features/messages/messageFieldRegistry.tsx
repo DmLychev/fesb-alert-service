@@ -1,9 +1,9 @@
 import type { TableFieldRegistry } from "../../components/DataTable";
 import { formatDateTime } from "../../components/DataTable/utils/date";
-import StatusCell from "./components/StatusCell";
 import type { Message } from "./types";
-import ScrollableTextCell from "./components/ScrollableTextCell";
 import MessageStatusEditor from "./components/MessageStatusEditor";
+import StatusCell from "./components/StatusCell";
+import ScrollableTextCell from "../../components/tableCells/ScrollableTextCell";
 
 export const MESSAGE_FIELD_REGISTRY = {
   "route.domainName": {

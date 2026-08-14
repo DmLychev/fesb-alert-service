@@ -3,8 +3,8 @@ import type { Message } from "./types";
 import { messageColumns, messageFilterFields } from "./messageTableDefinitions";
 import { messageTablePreferences } from "./messageTablePreferences";
 import fetchMessages from "./api/fetchMessages";
-import { messageLiveUpdateConfig } from "./api/messageLiveUpdates";
-import { messageEditingConfig } from "./messageEditionConfig";
+import { messageLiveUpdateConfig } from "./messageLiveUpdates";
+import { messageEditingConfig } from "./messageEditingConfig";
 
 const MessageTable = () => {
   return (

@@ -3,28 +3,12 @@ import type {
   DeleteRowsParams,
   UpdateRowParams,
 } from "../../../components/DataTable";
+import {
+  unwrapGraphQLData,
+  type GraphQLErrorItem,
+  type GraphQLResponse,
+} from "../../../utils/graphql";
 import type { Issue } from "../types";
-
-interface GraphQLErrorItem {
-  message: string;
-}
-
-interface GraphQLResponse<TData> {
-  data?: TData | null;
-  errors?: GraphQLErrorItem[];
-}
-
-const unwrapGraphQLData = <TData>(
-  response: GraphQLResponse<TData>,
-  fallbackError: string,
-): TData => {
-  if (response.errors?.length)
-    throw new Error(response.errors.map((error) => error.message).join("; "));
-
-  if (!response.data) throw new Error(fallbackError);
-
-  return response.data;
-};
 
 interface DeleteIssuesResponse {
   data: {

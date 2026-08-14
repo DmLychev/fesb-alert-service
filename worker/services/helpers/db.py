@@ -45,7 +45,7 @@ def format_fesb_datatime(fesb_datetime: str) -> datetime | None:
     """
     if fesb_datetime is None:
         return None
-    
+
     try:
         input_datetime = re.findall(r"/Date\((.*)\)/", fesb_datetime)
         date_obj = datetime.strptime(input_datetime[0], '%Y-%m-%dT%H:%M:%S.%f')

@@ -1,22 +1,6 @@
-import api from "../../../api";
-import type {
-  FetchPageParams,
-  PageResult,
-} from "../../../components/DataTable";
-import {
-  unwrapGraphQLData,
-  type GraphQLResponse,
-} from "../../../utils/graphql";
-import type { Message } from "../types";
-import { compileMessageFilters } from "../utils/compileMessageFilters";
-import { compileMessageSorting } from "../utils/compileMessageSorting";
-
-interface MessagesPageData {
-  messagesPage: {
-    count: number;
-    results: Message[];
-  };
-}
+import { createGraphQLPageFetcher } from "../../../lib/graphqlTable/createPageFetcher";
+import { messageFilterFields } from "../messageTableDefinitions";
+import { type Message } from "../types";
 
 const GET_MESSAGE_PAGE = `
 query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search: String, $order: MessageOrder) {
@@ -42,39 +26,11 @@ query GetFilteredPage($page: Int!, $size: Int!, $filters: MessageFilter, $search
 }
 `;
 
-const fetchMessages = async ({
-  pagination,
-  sorting,
-  search,
-  filters,
-  signal,
-}: FetchPageParams): Promise<PageResult<Message>> => {
-  const response = await api.post<GraphQLResponse<MessagesPageData>>(
-    "/api/graphql/",
-    {
-      query: GET_MESSAGE_PAGE,
-      variables: {
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        filters: compileMessageFilters(filters),
-        search: search.trim() || undefined,
-        order: compileMessageSorting(sorting),
-      },
-    },
-    { signal },
-  );
-
-  const data = unwrapGraphQLData(
-    response.data,
-    "Ошибка получения данных по сообщениям",
-  );
-
-  const payload = data.messagesPage;
-
-  return {
-    rows: payload.results,
-    totalCount: payload.count,
-  };
-};
+const fetchMessages = createGraphQLPageFetcher<Message, "messagesPage">({
+  query: GET_MESSAGE_PAGE,
+  rootField: "messagesPage",
+  filterFields: messageFilterFields,
+  fallbackError: "Ошибка получения данных по сообщениям",
+});
 
 export default fetchMessages;

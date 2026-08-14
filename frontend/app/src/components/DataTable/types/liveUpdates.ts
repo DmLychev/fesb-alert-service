@@ -10,7 +10,7 @@ export interface LiveUpdateContext {
 
 export interface LiveUpdateConfig {
   createConnectionUrl: (signal: AbortSignal) => Promise<string>;
-  eventTypes?: readonly string[];
+  eventTypes: readonly string[];
   shouldRefresh?: (
     event: LiveUpdateEvent,
     context: LiveUpdateContext,

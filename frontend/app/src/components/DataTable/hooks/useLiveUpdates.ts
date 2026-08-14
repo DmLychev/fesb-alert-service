@@ -30,10 +30,10 @@ const useLiveUpdates = ({
   onEvent,
 }: UseLiveUpdatesParams) => {
   const [status, setStatus] = useState<LiveUpdateStatus>("off");
-  const visibleRowIidsRef = useRef<ReadonlySet<string>>(visibleRowIds);
+  const visibleRowIdsRef = useRef<ReadonlySet<string>>(visibleRowIds);
 
   useEffect(() => {
-    visibleRowIidsRef.current = visibleRowIds;
+    visibleRowIdsRef.current = visibleRowIds;
   }, [visibleRowIds]);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const useLiveUpdates = ({
 
             const shouldRefresh = config.shouldRefresh
               ? config.shouldRefresh(payload, {
-                  visibleRowIds: visibleRowIidsRef.current,
+                  visibleRowIds: visibleRowIdsRef.current,
                 })
               : true;
 
