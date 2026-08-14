@@ -53,9 +53,9 @@ export const createGraphQLPageFetcher =
           page: pagination.pageIndex + 1,
           size: pagination.pageSize,
           filters: compileGraphQLFilters(filters, filterFields),
+          search: search.trim() || undefined,
+          order: compileGraphQLSorting(sorting, sortPathOverrides),
         },
-        search: search.trim() || undefined,
-        order: compileGraphQLSorting(sorting, sortPathOverrides),
       },
       { signal },
     );
