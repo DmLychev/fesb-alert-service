@@ -23,13 +23,13 @@ const buildNestedOrder = (
 
 export const compileGraphQLSorting = (
   sorting: SortingState,
-  overrrides: SortPathOverrides = {},
+  overrides: SortPathOverrides = {},
 ): GraphQLOrderInput | null => {
   const primary = sorting[0];
 
   if (!primary) return null;
 
-  const path = overrrides[primary.id] ?? primary.id.split(".");
+  const path = overrides[primary.id] ?? primary.id.split(".");
 
   return buildNestedOrder(path, primary.desc ? "DESC" : "ASC");
 };
