@@ -13,7 +13,7 @@ from graphql import GraphQLError
 from typing import Optional
 import datetime
 
-from .issue_types import IssueTypeFilter, IssueTypeOrder
+from .issue_types import IssueTypeFilter, IssueTypeOrder, IssueTypeType
 from ..models import NotificationReceiver, IssueType
 from ..permissions import IsAuthenticated, CanDeleteMessages
 from .routes import RouteFilter, RouteOrder, RouteType
@@ -31,7 +31,7 @@ class NotificationReceiverType:
     updated_at: datetime.datetime
 
     route: Optional[RouteType]
-    issue_type: Optional[IssueType]
+    issue_type: Optional[IssueTypeType]
 
 
 @strawberry_django.filter_type(NotificationReceiver, lookups=True)
@@ -49,9 +49,8 @@ class NotificationReceiverFilter:
     NOT: Optional[list[Self]] = strawberry.UNSET
 
 
-
-@strawberry_django.order_type(IssueType)
-class IssueTypeOrder:
+@strawberry_django.order_type(NotificationReceiver)
+class NotificationReceiverOrder:
     domain_name: auto
     email: auto
     created_at: auto
@@ -61,28 +60,19 @@ class IssueTypeOrder:
     issue_type: Optional[IssueTypeOrder]
 
 
-@strawberry.input
-class IssueTypeInput:
-    id: strawberry.ID
-    domain_name: strawberry.Maybe[str | None]
-    email: str
-    route: Optional[RouteType | None]
-    issue_type: Optional[IssueType | None]
-
-
 @strawberry.type
 class NotificationReceiverQuery:
     @strawberry.field(permission_classes=[IsAuthenticated])
     def notification_receivers_page(
             self,
-            filters: Optional[IssueTypeFilter] = None,
+            filters: Optional[NotificationReceiverFilter] = None,
             search: Optional[str] = None,
-            order: Optional[IssueTypeOrder] = None,
+            order: Optional[NotificationReceiverOrder] = None,
             page: int = 1,
             size: int = 10,
-    ) -> Page[NotificationReceiver]:
+    ) -> Page[NotificationReceiverType]:
 
-        queryset = NotificationReceiver.objects.all().select_related(["route", "type"])
+        queryset = NotificationReceiver.objects.all().select_related("route", "issue_type")
 
         if filters:
             queryset = strawberry_django.filters.apply(filters, queryset)
@@ -92,8 +82,7 @@ class NotificationReceiverQuery:
             queryset = queryset.filter(
                 Q(domain_name__icontains=search_query) |
                 Q(email__icontains=search_query) |
-                Q(route__name__icontains=search_query) |
-                Q(issue_type__code__icontains=search_query)
+                Q(route__name__icontains=search_query)
             )
 
         if order:
@@ -109,4 +98,3 @@ class NotificationReceiverQuery:
             count=total_count,
             results=list(paginated_queryset)
         )
-
