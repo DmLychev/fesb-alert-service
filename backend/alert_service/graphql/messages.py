@@ -18,6 +18,8 @@ from ..permissions import IsAuthenticated, CanDeleteMessages
 from .routes import RouteFilter, RouteOrder, RouteType
 from .common import Page
 
+from redis_listener.live_updates import publish_live_update_on_commit
+
 
 @strawberry_django.type(Message)
 class MessageType:
@@ -169,5 +171,6 @@ class MessageMutation:
             raise GraphQLError("; ".join(error.messages)) from error
 
         message.save(update_fields=[*changed_fields, "updated_at", ])
+        publish_live_update_on_commit("messages_updated", ids=[message.pk])
 
         return message

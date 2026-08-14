@@ -18,6 +18,8 @@ from .issue_types import IssueTypeType, IssueTypeFilter, IssueTypeOrder
 from ..permissions import IsAuthenticated
 from .common import Page
 
+from redis_listener.live_updates import publish_live_update_on_commit
+
 
 @strawberry_django.type(Issue)
 class IssueType:
@@ -161,5 +163,6 @@ class IssueMutation:
             raise GraphQLError("; ".join(error.messages)) from error
 
         issue.save(update_fields=[*changed_fields, "updated_at", ])
+        publish_live_update_on_commit("issues_updated", ids=[issue.pk])
 
         return issue
