@@ -6,11 +6,30 @@ import dashboardReducer from "../dashboardReducer";
 import type { DashboardLiveEvent, DashboardRangeKey } from "../types";
 
 import useDashboardLiveUpdates from "./useDashboardLiveUpdates";
+import {
+  getDashboardPreferences,
+  saveDashboardPreference,
+} from "../dashboardPreferences";
 
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
 const useDashboard = () => {
-  const [rangeKey, setRangeKey] = useState<DashboardRangeKey>("hour");
+  const preferences = getDashboardPreferences();
+
+  const isDashboardRangeKey = (value: unknown): value is DashboardRangeKey =>
+    typeof value === "string" && value in DASHBOARD_RANGES;
+
+  const savedRange = isDashboardRangeKey(preferences.rangeKey)
+    ? preferences.rangeKey
+    : "hour";
+
+  const [rangeKey, setRangeKeyState] = useState<DashboardRangeKey>(savedRange);
+
+  const setRangeKey = useCallback((value: DashboardRangeKey) => {
+    setRangeKeyState(value);
+
+    saveDashboardPreference("rangeKey", value);
+  }, []);
 
   const [dashboard, dispatch] = useReducer(dashboardReducer, null);
 
@@ -22,10 +41,11 @@ const useDashboard = () => {
   const requestNumberRef = useRef(0);
 
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
-  const [isLiveEnabled, setIsLiveEnabledState] = useState(false);
+  const [isLiveEnabled, setIsLiveEnabledState] = useState(
+    preferences.liveEnabled ?? false,
+  );
 
   const refresh = useCallback(() => {
-    console.log("REFRESH START", rangeKey, Date.now());
     const requestNumber = ++requestNumberRef.current;
 
     fetchDashboard(rangeKey)
@@ -58,8 +78,6 @@ const useDashboard = () => {
         if (requestNumber === requestNumberRef.current) {
           setLoading(false);
         }
-
-        console.log("REFRESH END", rangeKey, Date.now());
       });
   }, [rangeKey]);
 
@@ -93,14 +111,8 @@ const useDashboard = () => {
     return () => clearInterval(timer);
   }, [refresh, isLiveEnabled]);
 
-  // useEffect(() => {
-  //   void refresh();
-  // }, [refresh]);
-
   useEffect(() => {
-    const timer = setInterval(refresh, RECONCILE_INTERVAL_MS);
-
-    return () => clearInterval(timer);
+    void refresh();
   }, [refresh]);
 
   useEffect(() => {
@@ -156,6 +168,8 @@ const useDashboard = () => {
   const setIsLiveEnabled = useCallback(
     (enabled: boolean) => {
       setIsLiveEnabledState(enabled);
+
+      saveDashboardPreference("liveEnabled", enabled);
 
       if (enabled) {
         refresh();
