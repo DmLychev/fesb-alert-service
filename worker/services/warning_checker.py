@@ -11,6 +11,7 @@ from services.helpers.db import (db_session_maker, DbRequestTimeoutError, get_un
 from services.helpers.check import (set_message_warning_level_and_create_issue, check_issue_is_solved, define_receivers,
                                     check_request_and_create_issue)
 from services.helpers.email import send_email, SmtpError
+from services.helpers.redis import publish_updated_issues
 
 logger = logging.getLogger("warning_checker")
 
@@ -79,11 +80,25 @@ async def process_issues():
                 for issue in unsolved_issues:
                     try:
                         # Если проблема решена
-                        if await check_issue_is_solved(issue, session, unsolved_issues):
+                        if await check_issue_is_solved(
+                                issue,
+                                session,
+                                unsolved_issues,
+                        ):
                             issue.is_solved = True
                             await session.commit()
-                            logger.debug(f"Проблема с кодом {issue.type_id} была решена.")
-                            continue  # Уведомление отправлено не будет
+
+                            await publish_updated_issues(
+                                [issue.id],
+                                active_delta=-1,
+                            )
+
+                            logger.debug(
+                                f"Проблема с кодом {issue.type_id} "
+                                "была решена."
+                            )
+
+                            continue
 
                         # Зарегистрировать обращение в SolMan
                         # ToDo Регистрация обращения в SolMan
@@ -107,6 +122,9 @@ async def process_issues():
 
                             issue.is_notified = True
                             await session.commit()
+                            await publish_updated_issues(
+                                [issue.id],
+                            )
 
                     except DbRequestTimeoutError as e:
                         error_msg = f"Превышено время ожидания ответа от БД приложения во время обработки проблемы: {type(e)} {e}. Traceback: {traceback.print_exc()}."

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.dialects.postgresql import insert
 
 from .models import Route, Message, Issue, NotificationReceiver, FesbRequest, SystemSettings
+from .redis import publish_issue_created, publish_request_created
 
 HOST = os.getenv('DB_HOST')
 USER = os.getenv('DB_USER')
@@ -171,7 +172,7 @@ async def save_messages(messages: list[dict]) -> None:
 
 
 @_handle_timeout_error
-async def save_issue(type_id: int, text: str, route_id: int | None = None, domain_name: str | None = None,
+async def save_issue(type_id: int, text: str, route_id: str | None = None, domain_name: str | None = None,
                      session: AsyncSession | None = None) -> None:
     """
     Сохранить проблему в БД.
@@ -209,6 +210,15 @@ async def save_issue(type_id: int, text: str, route_id: int | None = None, domai
             await new_session.commit()
 
     logger.info(f"Создана проблема с кодом {issue_code}.")
+
+    await publish_issue_created(
+        issue_id=issue.id,
+        type_code=issue.type_id,
+        route_id=issue.route_id,
+        domain_name=issue.domain_name,
+        created_at=issue.created_at.isoformat(),
+    )
+
     return None
 
 
@@ -489,6 +499,13 @@ async def save_fesb_request(is_successful: bool,
         async with db_session_maker() as new_session:
             new_session.add(request)
             await new_session.commit()
+
+    await publish_request_created(
+        request_id=request.id,
+        request_type=request.type_id,
+        is_successful=request.is_successful,
+        created_at=request.created_at.isoformat(),
+    )
 
 
 async def get_fesb_requests(session: AsyncSession | None = None,

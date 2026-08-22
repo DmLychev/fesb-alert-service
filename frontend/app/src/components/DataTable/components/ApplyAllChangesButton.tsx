@@ -11,7 +11,6 @@ interface ApplyAllChangesButtonProps {
 const ApplyAllChangesButton = ({
   isApplying,
   disabled,
-  changesCount,
   onClick,
 }: ApplyAllChangesButtonProps) => {
   return (

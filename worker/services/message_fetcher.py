@@ -20,6 +20,93 @@ from .helpers.models import Message
 
 logger = logging.getLogger('message_fetcher')
 
+def build_message_dashboard_buckets(
+    messages: list[dict],
+) -> list[dict]:
+    buckets: dict[datetime, dict[str, int]] = {}
+
+    for item in messages:
+        start_date = format_fesb_datatime(
+            item["start_date"]
+        )
+
+        if start_date is None:
+            continue
+
+        minute = start_date.replace(
+            second=0,
+            microsecond=0,
+        )
+
+        bucket = buckets.setdefault(
+            minute,
+            {
+                "total": 0,
+                "successful": 0,
+                "failed": 0,
+            },
+        )
+
+        bucket["total"] += 1
+
+        if item.get("status") == "SUCCESS":
+            bucket["successful"] += 1
+        elif item.get("status") == "ERROR":
+            bucket["failed"] += 1
+
+    return [
+        {
+            "start": minute.isoformat(),
+            **values,
+        }
+        for minute, values in sorted(
+            buckets.items(),
+            key=lambda entry: entry[0],
+        )
+    ]
+
+
+def add_status_dashboard_delta(
+    buckets: dict[datetime, dict[str, int]],
+    start_date: datetime,
+    status: str | None,
+) -> None:
+    if status not in {"SUCCESS", "ERROR"}:
+        return
+
+    minute = start_date.replace(
+        second=0,
+        microsecond=0,
+    )
+
+    bucket = buckets.setdefault(
+        minute,
+        {
+            "successful_delta": 0,
+            "failed_delta": 0,
+        },
+    )
+
+    if status == "SUCCESS":
+        bucket["successful_delta"] += 1
+    elif status == "ERROR":
+        bucket["failed_delta"] += 1
+
+
+def serialize_status_dashboard_buckets(
+    buckets: dict[datetime, dict[str, int]],
+) -> list[dict]:
+    return [
+        {
+            "start": minute.isoformat(),
+            **values,
+        }
+        for minute, values in sorted(
+            buckets.items(),
+            key=lambda entry: entry[0],
+        )
+    ]
+
 
 async def get_fesb_messages_and_save_to_db() -> None:
     """
@@ -68,8 +155,14 @@ async def get_fesb_messages_and_save_to_db() -> None:
             try:
                 await save_fesb_request(True, 1)
                 await save_messages(messages)
-                if len(messages) > 0:
-                    await publish_new_messages(len(messages))
+
+                if messages:
+                    await publish_new_messages(
+                        count=len(messages),
+                        buckets=build_message_dashboard_buckets(
+                            messages
+                        ),
+                    )
             except DbRequestTimeoutError as e:
                 msg = f"Превышено время ожидания записи сообщений в БД приложения: {type(e)} {e}. Traceback: {traceback.print_exc()}."
                 logger.critical(msg)
@@ -107,6 +200,10 @@ async def update_status_for_unfinished_messages() -> None:
 
             else:
                 updated_messages_ids: list[int] = []
+                status_dashboard_buckets: dict[
+                    datetime,
+                    dict[str, int],
+                ] = {}
 
                 for message, route in unfinished_messages:
                     message_was_updated = False
@@ -157,10 +254,23 @@ async def update_status_for_unfinished_messages() -> None:
                         await db_session.commit()
                         if message_was_updated:
                             updated_messages_ids.append(message.id)
+
+                            add_status_dashboard_delta(
+                                status_dashboard_buckets,
+                                message.start_date,
+                                message.status,
+                            )
                         await asyncio.sleep(await get_settings('fesb_messages_log_interval'))
 
                 if updated_messages_ids:
-                    await publish_updated_messages(updated_messages_ids)
+                    await publish_updated_messages(
+                        updated_messages_ids,
+                        status_buckets=(
+                            serialize_status_dashboard_buckets(
+                                status_dashboard_buckets
+                            )
+                        ),
+                    )
 
             finally:
                 await asyncio.sleep(message_update_interval)

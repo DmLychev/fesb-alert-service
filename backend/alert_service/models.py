@@ -89,6 +89,7 @@ class Message(models.Model):
     class Meta:
         db_table = 'alert_service_messages'
         unique_together = ['exchange_id', 'route']
+        indexes = [models.Index(fields=["start_date"], name="msg_start_idx")]
 
     def __str__(self):
         return self.request_id
@@ -108,8 +109,8 @@ class NotificationReceiver(models.Model):
         constraints = [
             models.CheckConstraint(
                 condition=(
-                    models.Q(route__isnull=True)
-                    | models.Q(domain_name__isnull=True)
+                        models.Q(route__isnull=True)
+                        | models.Q(domain_name__isnull=True)
                 ),
                 name="notification_receiver_not_route_and_domain"
             ),
@@ -141,6 +142,7 @@ class Issue(models.Model):
 
     class Meta:
         db_table = 'alert_service_issues'
+        indexes = [models.Index(fields=["created_at"], name="issue_created_idx")]
 
     def __str__(self):
         return f"{self.type.code} - {self.text}"
@@ -166,6 +168,7 @@ class FesbRequest(models.Model):
 
     class Meta:
         db_table = 'alert_service_fesb_requests'
+        indexes = [models.Index(fields=["created_at"], name="fesb_req_created_idx")]
 
     def __str__(self):
         return f"{self.created_at.isoformat()} - {self.is_successful}"

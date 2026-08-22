@@ -141,6 +141,7 @@ class IssueMutation:
     def update_issue(self, data: UpdateIssueInput) -> IssueType:
         try:
             issue = Issue.objects.select_related('type').get(pk=data.id)
+            was_solved = issue.is_solved
         except Issue.DoesNotExist as error:
             raise GraphQLError("Issue not found") from error
 
@@ -163,6 +164,16 @@ class IssueMutation:
             raise GraphQLError("; ".join(error.messages)) from error
 
         issue.save(update_fields=[*changed_fields, "updated_at", ])
-        publish_live_update_on_commit("issues_updated", ids=[issue.pk])
+
+        active_delta = (
+                int(was_solved)
+                - int(issue.is_solved)
+        )
+
+        publish_live_update_on_commit(
+            "issues_updated",
+            ids=[issue.pk],
+            active_delta=active_delta,
+        )
 
         return issue

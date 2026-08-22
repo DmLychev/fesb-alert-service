@@ -124,6 +124,17 @@ class MessageQuery:
             results=list(paginated_queryset)
         )
 
+def _status_contribution(
+    status: str | None,
+) -> tuple[int, int]:
+    if status == "SUCCESS":
+        return 1, 0
+
+    if status == "ERROR":
+        return 0, 1
+
+    return 0, 0
+
 
 @strawberry.type
 class MessageMutation:
@@ -148,6 +159,7 @@ class MessageMutation:
     def update_message(self, data: UpdateMessageInput) -> MessageType:
         try:
             message = Message.objects.select_related("route").get(pk=data.id)
+            previous_status = message.status
         except Message.DoesNotExist as error:
             raise GraphQLError("Message not found") from error
 
@@ -171,6 +183,34 @@ class MessageMutation:
             raise GraphQLError("; ".join(error.messages)) from error
 
         message.save(update_fields=[*changed_fields, "updated_at", ])
-        publish_live_update_on_commit("messages_updated", ids=[message.pk])
+
+        old_successful, old_failed = (_status_contribution(previous_status))
+        new_successful, new_failed = (_status_contribution(message.status))
+        successful_delta = (new_successful - old_successful)
+        failed_delta = (new_failed - old_failed)
+
+        payload = {}
+
+        if successful_delta or failed_delta:
+            payload["status_buckets"] = [
+                {
+                    "start": (
+                        message.start_date
+                        .replace(
+                            second=0,
+                            microsecond=0,
+                        )
+                        .isoformat()
+                    ),
+                    "successful_delta": successful_delta,
+                    "failed_delta": failed_delta,
+                }
+            ]
+
+        publish_live_update_on_commit(
+            "messages_updated",
+            ids=[message.pk],
+            **payload,
+        )
 
         return message

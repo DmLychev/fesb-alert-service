@@ -195,7 +195,7 @@ class NotificationReceiverQuery:
     @strawberry.field(permission_classes=[IsAuthenticated])
     def notification_subscription_options(self) -> NotificationSubscriptionOptions:
         issue_types= list(IssueType.objects.all().order_by("code"))
-        routes = list(Route.objects.filter(isActive=True, is_tracked=True).order_by("domain_name", "name"))
+        routes = list(Route.objects.filter(is_active=True, is_tracked=True).order_by("domain_name", "name"))
         domains = list(
             Route.objects
             .filter(is_active=True, is_tracked=True)
