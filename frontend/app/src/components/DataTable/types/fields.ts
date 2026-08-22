@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type { FilterFieldDefinition, FilterFieldRegistry } from "./filters";
 import type { ColumnDef } from "@tanstack/react-table";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack columns have heterogeneous TValue types
 export type HeterogeneousColumnDef<TData> = ColumnDef<TData, any>;
 
 export type EditableValue = string | number | boolean | null;

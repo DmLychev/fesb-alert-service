@@ -21,37 +21,38 @@ const useDashboard = () => {
   const lastRefreshRef = useRef(0);
   const requestNumberRef = useRef(0);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(() => {
     const requestNumber = ++requestNumberRef.current;
 
-    try {
-      const snapshot = await fetchDashboard(rangeKey);
+    fetchDashboard(rangeKey)
+      .then((snapshot) => {
+        if (requestNumber !== requestNumberRef.current) {
+          return;
+        }
 
-      if (requestNumber !== requestNumberRef.current) {
-        return;
-      }
+        dispatch({
+          type: "snapshot",
+          snapshot,
+        });
 
-      dispatch({
-        type: "snapshot",
-        snapshot,
+        lastRefreshRef.current = Date.now();
+
+        setError(null);
+      })
+      .catch((error: unknown) => {
+        if (requestNumber !== requestNumberRef.current) {
+          return;
+        }
+
+        setError(
+          error instanceof Error ? error.message : "Dashboard request failed",
+        );
+      })
+      .finally(() => {
+        if (requestNumber === requestNumberRef.current) {
+          setLoading(false);
+        }
       });
-
-      lastRefreshRef.current = Date.now();
-
-      setError(null);
-    } catch (error: unknown) {
-      if (requestNumber !== requestNumberRef.current) {
-        return;
-      }
-
-      setError(
-        error instanceof Error ? error.message : "Dashboard request failed",
-      );
-    } finally {
-      if (requestNumber === requestNumberRef.current) {
-        setLoading(false);
-      }
-    }
   }, [rangeKey]);
 
   const handleLiveEvent = useCallback(
@@ -68,9 +69,7 @@ const useDashboard = () => {
 
   const liveStatus = useDashboardLiveUpdates({
     onEvent: handleLiveEvent,
-    onReconnect: () => {
-      void refresh();
-    },
+    onReconnect: refresh,
   });
 
   useEffect(() => {
@@ -78,7 +77,7 @@ const useDashboard = () => {
   }, [refresh]);
 
   useEffect(() => {
-    const timer = setInterval(() => void refresh(), RECONCILE_INTERVAL_MS);
+    const timer = setInterval(refresh, RECONCILE_INTERVAL_MS);
 
     return () => clearInterval(timer);
   }, [refresh]);
@@ -118,7 +117,7 @@ const useDashboard = () => {
       const staleFor = Date.now() - lastRefreshRef.current;
 
       if (staleFor > RECONCILE_INTERVAL_MS) {
-        void refresh();
+        refresh();
       }
     };
 
