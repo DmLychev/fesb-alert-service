@@ -14,6 +14,7 @@ class IssueTypeType:
     id: strawberry.ID
     code: int
     description: str
+    scope: str
 
 
 @strawberry_django.filter_type(IssueTypeModel, lookups=True)

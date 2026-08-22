@@ -55,15 +55,22 @@ class Route(models.Model):
         return self.name
 
 
+class IssueScope(models.TextChoices):
+    GLOBAL = "GLOBAL", "Global"
+    DOMAIN = "DOMAIN", "Domain"
+    ROUTE = "ROUTE", "Route"
+
+
 class IssueType(models.Model):
     code = models.SmallIntegerField(unique=True, primary_key=True)
     description = models.TextField()
+    scope = models.CharField(max_length=16, choices=IssueScope.choices, default=IssueScope.GLOBAL)
 
     class Meta:
         db_table = 'alert_service_issue_types'
 
     def __str__(self):
-        return str(self.code)
+        return str(f"{self.scope} {self.code}")
 
 
 class Message(models.Model):
@@ -98,6 +105,21 @@ class NotificationReceiver(models.Model):
 
     class Meta:
         db_table = 'alert_service_notification_receivers'
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(route__isnull=True)
+                    | models.Q(domain_name__isnull=True)
+                ),
+                name="notification_receiver_not_route_and_domain"
+            ),
+
+            models.UniqueConstraint(
+                fields=["email", "issue_type", "route", "domain_name"],
+                nulls_distinct=False,
+                name="unique_notification_receiver_rule"
+            )
+        ]
 
     def __str__(self):
         text = ''
