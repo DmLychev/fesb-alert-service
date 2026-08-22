@@ -74,7 +74,6 @@ const useDashboard = () => {
   });
 
   useEffect(() => {
-    setLoading(true);
     void refresh();
   }, [refresh]);
 

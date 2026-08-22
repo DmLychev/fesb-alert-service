@@ -1,5 +1,5 @@
 import { Button, Dialog, HStack, Input, Portal, Text } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface GoToPageDialogProps {
   open: boolean;
@@ -19,13 +19,6 @@ const GoToPageDialog = ({
 }: GoToPageDialogProps) => {
   const [value, setValue] = useState(String(currentPage));
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setValue(String(currentPage));
-    setError(null);
-  }, [open, currentPage]);
 
   const submit = () => {
     const page = Number(value);

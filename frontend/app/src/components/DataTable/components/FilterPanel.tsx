@@ -56,11 +56,10 @@ const FilterPanel = ({
     onFiltersChange((prev) => prev.filter((row) => row.id !== id));
   };
 
-  const handleColumnChange = (
-    rowId: string,
-    selectedColumn: keyof typeof filterFields,
-  ) => {
+  const handleColumnChange = (rowId: string, selectedColumn: string) => {
     const columnMeta = filterFields[selectedColumn];
+
+    if (!columnMeta) return;
 
     onFiltersChange((prev) =>
       prev.map((row) => {
@@ -150,7 +149,7 @@ const FilterPanel = ({
                   onValueChange={(details) => {
                     const selectedColumn = details.value[0];
                     if (selectedColumn) {
-                      handleColumnChange(row.id, selectedColumn as any);
+                      handleColumnChange(row.id, selectedColumn);
                     }
                   }}
                   size="sm"

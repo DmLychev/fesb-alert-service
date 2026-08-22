@@ -1,10 +1,10 @@
 import {
-  type ColumnDef,
   type ColumnSizingState,
   type PaginationState,
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table";
+import type { HeterogeneousColumnDef } from "./fields";
 import type { FilterFieldRegistry, UiFilterRow } from "./filters";
 import type { LiveUpdateConfig } from "./liveUpdates";
 import type { DataTableEditingConfig } from "./editing";
@@ -35,7 +35,7 @@ export interface FetchPageParams {
 
 export interface DataTableProps<Tdata> {
   storageKey: string;
-  columns: ColumnDef<Tdata, any>[];
+  columns: HeterogeneousColumnDef<Tdata>[];
   filterFields?: FilterFieldRegistry;
   defaultPreferences: TablePreferences;
 

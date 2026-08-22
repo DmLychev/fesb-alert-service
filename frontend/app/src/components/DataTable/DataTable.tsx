@@ -286,7 +286,11 @@ const DataTable = <TData,>({
   );
 
   const defaultLeft = (
-    <GlobalSearch value={uiState.globalSearch} onSubmit={handleSearchSubmit} />
+    <GlobalSearch
+      key={uiState.globalSearch}
+      value={uiState.globalSearch}
+      onSubmit={handleSearchSubmit}
+    />
   );
 
   const editingRight = (

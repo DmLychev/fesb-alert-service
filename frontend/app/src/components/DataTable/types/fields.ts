@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { FilterFieldDefinition, FilterFieldRegistry } from "./filters";
 import type { ColumnDef } from "@tanstack/react-table";
+export type HeterogeneousColumnDef<TData> = ColumnDef<TData, any>;
 
 export type EditableValue = string | number | boolean | null;
 
@@ -27,7 +28,7 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
   : never;
 
 export type RegistryColumnDef<TData> = DistributiveOmit<
-  ColumnDef<TData, any>,
+  HeterogeneousColumnDef<TData>,
   "id" | "header" | "size" | "minSize"
 >;
 
@@ -47,7 +48,7 @@ export type TableFieldRegistry<Tdata> = Record<
 >;
 
 export interface TableDefinitions<Tdata> {
-  columns: ColumnDef<Tdata, any>[];
+  columns: HeterogeneousColumnDef<Tdata>[];
   filterFields: FilterFieldRegistry;
   editableFields: EditableFieldRegistry;
 }

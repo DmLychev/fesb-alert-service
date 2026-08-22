@@ -23,7 +23,7 @@ const FloatingLabelInput = (props: FloatingLabelInputProps) => {
     onValueChange,
     value,
     defaultValue = "",
-    type = "default",
+    type,
     ...rest
   } = props;
 
@@ -55,10 +55,10 @@ const FloatingLabelInput = (props: FloatingLabelInputProps) => {
 
   return (
     <Box pos="relative" w="full">
-      {props.type === "password" ? (
+      {type === "password" ? (
         <PasswordInput {...rest} {...eventInterceptors} />
       ) : (
-        <Input {...rest} {...eventInterceptors} />
+        <Input type={type} {...rest} {...eventInterceptors} />
       )}
 
       <Field.Label css={floatingStyles} data-float={shouldFloat || undefined}>

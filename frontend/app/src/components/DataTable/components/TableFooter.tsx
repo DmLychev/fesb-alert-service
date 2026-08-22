@@ -193,13 +193,15 @@ const TableFooter = ({
         </Grid>
       </Pagination.Root>
 
-      <GoToPageDialog
-        open={isPageDialogOpen}
-        currentPage={pageIndex + 1}
-        pageCount={pageCount}
-        onOpenChange={setIsPageDialogOpen}
-        onSubmit={onPageChange}
-      />
+      {isPageDialogOpen && (
+        <GoToPageDialog
+          open
+          currentPage={pageIndex + 1}
+          pageCount={pageCount}
+          onOpenChange={setIsPageDialogOpen}
+          onSubmit={onPageChange}
+        />
+      )}
     </>
   );
 };

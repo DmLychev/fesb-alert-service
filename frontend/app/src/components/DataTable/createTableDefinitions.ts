@@ -1,7 +1,7 @@
-import type { ColumnDef } from "@tanstack/react-table";
 import type {
   EditableFieldRegistry,
   FilterFieldRegistry,
+  HeterogeneousColumnDef,
   TableDefinitions,
   TableFieldRegistry,
 } from "./types";
@@ -9,7 +9,7 @@ import type {
 export function createTableDefinitions<TData>(
   registry: TableFieldRegistry<TData>,
 ): TableDefinitions<TData> {
-  const columns: ColumnDef<TData, unknown>[] = [];
+  const columns: HeterogeneousColumnDef<TData>[] = [];
   const filterFields: FilterFieldRegistry = {};
   const editableFields: EditableFieldRegistry = {};
 
@@ -25,7 +25,7 @@ export function createTableDefinitions<TData>(
         ...(definition.minSize !== undefined
           ? { minSize: definition.minSize }
           : {}),
-      } as ColumnDef<TData, any>);
+      } as HeterogeneousColumnDef<TData>);
 
     if (definition.filter) {
       if (!definition.value)

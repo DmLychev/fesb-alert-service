@@ -29,7 +29,14 @@ const useLiveUpdates = ({
   visibleRowIds,
   onEvent,
 }: UseLiveUpdatesParams) => {
-  const [status, setStatus] = useState<LiveUpdateStatus>("off");
+  type ConnectionStatus = "connecting" | "connected" | "disconnected";
+
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>("connecting");
+
+  const status: LiveUpdateStatus =
+    !enabled || !config ? "off" : pauseReason ? "paused" : connectionStatus;
+
   const visibleRowIdsRef = useRef<ReadonlySet<string>>(visibleRowIds);
 
   useEffect(() => {
@@ -37,17 +44,9 @@ const useLiveUpdates = ({
   }, [visibleRowIds]);
 
   useEffect(() => {
-    if (!enabled || !config) {
-      setStatus("off");
+    if (!enabled || !config || pauseReason) {
       return;
     }
-
-    if (pauseReason) {
-      setStatus("paused");
-      return;
-    }
-
-    setStatus("connecting");
 
     const controller = new AbortController();
     let socket: WebSocket | null = null;
@@ -64,7 +63,7 @@ const useLiveUpdates = ({
         if (controller.signal.aborted) return;
 
         socket = new WebSocket(connectionUrl);
-        socket.onopen = () => setStatus("connected");
+        socket.onopen = () => setConnectionStatus("connected");
 
         socket.onmessage = (message) => {
           try {
@@ -92,11 +91,11 @@ const useLiveUpdates = ({
           }
         };
 
-        socket.onerror = () => setStatus("disconnected");
+        socket.onerror = () => setConnectionStatus("disconnected");
         socket.onclose = () => {
           if (closedByCleanUp) return;
 
-          setStatus("disconnected");
+          setConnectionStatus("disconnected");
 
           toaster.create({
             title: "Соединение автообновления закрыто",
@@ -107,7 +106,7 @@ const useLiveUpdates = ({
       } catch (error: unknown) {
         if (controller.signal.aborted) return;
 
-        setStatus("disconnected");
+        setConnectionStatus("disconnected");
 
         toaster.create({
           title: "Не удалось подключить автообновление",

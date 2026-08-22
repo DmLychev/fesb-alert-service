@@ -3,12 +3,17 @@ import { Box, HStack, Checkbox } from "@chakra-ui/react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 
-interface SortableColumnItemProps {
+import type { Column } from "@tanstack/react-table";
+
+interface SortableColumnItemProps<TData> {
   id: string;
-  column: any;
+  column: Column<TData, unknown>;
 }
 
-export const SortableColumnItem = ({ id, column }: SortableColumnItemProps) => {
+export const SortableColumnItem = <TData,>({
+  id,
+  column,
+}: SortableColumnItemProps<TData>) => {
   const {
     attributes,
     listeners,

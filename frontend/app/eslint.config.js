@@ -19,4 +19,22 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    files: [
+      'src/components/ui/color-mode.tsx',
+      'src/components/ui/toaster.tsx',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+  files: [
+    'src/components/DataTable/DataTable.tsx',
+    'src/components/UserTable.tsx',
+  ],
+  rules: {
+    'react-hooks/incompatible-library': 'off',
+  },
+},
 ])

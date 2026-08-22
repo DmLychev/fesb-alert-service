@@ -1,7 +1,6 @@
-import { useEffect, useState, type ReactNode, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent } from "react";
 import type { EditableFieldDefinition, EditableValue } from "../types";
 import {
-  Box,
   Checkbox,
   Input,
   NativeSelect,
@@ -13,10 +12,7 @@ import {
 interface EditableCellProps {
   definition: EditableFieldDefinition;
   value: EditableValue;
-  displayContent: ReactNode;
   disabled?: boolean;
-  isEditingMode: boolean;
-
   onChange: (value: EditableValue) => void;
 }
 
@@ -34,20 +30,13 @@ const toDraftValue = (
 const EditableCell = ({
   definition,
   value,
-  displayContent,
   disabled,
   onChange,
-  isEditingMode,
 }: EditableCellProps) => {
   const [draft, setDraft] = useState<DraftValue>(
     toDraftValue(value, definition.type),
   );
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setDraft(toDraftValue(value, definition.type));
-    setError(null);
-  }, [value, definition.type, isEditingMode]);
 
   const parseDraft = (draftValue: DraftValue): EditableValue => {
     if (definition.type === "boolean") return draftValue === true;
@@ -104,10 +93,6 @@ const EditableCell = ({
       commit();
     }
   };
-
-  if (!isEditingMode) {
-    return <Box minHeight="24px">{displayContent}</Box>;
-  }
 
   if (definition.renderEditor)
     return definition.renderEditor({ value, disabled, onChange });

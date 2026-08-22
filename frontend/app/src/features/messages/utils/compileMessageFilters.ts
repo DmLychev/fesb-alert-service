@@ -1,15 +1,15 @@
 import type { UiFilterRow } from "../../../components/DataTable";
 import { messageFilterFields } from "../messageTableDefinitions";
 
+type FilterObject = Record<string, unknown>;
+
 export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
   const fieldRegistry = messageFilterFields;
 
   if (!filtersList || filtersList.length === 0) return null;
 
-  // We will collect root-level conditions here (handles implicit AND)
-  const conditions: any[] = [];
-  // Standard fields can still be grouped into a single base object
-  const baseFilterObject: Record<string, any> = {};
+  const conditions: FilterObject[] = [];
+  const baseFilterObject: FilterObject = {};
 
   filtersList.forEach((row) => {
     if (!row.column || !row.operation) return;
@@ -23,19 +23,25 @@ export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
       (row.operation === "isnull" || row.operation === "notnull")
     ) {
       // Helper to build the nested object path (e.g., "parent.child" -> { parent: { child: ... } })
-      const buildNestedObject = (path: string, leafValue: any) => {
+      const buildNestedObject = (
+        path: string,
+        leafValue: unknown,
+      ): FilterObject => {
         const parts = path.split(".");
-        const result: Record<string, any> = {};
+        const result: FilterObject = {};
         let current = result;
 
         parts.forEach((part, index) => {
           if (index === parts.length - 1) {
             current[part] = leafValue;
-          } else {
-            current[part] = {};
-            current = current[part];
+            return;
           }
+
+          const child: FilterObject = {};
+          current[part] = child;
+          current = child;
         });
+
         return result;
       };
 
@@ -52,7 +58,7 @@ export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
 
     // --- 2. Fallback to your original type transformations ---
     let resolvedOperation = row.operation;
-    let resolvedValue: any = row.value;
+    let resolvedValue: string | number | boolean = row.value;
 
     if (row.operation === "isnull") {
       resolvedOperation = "isNull";
@@ -71,12 +77,15 @@ export const compileMessageFilters = (filtersList: UiFilterRow[]) => {
     // --- 3. Process dot-notation nested parameters for standard fields ---
     if (row.column.includes(".")) {
       const [parent, child] = row.column.split(".");
-      baseFilterObject[parent] = baseFilterObject[parent] || {};
-      baseFilterObject[parent][child] = baseFilterObject[parent][child] || {};
-      baseFilterObject[parent][child][resolvedOperation] = resolvedValue;
+      const parentFilter = (baseFilterObject[parent] ??= {}) as FilterObject;
+
+      const childFilter = (parentFilter[child] ??= {}) as FilterObject;
+
+      childFilter[resolvedOperation] = resolvedValue;
     } else {
-      baseFilterObject[row.column] = baseFilterObject[row.column] || {};
-      baseFilterObject[row.column][resolvedOperation] = resolvedValue;
+      const fieldFilter = (baseFilterObject[row.column] ??= {}) as FilterObject;
+
+      fieldFilter[resolvedOperation] = resolvedValue;
     }
   });
 

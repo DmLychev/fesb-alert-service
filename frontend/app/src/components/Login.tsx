@@ -38,13 +38,13 @@ const Login = () => {
       localStorage.setItem(ACCESS_TOKEN, res.data.access);
       localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
       navigate(from, { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       reset({
         username: "",
         password: "",
       });
       toaster.create({
-        title: error.message,
+        title: error instanceof Error ? error.message : "Ошибка авторизации",
         type: "error",
         duration: 6000,
       });

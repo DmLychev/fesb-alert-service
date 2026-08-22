@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   Button,
   CloseButton,
@@ -16,10 +16,6 @@ interface GlobalSearchProps {
 const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
 
   const globalFilterClearButton = inputValue ? (
     <CloseButton
@@ -47,7 +43,7 @@ const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.type === "Enter") {
+            if (e.key === "Enter") {
               onSubmit(inputValue);
             }
           }}

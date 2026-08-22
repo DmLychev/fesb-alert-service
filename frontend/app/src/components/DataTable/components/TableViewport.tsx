@@ -338,11 +338,11 @@ const TableViewport = <TData,>({
                           : undefined
                       }
                     >
-                      {editableDefinition && onDraftChange ? (
+                      {editableDefinition && onDraftChange && isEditingMode ? (
                         <EditableCell
+                          key={`${cell.id}:${editableDefinition.type}:${String(cell.getValue())}`}
                           definition={editableDefinition}
                           value={cell.getValue() as EditableValue}
-                          displayContent={displayContent}
                           onChange={(value) =>
                             onDraftChange({
                               rowId: row.id,
@@ -350,7 +350,6 @@ const TableViewport = <TData,>({
                               value,
                             })
                           }
-                          isEditingMode={isEditingMode}
                         />
                       ) : (
                         displayContent

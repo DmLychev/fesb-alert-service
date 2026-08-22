@@ -1,12 +1,13 @@
-import type { Getter } from "@tanstack/react-table";
 import { Text } from "@chakra-ui/react";
 
 interface ScrollableTextCellProps {
-  getValue: Getter<any>;
+  getValue: () => unknown;
 }
 
 const ScrollableTextCell = ({ getValue }: ScrollableTextCellProps) => {
-  const value = getValue<string | null>();
+  const rawValue = getValue();
+  const value =
+    rawValue === null || rawValue === undefined ? "" : String(rawValue);
 
   return (
     <Text
@@ -18,7 +19,7 @@ const ScrollableTextCell = ({ getValue }: ScrollableTextCellProps) => {
       pe={2}
       overscrollBehavior="contain"
     >
-      {value ?? ""}
+      {value}
     </Text>
   );
 };
