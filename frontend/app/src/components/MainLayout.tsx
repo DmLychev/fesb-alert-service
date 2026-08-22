@@ -23,6 +23,7 @@ const MainLayout: React.FC = () => {
         px={{ base: 2, md: 3 }}
         py={3}
         overflow="hidden"
+        bg="bg.muted"
       >
         <Outlet />
       </Box>

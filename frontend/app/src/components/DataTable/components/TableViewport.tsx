@@ -53,6 +53,7 @@ const TableViewport = <TData,>({
       overflowX="auto"
       overflowY="auto"
       overscrollBehavior="contain"
+      bg="bg.panel"
     >
       <Table.Root
         variant="outline"

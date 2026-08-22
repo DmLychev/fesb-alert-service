@@ -8,7 +8,7 @@ interface Props {
 
 const DashboardKpiCard = ({ title, value, secondary }: Props) => {
   return (
-    <Card.Root variant="outline" height="full">
+    <Card.Root variant="outline" height="full" bg="bg.panel">
       <Card.Body>
         <VStack align="start" gap={1}>
           <Text fontSize="sm" color="fg.muted">

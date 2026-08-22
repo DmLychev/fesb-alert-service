@@ -11,6 +11,8 @@ interface Props {
 }
 
 const ProblematicRoutesChart = ({ data }: Props) => {
+  const hasData = data.some((item) => item.count > 0);
+
   const chart = useChart({
     data: data.slice(0, 8),
     series: [
@@ -22,7 +24,7 @@ const ProblematicRoutesChart = ({ data }: Props) => {
   });
 
   return (
-    <DashboardChartCard title="Проблемные СОПС">
+    <DashboardChartCard title="Проблемные СОПС" isEmpty={!hasData}>
       <Chart.Root chart={chart} height="260px">
         <BarChart data={chart.data} layout="vertical" responsive>
           <CartesianGrid

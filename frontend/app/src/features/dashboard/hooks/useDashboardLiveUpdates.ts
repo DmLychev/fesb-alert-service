@@ -5,6 +5,7 @@ import { createConnectionUrl } from "../../../lib/liveUpdates";
 import type { DashboardLiveEvent, DashboardLiveStatus } from "../types";
 
 interface Props {
+  enabled: boolean;
   onEvent: (event: DashboardLiveEvent) => void;
   onReconnect: () => void;
 }
@@ -27,8 +28,9 @@ const isDashboardLiveEvent = (value: unknown): value is DashboardLiveEvent => {
   return typeof type === "string" && EVENT_TYPES.has(type);
 };
 
-const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
-  const [status, setStatus] = useState<DashboardLiveStatus>("connecting");
+const useDashboardLiveUpdates = ({ enabled, onEvent, onReconnect }: Props) => {
+  const [connectionStatus, setConnectionStatus] =
+    useState<Exclude<DashboardLiveStatus, "off">>("connecting");
 
   const onEventRef = useRef(onEvent);
   const onReconnectRef = useRef(onReconnect);
@@ -42,6 +44,10 @@ const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
   }, [onReconnect]);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     const controller = new AbortController();
 
     let socket: WebSocket | null = null;
@@ -51,9 +57,13 @@ const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
     let hasConnected = false;
 
     const connect = async () => {
+      const url = await createConnectionUrl(controller.signal);
+
       if (stopped) return;
 
-      setStatus("connecting");
+      setConnectionStatus("connecting");
+
+      socket = new WebSocket(url);
 
       try {
         const url = await createConnectionUrl(controller.signal);
@@ -63,7 +73,7 @@ const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
         socket = new WebSocket(url);
 
         socket.onopen = () => {
-          setStatus("connected");
+          setConnectionStatus("connected");
 
           if (hasConnected) {
             onReconnectRef.current();
@@ -87,20 +97,20 @@ const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
         };
 
         socket.onerror = () => {
-          setStatus("disconnected");
+          setConnectionStatus("disconnected");
         };
 
         socket.onclose = () => {
           if (stopped) return;
 
-          setStatus("disconnected");
+          setConnectionStatus("disconnected");
 
           reconnectTimer = setTimeout(() => void connect(), 3000);
         };
       } catch {
         if (stopped) return;
 
-        setStatus("disconnected");
+        setConnectionStatus("disconnected");
 
         reconnectTimer = setTimeout(() => void connect(), 3000);
       }
@@ -120,9 +130,9 @@ const useDashboardLiveUpdates = ({ onEvent, onReconnect }: Props) => {
         socket.close();
       }
     };
-  }, []);
+  }, [enabled]);
 
-  return status;
+  return enabled ? connectionStatus : "off";
 };
 
 export default useDashboardLiveUpdates;

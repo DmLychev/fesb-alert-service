@@ -21,6 +21,9 @@ const useDashboard = () => {
   const lastRefreshRef = useRef(0);
   const requestNumberRef = useRef(0);
 
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const [isLiveEnabled, setIsLiveEnabledState] = useState(true);
+
   const refresh = useCallback(() => {
     const requestNumber = ++requestNumberRef.current;
 
@@ -34,6 +37,8 @@ const useDashboard = () => {
           type: "snapshot",
           snapshot,
         });
+
+        setLastUpdatedAt(snapshot.generatedAt);
 
         lastRefreshRef.current = Date.now();
 
@@ -63,18 +68,31 @@ const useDashboard = () => {
         rangeKey,
         now: Date.now(),
       });
+
+      setLastUpdatedAt(new Date().toISOString());
     },
     [rangeKey],
   );
 
   const liveStatus = useDashboardLiveUpdates({
+    enabled: isLiveEnabled,
     onEvent: handleLiveEvent,
     onReconnect: refresh,
   });
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    if (!isLiveEnabled) {
+      return;
+    }
+
+    const timer = setInterval(refresh, RECONCILE_INTERVAL_MS);
+
+    return () => clearInterval(timer);
+  }, [refresh, isLiveEnabled]);
+
+  // useEffect(() => {
+  //   void refresh();
+  // }, [refresh]);
 
   useEffect(() => {
     const timer = setInterval(refresh, RECONCILE_INTERVAL_MS);
@@ -83,6 +101,10 @@ const useDashboard = () => {
   }, [refresh]);
 
   useEffect(() => {
+    if (!isLiveEnabled) {
+      return;
+    }
+
     const range = DASHBOARD_RANGES[rangeKey];
 
     let timer: ReturnType<typeof setTimeout>;
@@ -106,11 +128,11 @@ const useDashboard = () => {
     schedule();
 
     return () => clearTimeout(timer);
-  }, [rangeKey]);
+  }, [rangeKey, isLiveEnabled]);
 
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState !== "visible") {
+      if (!isLiveEnabled || document.visibilityState !== "visible") {
         return;
       }
 
@@ -126,7 +148,18 @@ const useDashboard = () => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refresh]);
+  }, [refresh, isLiveEnabled]);
+
+  const setIsLiveEnabled = useCallback(
+    (enabled: boolean) => {
+      setIsLiveEnabledState(enabled);
+
+      if (enabled) {
+        refresh();
+      }
+    },
+    [refresh],
+  );
 
   return {
     dashboard,
@@ -136,6 +169,9 @@ const useDashboard = () => {
     loading,
     error,
     refresh,
+    lastUpdatedAt,
+    isLiveEnabled,
+    setIsLiveEnabled,
   };
 };
 

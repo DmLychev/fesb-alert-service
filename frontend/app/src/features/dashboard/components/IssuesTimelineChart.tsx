@@ -9,15 +9,18 @@ import {
   YAxis,
 } from "recharts";
 
-import type { IssueBucket } from "../types";
-
+import type { DashboardRangeKey, IssueBucket } from "../types";
 import DashboardChartCard from "./DashboardChartCard";
+import { getChartDateFormat } from "../chartDateFormat";
 
 interface Props {
   data: IssueBucket[];
+  rangeKey: DashboardRangeKey;
 }
 
-const IssuesTimelineChart = ({ data }: Props) => {
+const IssuesTimelineChart = ({ data, rangeKey }: Props) => {
+  const hasData = data.some((bucket) => bucket.total > 0);
+
   const chart = useChart({
     data,
     series: [
@@ -28,8 +31,10 @@ const IssuesTimelineChart = ({ data }: Props) => {
     ],
   });
 
+  const formatDate = chart.formatDate(getChartDateFormat(rangeKey));
+
   return (
-    <DashboardChartCard title="Инциденты во времени">
+    <DashboardChartCard title="Инциденты во времени" isEmpty={!hasData}>
       <Chart.Root chart={chart} height="260px">
         <AreaChart data={chart.data} responsive>
           <CartesianGrid
@@ -41,10 +46,7 @@ const IssuesTimelineChart = ({ data }: Props) => {
             axisLine={false}
             tickLine={false}
             dataKey={chart.key("start")}
-            tickFormatter={chart.formatDate({
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            tickFormatter={formatDate}
           />
 
           <YAxis
@@ -54,7 +56,12 @@ const IssuesTimelineChart = ({ data }: Props) => {
             width={35}
           />
 
-          <Tooltip cursor={false} content={<Chart.Tooltip />} />
+          <Tooltip
+            cursor={false}
+            animationDuration={100}
+            labelFormatter={(value) => formatDate(String(value))}
+            content={<Chart.Tooltip />}
+          />
 
           <Area
             type="monotone"

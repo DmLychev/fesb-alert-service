@@ -10,15 +10,20 @@ import {
   YAxis,
 } from "recharts";
 
-import type { FesbRequestBucket } from "../types";
-
+import type { DashboardRangeKey, FesbRequestBucket } from "../types";
 import DashboardChartCard from "./DashboardChartCard";
+import { getChartDateFormat } from "../chartDateFormat";
 
 interface Props {
   data: FesbRequestBucket[];
+  rangeKey: DashboardRangeKey;
 }
 
-const FesbApiHealthChart = ({ data }: Props) => {
+const FesbApiHealthChart = ({ data, rangeKey }: Props) => {
+  const hasData = data.some(
+    (bucket) => bucket.successful > 0 || bucket.failed > 0,
+  );
+
   const chart = useChart({
     data,
     series: [
@@ -35,8 +40,10 @@ const FesbApiHealthChart = ({ data }: Props) => {
     ],
   });
 
+  const formatDate = chart.formatDate(getChartDateFormat(rangeKey));
+
   return (
-    <DashboardChartCard title="Доступность API FESB">
+    <DashboardChartCard title="Доступность API FESB" isEmpty={!hasData}>
       <Chart.Root chart={chart} height="260px">
         <BarChart data={chart.data} responsive>
           <CartesianGrid
@@ -48,15 +55,17 @@ const FesbApiHealthChart = ({ data }: Props) => {
             axisLine={false}
             tickLine={false}
             dataKey={chart.key("start")}
-            tickFormatter={chart.formatDate({
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            tickFormatter={formatDate}
           />
 
           <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
 
-          <Tooltip cursor={false} content={<Chart.Tooltip />} />
+          <Tooltip
+            cursor={false}
+            animationDuration={100}
+            labelFormatter={(value) => formatDate(String(value))}
+            content={<Chart.Tooltip />}
+          />
 
           <Legend content={<Chart.Legend />} />
 

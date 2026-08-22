@@ -9,15 +9,18 @@ import {
   YAxis,
 } from "recharts";
 
-import type { MessageBucket } from "../types";
-
+import type { DashboardRangeKey, MessageBucket } from "../types";
 import DashboardChartCard from "./DashboardChartCard";
+import { getChartDateFormat } from "../chartDateFormat";
 
 interface Props {
   data: MessageBucket[];
+  rangeKey: DashboardRangeKey;
 }
 
-const MessageTrafficChart = ({ data }: Props) => {
+const MessageTrafficChart = ({ data, rangeKey }: Props) => {
+  const hasData = data.some((bucket) => bucket.total > 0);
+
   const chart = useChart({
     data,
     series: [
@@ -28,8 +31,14 @@ const MessageTrafficChart = ({ data }: Props) => {
     ],
   });
 
+  const formatDate = chart.formatDate(getChartDateFormat(rangeKey));
+
   return (
-    <DashboardChartCard title="Трафик сообщений">
+    <DashboardChartCard
+      title="Трафик сообщений"
+      isEmpty={!hasData}
+      height="320px"
+    >
       <Chart.Root chart={chart} height="320px">
         <AreaChart
           data={chart.data}
@@ -50,10 +59,7 @@ const MessageTrafficChart = ({ data }: Props) => {
             axisLine={false}
             tickLine={false}
             dataKey={chart.key("start")}
-            tickFormatter={chart.formatDate({
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            tickFormatter={formatDate}
           />
 
           <YAxis
@@ -68,6 +74,7 @@ const MessageTrafficChart = ({ data }: Props) => {
           <Tooltip
             cursor={false}
             animationDuration={100}
+            labelFormatter={(value) => formatDate(String(value))}
             content={<Chart.Tooltip />}
           />
 

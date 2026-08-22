@@ -102,4 +102,8 @@ export type DashboardLiveEvent =
   | IssuesUpdatedEvent
   | RequestCreatedEvent;
 
-export type DashboardLiveStatus = "connecting" | "connected" | "disconnected";
+export type DashboardLiveStatus =
+  | "off"
+  | "connecting"
+  | "connected"
+  | "disconnected";

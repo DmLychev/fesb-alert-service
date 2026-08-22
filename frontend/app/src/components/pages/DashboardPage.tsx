@@ -7,6 +7,7 @@ import {
   SimpleGrid,
   Spinner,
   Text,
+  Switch,
 } from "@chakra-ui/react";
 
 import DashboardKpiCard from "../../features/dashboard/components/DashboardKpiCard";
@@ -24,9 +25,28 @@ import { getDashboardMetrics } from "../../features/dashboard/selectors";
 
 import type { DashboardRangeKey } from "../../features/dashboard/types";
 
+const lastUpdatedFormatter = new Intl.DateTimeFormat("ru-RU", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+});
+
 const DashboardPage = () => {
-  const { dashboard, rangeKey, setRangeKey, liveStatus, loading, error } =
-    useDashboard();
+  const {
+    dashboard,
+    rangeKey,
+    setRangeKey,
+    liveStatus,
+    loading,
+    error,
+    lastUpdatedAt,
+    isLiveEnabled,
+    setIsLiveEnabled,
+  } = useDashboard();
 
   if (!dashboard && loading) {
     return (
@@ -67,27 +87,50 @@ const DashboardPage = () => {
         <Heading size="xl">Dashboard</Heading>
 
         <HStack gap={3}>
-          <HStack gap={2}>
-            <Box
-              width="8px"
-              height="8px"
-              borderRadius="full"
-              bg={
-                liveStatus === "connected"
-                  ? "green.solid"
-                  : liveStatus === "connecting"
-                    ? "orange.solid"
-                    : "red.solid"
-              }
-            />
+          <Text fontSize="xs" color="fg.muted">
+            Обновлено:{" "}
+            {lastUpdatedAt
+              ? lastUpdatedFormatter.format(new Date(lastUpdatedAt))
+              : "—"}
+          </Text>
 
-            <Text fontSize="sm">
-              {liveStatus === "connected"
-                ? "Live"
-                : liveStatus === "connecting"
-                  ? "Connecting"
-                  : "Disconnected"}
-            </Text>
+          <HStack gap={3}>
+            <Switch.Root
+              checked={isLiveEnabled}
+              colorPalette="green"
+              onCheckedChange={({ checked }) => setIsLiveEnabled(checked)}
+            >
+              <Switch.HiddenInput />
+              <Switch.Control />
+              <Switch.Label>Live</Switch.Label>
+            </Switch.Root>
+
+            <HStack gap={2}>
+              <Box
+                width="8px"
+                height="8px"
+                borderRadius="full"
+                bg={
+                  liveStatus === "connected"
+                    ? "green.solid"
+                    : liveStatus === "connecting"
+                      ? "orange.solid"
+                      : liveStatus === "disconnected"
+                        ? "red.solid"
+                        : "fg.subtle"
+                }
+              />
+
+              <Text fontSize="sm" color="fg.muted">
+                {liveStatus === "connected"
+                  ? "Подключено"
+                  : liveStatus === "connecting"
+                    ? "Подключение"
+                    : liveStatus === "disconnected"
+                      ? "Нет соединения"
+                      : "Пауза"}
+              </Text>
+            </HStack>
           </HStack>
 
           <NativeSelect.Root width="210px" size="sm">
@@ -150,7 +193,10 @@ const DashboardPage = () => {
       </SimpleGrid>
 
       <Box mb={4}>
-        <MessageTrafficChart data={dashboard.messageTraffic} />
+        <MessageTrafficChart
+          data={dashboard.messageTraffic}
+          rangeKey={rangeKey}
+        />
       </Box>
 
       <SimpleGrid
@@ -161,13 +207,19 @@ const DashboardPage = () => {
         gap={4}
         mb={4}
       >
-        <IssuesTimelineChart data={dashboard.issuesTimeline} />
+        <IssuesTimelineChart
+          data={dashboard.issuesTimeline}
+          rangeKey={rangeKey}
+        />
 
         <IssueTypesChart data={dashboard.issueTypes} />
 
         <ProblematicRoutesChart data={dashboard.problematicRoutes} />
 
-        <FesbApiHealthChart data={dashboard.fesbApiHealth} />
+        <FesbApiHealthChart
+          data={dashboard.fesbApiHealth}
+          rangeKey={rangeKey}
+        />
       </SimpleGrid>
     </Box>
   );

@@ -11,6 +11,8 @@ interface Props {
 }
 
 const IssueTypesChart = ({ data }: Props) => {
+  const hasData = data.some((item) => item.count > 0);
+
   const chartData = data.slice(0, 8).map((item) => ({
     ...item,
     label: `${item.code} ${item.description}`,
@@ -27,7 +29,7 @@ const IssueTypesChart = ({ data }: Props) => {
   });
 
   return (
-    <DashboardChartCard title="Инциденты по типам">
+    <DashboardChartCard title="Инциденты по типам" isEmpty={!hasData}>
       <Chart.Root chart={chart} height="260px">
         <BarChart
           data={chart.data}
