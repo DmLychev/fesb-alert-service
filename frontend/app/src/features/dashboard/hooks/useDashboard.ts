@@ -22,9 +22,10 @@ const useDashboard = () => {
   const requestNumberRef = useRef(0);
 
   const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
-  const [isLiveEnabled, setIsLiveEnabledState] = useState(true);
+  const [isLiveEnabled, setIsLiveEnabledState] = useState(false);
 
   const refresh = useCallback(() => {
+    console.log("REFRESH START", rangeKey, Date.now());
     const requestNumber = ++requestNumberRef.current;
 
     fetchDashboard(rangeKey)
@@ -57,6 +58,8 @@ const useDashboard = () => {
         if (requestNumber === requestNumberRef.current) {
           setLoading(false);
         }
+
+        console.log("REFRESH END", rangeKey, Date.now());
       });
   }, [rangeKey]);
 
