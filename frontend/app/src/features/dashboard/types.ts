@@ -107,3 +107,8 @@ export type DashboardLiveStatus =
   | "connecting"
   | "connected"
   | "disconnected";
+
+export interface DashboardFilters {
+  domains: string[];
+  routeIds: string[];
+}

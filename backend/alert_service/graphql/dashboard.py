@@ -17,7 +17,6 @@ from graphql import GraphQLError
 from ..models import FesbRequest, Issue, Message, Route
 from ..permissions import IsAuthenticated
 
-
 BUCKET_ORIGIN = datetime(
     1970,
     1,
@@ -85,6 +84,19 @@ class DashboardRouteStat:
 
 
 @strawberry.type
+class DashboardRouteOption:
+    id: str
+    name: str
+    domain_name: str
+
+
+@strawberry.type
+class DashboardFilterOptions:
+    domains: list[str]
+    routes: list[DashboardRouteOption]
+
+
+@strawberry.type
 class DashboardSnapshot:
     generated_at: datetime
     active_issues: int
@@ -106,8 +118,8 @@ def _normalize_datetime(value: datetime) -> datetime:
 
 
 def _bucket_expression(
-    field_name: str,
-    duration: timedelta,
+        field_name: str,
+        duration: timedelta,
 ) -> DateBin:
     return DateBin(
         Value(duration, output_field=DurationField()),
@@ -117,8 +129,8 @@ def _bucket_expression(
 
 
 def _floor_to_bucket(
-    value: datetime,
-    duration: timedelta,
+        value: datetime,
+        duration: timedelta,
 ) -> datetime:
     value = value.astimezone(datetime_timezone.utc)
 
@@ -135,9 +147,9 @@ def _floor_to_bucket(
 
 
 def _message_buckets(
-    from_time: datetime,
-    to_time: datetime,
-    duration: timedelta,
+        from_time: datetime,
+        to_time: datetime,
+        duration: timedelta,
 ) -> list[DashboardMessageBucket]:
     rows = list(
         Message.objects
@@ -196,9 +208,9 @@ def _message_buckets(
 
 
 def _issue_buckets(
-    from_time: datetime,
-    to_time: datetime,
-    duration: timedelta,
+        from_time: datetime,
+        to_time: datetime,
+        duration: timedelta,
 ) -> list[DashboardIssueBucket]:
     rows = list(
         Issue.objects
@@ -247,9 +259,9 @@ def _issue_buckets(
 
 
 def _fesb_request_buckets(
-    from_time: datetime,
-    to_time: datetime,
-    duration: timedelta,
+        from_time: datetime,
+        to_time: datetime,
+        duration: timedelta,
 ) -> list[DashboardFesbRequestBucket]:
     rows = list(
         FesbRequest.objects
@@ -306,8 +318,8 @@ def _fesb_request_buckets(
 
 
 def _issue_type_stats(
-    from_time: datetime,
-    to_time: datetime,
+        from_time: datetime,
+        to_time: datetime,
 ) -> list[DashboardIssueTypeStat]:
     rows = (
         Issue.objects
@@ -336,8 +348,8 @@ def _issue_type_stats(
 
 
 def _route_stats(
-    from_time: datetime,
-    to_time: datetime,
+        from_time: datetime,
+        to_time: datetime,
 ) -> list[DashboardRouteStat]:
     rows = list(
         Issue.objects
@@ -384,10 +396,10 @@ class DashboardQuery:
         permission_classes=[IsAuthenticated]
     )
     def dashboard(
-        self,
-        from_time: datetime,
-        to_time: datetime,
-        bucket: DashboardBucket,
+            self,
+            from_time: datetime,
+            to_time: datetime,
+            bucket: DashboardBucket,
     ) -> DashboardSnapshot:
         from_time = _normalize_datetime(from_time)
         to_time = _normalize_datetime(to_time)
@@ -432,4 +444,38 @@ class DashboardQuery:
                 to_time,
                 duration,
             ),
+        )
+
+    @strawberry.field(permission_classes=[IsAuthenticated])
+    def dashboard_filter_options(
+            self,
+    ) -> DashboardFilterOptions:
+
+        routes = (
+            Route.objects
+            .order_by(
+                "domain_name",
+                "name",
+            )
+        )
+
+        return DashboardFilterOptions(
+            domains=list(
+                Route.objects
+                .values_list(
+                    "domain_name",
+                    flat=True,
+                )
+                .distinct()
+                .order_by()
+            ),
+
+            routes=[
+                DashboardRouteOption(
+                    id=str(route.id),
+                    name=route.name,
+                    domain_name=route.domain_name,
+                )
+                for route in routes
+            ],
         )

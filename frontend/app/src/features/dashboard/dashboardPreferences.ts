@@ -1,10 +1,11 @@
-import type { DashboardRangeKey } from "./types";
+import type { DashboardFilters, DashboardRangeKey } from "./types";
 
 const STORAGE_KEY = "dashboard-preferences";
 
 interface DashboardPreferences {
   rangeKey?: DashboardRangeKey;
   liveEnabled?: boolean;
+  filters?: DashboardFilters;
 }
 
 const readPreferences = (): DashboardPreferences => {
@@ -38,4 +39,9 @@ export const saveDashboardPreference = <K extends keyof DashboardPreferences>(
     ...current,
     [key]: value,
   });
+};
+
+export const DEFAULT_DASHBOARD_FILTERS: DashboardFilters = {
+  domains: [],
+  routeIds: [],
 };

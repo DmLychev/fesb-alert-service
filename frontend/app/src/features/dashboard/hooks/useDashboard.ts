@@ -3,12 +3,17 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import fetchDashboard from "../api/fetchDashboard";
 import { DASHBOARD_RANGES } from "../dashboardRanges";
 import dashboardReducer from "../dashboardReducer";
-import type { DashboardLiveEvent, DashboardRangeKey } from "../types";
+import type {
+  DashboardFilters,
+  DashboardLiveEvent,
+  DashboardRangeKey,
+} from "../types";
 
 import useDashboardLiveUpdates from "./useDashboardLiveUpdates";
 import {
   getDashboardPreferences,
   saveDashboardPreference,
+  DEFAULT_DASHBOARD_FILTERS,
 } from "../dashboardPreferences";
 
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
@@ -25,10 +30,20 @@ const useDashboard = () => {
 
   const [rangeKey, setRangeKeyState] = useState<DashboardRangeKey>(savedRange);
 
+  const [filters, setFiltersState] = useState<DashboardFilters>(
+    preferences.filters ?? DEFAULT_DASHBOARD_FILTERS,
+  );
+
   const setRangeKey = useCallback((value: DashboardRangeKey) => {
     setRangeKeyState(value);
 
     saveDashboardPreference("rangeKey", value);
+  }, []);
+
+  const setFilters = useCallback((value: DashboardFilters) => {
+    setFiltersState(value);
+
+    saveDashboardPreference("filters", value);
   }, []);
 
   const [dashboard, dispatch] = useReducer(dashboardReducer, null);
@@ -189,6 +204,8 @@ const useDashboard = () => {
     lastUpdatedAt,
     isLiveEnabled,
     setIsLiveEnabled,
+    filters,
+    setFilters,
   };
 };
 
