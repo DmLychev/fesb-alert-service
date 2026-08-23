@@ -112,3 +112,19 @@ export interface DashboardFilters {
   domains: string[];
   routeIds: string[];
 }
+
+export interface DashboardRouteOption {
+  id: string;
+  name: string;
+  domainName: string;
+}
+
+export interface DashboardFilterOptions {
+  domains: string[];
+  routes: DashboardRouteOption[];
+}
+
+export interface DashboardFilters {
+  domains: string[];
+  routeIds: string[];
+}
