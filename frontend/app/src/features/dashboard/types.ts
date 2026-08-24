@@ -123,8 +123,3 @@ export interface DashboardFilterOptions {
   domains: string[];
   routes: DashboardRouteOption[];
 }
-
-export interface DashboardFilters {
-  domains: string[];
-  routeIds: string[];
-}

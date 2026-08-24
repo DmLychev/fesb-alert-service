@@ -28,7 +28,11 @@ const isDashboardLiveEvent = (value: unknown): value is DashboardLiveEvent => {
   return typeof type === "string" && EVENT_TYPES.has(type);
 };
 
-const useDashboardLiveUpdates = ({ enabled, onEvent, onReconnect }: Props) => {
+const useDashboardLiveUpdates = ({
+  enabled,
+  onEvent,
+  onReconnect,
+}: Props): DashboardLiveStatus => {
   const [connectionStatus, setConnectionStatus] =
     useState<Exclude<DashboardLiveStatus, "off">>("connecting");
 
@@ -57,13 +61,7 @@ const useDashboardLiveUpdates = ({ enabled, onEvent, onReconnect }: Props) => {
     let hasConnected = false;
 
     const connect = async () => {
-      const url = await createConnectionUrl(controller.signal);
-
-      if (stopped) return;
-
       setConnectionStatus("connecting");
-
-      socket = new WebSocket(url);
 
       try {
         const url = await createConnectionUrl(controller.signal);
