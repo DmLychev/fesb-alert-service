@@ -1,9 +1,9 @@
 import type { Table } from "@tanstack/react-table";
 import EditingModeButton from "./EditingModeButton";
 import { HStack } from "@chakra-ui/react";
-import RefreshButton from "./RefreshButton";
 import FilterButton from "./FilterButton";
 import TableSettings from "./TableSettings";
+import RefreshButton from "../../RefreshButton";
 
 interface DefaultToolbarActionsProps<TData> {
   table: Table<TData>;
@@ -40,7 +40,11 @@ const DefaultToolbarActions = <TData,>({
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
       {showEditButton && <EditingModeButton onClick={onStartEditing} />}
 
-      <RefreshButton onRefresh={onRefresh} isRefreshing={isRefreshing} />
+      <RefreshButton
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
+        ariaLabel="Обновить таблицу"
+      />
 
       {hasFilterFields && (
         <FilterButton

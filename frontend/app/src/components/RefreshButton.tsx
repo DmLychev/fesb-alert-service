@@ -5,17 +5,19 @@ interface RefreshButtonProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
 const RefreshButton = ({
   isRefreshing,
   onRefresh,
   disabled,
+  ariaLabel = "Обновить данные",
 }: RefreshButtonProps) => {
   return (
     <IconButton
-      aria-label="Обновить таблицу"
-      title="Обновить таблицу"
+      aria-label={ariaLabel}
+      title={ariaLabel}
       size="sm"
       variant="outline"
       disabled={disabled || isRefreshing}
