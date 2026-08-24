@@ -280,12 +280,15 @@ const dashboardReducer = (
       issueTypes[issueTypeIndex] = {
         ...issueTypes[issueTypeIndex],
         count: issueTypes[issueTypeIndex].count + 1,
+        unsolvedCount: issueTypes[issueTypeIndex].count + 1,
       };
     } else {
       issueTypes.push({
         code: event.type_code,
         description: `Issue ${event.type_code}`,
         count: 1,
+        solvedCount: 0,
+        unsolvedCount: 1,
       });
     }
 

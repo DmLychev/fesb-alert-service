@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Box,
@@ -22,16 +22,7 @@ import type {
 } from "../types";
 
 import MultiSelectFilter from "./MultiSelectFilter";
-
-const lastUpdatedFormatter = new Intl.DateTimeFormat("ru-RU", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-});
+import { formatRelativeTime } from "../relativeTime";
 
 interface DashboardToolbarProps {
   rangeKey: DashboardRangeKey;
@@ -105,6 +96,16 @@ const DashboardToolbar = ({
       })),
     [availableRoutes],
   );
+
+  const [relativeTimeNow, setRelativeTimeNow] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRelativeTimeNow(Date.now());
+    }, 30_000);
+
+    return () => clearInterval(timer);
+  });
 
   const handleDomainsChange = (domains: string[]) => {
     /*
@@ -246,10 +247,13 @@ const DashboardToolbar = ({
         </HStack>
 
         <Text fontSize="xs" color="fg.muted">
-          Обновлено:{" "}
+          Обновлено{" "}
           {lastUpdatedAt
-            ? lastUpdatedFormatter.format(new Date(lastUpdatedAt))
-            : "—"}
+            ? formatRelativeTime(
+                lastUpdatedAt,
+                relativeTimeNow || Date.parse(lastUpdatedAt),
+              )
+            : "-"}
         </Text>
       </Flex>
     </Flex>

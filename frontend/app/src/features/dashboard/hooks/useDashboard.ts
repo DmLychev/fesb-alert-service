@@ -27,7 +27,7 @@ const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
  *
  * Collapse bursts into at most one filtered snapshot request every 2 seconds.
  */
-const FILTERED_LIVE_REFRESH_INTERVAL_MS = 2_000;
+const LIVE_SNAPSHOT_REFRESH_DELAY_MS = 2_000;
 
 const useDashboard = () => {
   const preferences = getDashboardPreferences();
@@ -241,26 +241,26 @@ const useDashboard = () => {
     refreshDashboardRef.current = refreshDashboard;
   }, [refreshDashboard]);
 
-  const filteredLiveRefreshTimerRef = useRef<ReturnType<
+  const liveSnapshotRefreshTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
 
-  const scheduleFilteredLiveRefresh = useCallback(() => {
-    if (filteredLiveRefreshTimerRef.current) {
+  const scheduleSnapshotRefresh = useCallback(() => {
+    if (liveSnapshotRefreshTimerRef.current) {
       return;
     }
 
-    filteredLiveRefreshTimerRef.current = setTimeout(() => {
-      filteredLiveRefreshTimerRef.current = null;
+    liveSnapshotRefreshTimerRef.current = setTimeout(() => {
+      liveSnapshotRefreshTimerRef.current = null;
 
       void refreshDashboardRef.current();
-    }, FILTERED_LIVE_REFRESH_INTERVAL_MS);
+    }, LIVE_SNAPSHOT_REFRESH_DELAY_MS);
   }, []);
 
   useEffect(() => {
     return () => {
-      if (filteredLiveRefreshTimerRef.current) {
-        clearTimeout(filteredLiveRefreshTimerRef.current);
+      if (liveSnapshotRefreshTimerRef.current) {
+        clearTimeout(liveSnapshotRefreshTimerRef.current);
       }
     };
   }, []);
@@ -275,7 +275,7 @@ const useDashboard = () => {
        * reducer update remains valid even on a filtered dashboard.
        */
       if (hasBusinessFilters && event.type !== "requests_created") {
-        scheduleFilteredLiveRefresh();
+        scheduleSnapshotRefresh();
         return;
       }
 
@@ -290,9 +290,21 @@ const useDashboard = () => {
         now: Date.now(),
       });
 
+      if (
+        event.type === "issues_updated" &&
+        event.active_delta !== undefined &&
+        event.active_delta !== 0
+      )
+        scheduleSnapshotRefresh();
+
       setLastUpdatedAt(new Date().toISOString());
     },
-    [filters.domains.length, filters.routeIds.length, rangeKey, scheduleFilteredLiveRefresh],
+    [
+      filters.domains.length,
+      filters.routeIds.length,
+      rangeKey,
+      scheduleSnapshotRefresh,
+    ],
   );
 
   const liveStatus = useDashboardLiveUpdates({

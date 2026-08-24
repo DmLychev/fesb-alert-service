@@ -1,6 +1,14 @@
 import { Chart, useChart } from "@chakra-ui/charts";
 
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import type { IssueTypeStat } from "../types";
 
@@ -22,8 +30,14 @@ const IssueTypesChart = ({ data }: Props) => {
     data: chartData,
     series: [
       {
-        name: "count",
+        name: "unsolvedCount",
+        label: "Нерешённые",
         color: "orange.solid",
+      },
+      {
+        name: "solvedCount",
+        label: "Решённые",
+        color: "green.solid",
       },
     ],
   });
@@ -62,10 +76,19 @@ const IssueTypesChart = ({ data }: Props) => {
 
           <Tooltip cursor={false} content={<Chart.Tooltip />} />
 
+          <Legend content={<Chart.Legend />} />
+
           <Bar
-            dataKey={chart.key("count")}
-            fill={chart.color("orange.solid")}
-            radius={4}
+            dataKey={chart.key("unsolvedCount")}
+            stackId="issues"
+            fill={chart.color("red.solid")}
+            isAnimationActive={false}
+          />
+
+          <Bar
+            dataKey={chart.key("solvedCount")}
+            stackId="issues"
+            fill={chart.color("green.solid")}
             isAnimationActive={false}
           />
         </BarChart>

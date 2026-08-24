@@ -30,7 +30,7 @@ export interface IssueTypeStat {
   description: string;
   count: number;
   solvedCount: number;
-  unsoledCount: number;
+  unsolvedCount: number;
 }
 
 export interface RouteStat {
