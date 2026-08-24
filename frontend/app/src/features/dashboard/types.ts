@@ -29,6 +29,8 @@ export interface IssueTypeStat {
   code: number;
   description: string;
   count: number;
+  solvedCount: number;
+  unsoledCount: number;
 }
 
 export interface RouteStat {
@@ -37,9 +39,17 @@ export interface RouteStat {
   count: number;
 }
 
+export interface DashboardPreviousPeriodMetrics {
+  messages: number;
+  newIssues: number;
+  fesbFailures: number;
+}
+
 export interface DashboardSnapshot {
   generatedAt: string;
   activeIssues: number;
+  previousPeriod: DashboardPreviousPeriodMetrics;
+
   messageTraffic: MessageBucket[];
   issuesTimeline: IssueBucket[];
   issueTypes: IssueTypeStat[];

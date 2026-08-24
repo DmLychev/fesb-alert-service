@@ -74,6 +74,8 @@ class DashboardIssueTypeStat:
     code: int
     description: str
     count: int
+    solved_count: int
+    unsolved_count: int
 
 
 @strawberry.type
@@ -95,6 +97,12 @@ class DashboardFilterOptions:
     domains: list[str]
     routes: list[DashboardRouteOption]
 
+@strawberry.type
+class DashboardPreviousPeriodMetrics:
+    messages: int
+    new_issues: int
+    fesb_failures: int
+
 
 @strawberry.input
 class DashboardFiltersInput:
@@ -106,6 +114,7 @@ class DashboardFiltersInput:
 class DashboardSnapshot:
     generated_at: datetime
     active_issues: int
+    previous_period: DashboardPreviousPeriodMetrics
     message_traffic: list[DashboardMessageBucket]
     issues_timeline: list[DashboardIssueBucket]
     issue_types: list[DashboardIssueTypeStat]
@@ -362,6 +371,8 @@ def _issue_type_stats(
         )
         .annotate(
             count=Count("id"),
+            solved_count=Count("id", filter=Q(is_solved=True)),
+            unsolved_count=Count("id", filter=Q(is_solved=False)),
         )
         .order_by("-count", "type_id")
     )
@@ -371,6 +382,8 @@ def _issue_type_stats(
             code=row["type_id"],
             description=row["type__description"],
             count=row["count"],
+            solved_count=row["solved_count"],
+            unsolved_count=row["unsolved_count"],
         )
         for row in rows
     ]
@@ -425,6 +438,26 @@ def _active_issue_count(filters: DashboardFiltersInput | None) -> int:
     return queryset.count()
 
 
+def _previous_period_metrics(from_time: datetime, to_time:datetime, filters: DashboardFiltersInput | None) -> DashboardPreviousPeriodMetrics:
+    period = to_time - from_time
+    previous_from = from_time - period
+    previous_to = from_time
+
+    message_queryset = Message.objects.filter(start_date__gte=previous_from, start_date__lt=previous_to)
+    message_queryset = _apply_message_filters(message_queryset, filters)
+
+    issue_queryset = Issue.objects.filter(created_at__gte=previous_from, created_at__lt=previous_to)
+    issue_queryset = _apply_issue_filters(issue_queryset, filters)
+
+    fesb_query_queryset = FesbRequest.objects.filter(
+        created_at__gte=previous_from,created_at__lt=previous_to, is_successful=False
+    )
+
+    return DashboardPreviousPeriodMetrics(
+        messages=message_queryset.count(), new_issues=issue_queryset.count(), fesb_failures=fesb_query_queryset.count(),
+    )
+
+
 @strawberry.type
 class DashboardQuery:
     @strawberry.field(
@@ -455,6 +488,7 @@ class DashboardQuery:
         return DashboardSnapshot(
             generated_at=timezone.now(),
             active_issues=_active_issue_count(filters),
+            previous_period=_previous_period_metrics(from_time, to_time, filters),
             message_traffic=_message_buckets(
                 from_time,
                 to_time,

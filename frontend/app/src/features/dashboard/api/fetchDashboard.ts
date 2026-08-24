@@ -27,6 +27,11 @@ const GET_DASHBOARD = `
     ) {
       generatedAt
       activeIssues
+      previousPeriod {
+        messages
+        newIssues
+        fesbFailures
+      }
 
       messageTraffic {
         start
@@ -44,6 +49,8 @@ const GET_DASHBOARD = `
         code
         description
         count
+        solvedCount
+        unsolvedCount
       }
 
       problematicRoutes {
