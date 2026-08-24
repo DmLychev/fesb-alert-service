@@ -17,7 +17,7 @@ const GET_DASHBOARD = `
     $fromTime: DateTime!
     $toTime: DateTime!
     $bucket: DashboardBucket!
-    $filters: filters!
+    $filters: DashboardFiltersInput!
   ) {
     dashboard(
       fromTime: $fromTime
