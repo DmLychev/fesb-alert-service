@@ -12,7 +12,10 @@ import {
 
 import type { DashboardRangeKey, FesbRequestBucket } from "../types";
 import DashboardChartCard from "./DashboardChartCard";
-import { getChartDateFormat } from "../chartDateFormat";
+import {
+  getChartAxisDateFormat,
+  getChartTooltipDateFormat,
+} from "../chartDateFormat";
 
 interface Props {
   data: FesbRequestBucket[];
@@ -40,7 +43,10 @@ const FesbApiHealthChart = ({ data, rangeKey }: Props) => {
     ],
   });
 
-  const formatDate = chart.formatDate(getChartDateFormat(rangeKey));
+  const formatAxisDate = chart.formatDate(getChartAxisDateFormat(rangeKey));
+  const formatTooltipDate = chart.formatDate(
+    getChartTooltipDateFormat(rangeKey),
+  );
 
   return (
     <DashboardChartCard title="Доступность API FESB" isEmpty={!hasData}>
@@ -55,7 +61,7 @@ const FesbApiHealthChart = ({ data, rangeKey }: Props) => {
             axisLine={false}
             tickLine={false}
             dataKey={chart.key("start")}
-            tickFormatter={formatDate}
+            tickFormatter={formatAxisDate}
           />
 
           <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
@@ -63,7 +69,7 @@ const FesbApiHealthChart = ({ data, rangeKey }: Props) => {
           <Tooltip
             cursor={false}
             animationDuration={100}
-            labelFormatter={(value) => formatDate(String(value))}
+            labelFormatter={(value) => formatTooltipDate(String(value))}
             content={<Chart.Tooltip />}
           />
 

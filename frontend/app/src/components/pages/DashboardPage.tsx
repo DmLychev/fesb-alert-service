@@ -9,7 +9,10 @@ import ProblematicRoutesChart from "../../features/dashboard/components/Problema
 
 import useDashboard from "../../features/dashboard/hooks/useDashboard";
 
-import { getDashboardMetrics } from "../../features/dashboard/selectors";
+import {
+  getDashboardMetrics,
+  getMetricComparison,
+} from "../../features/dashboard/selectors";
 import DashboardToolbar from "../../features/dashboard/components/DashboardToolbar";
 
 const DashboardPage = () => {
@@ -54,6 +57,19 @@ const DashboardPage = () => {
 
   const metrics = getDashboardMetrics(dashboard);
 
+  const messageComparison = getMetricComparison(
+    metrics.messages,
+    dashboard.previousPeriod.messages,
+  );
+  const newIssuesComparison = getMetricComparison(
+    metrics.newIssues,
+    dashboard.previousPeriod.newIssues,
+  );
+  const fesbFailuresComparison = getMetricComparison(
+    metrics.fesbFailures,
+    dashboard.previousPeriod.fesbFailures,
+  );
+
   const formatPercentage = (value: number | null) =>
     value === null ? "—" : `${value.toFixed(1)}% успешно`;
 
@@ -93,23 +109,30 @@ const DashboardPage = () => {
         <DashboardKpiCard
           title="Сообщения"
           value={metrics.messages.toLocaleString()}
+          valueColor={metrics.messageFailures === 0 ? "green.fg" : "red.fg"}
           secondary={formatPercentage(metrics.messageSuccessRate)}
+          comparison={{ ...messageComparison, intent: "neutral" }}
         />
 
         <DashboardKpiCard
           title="Новые инциденты"
           value={metrics.newIssues.toLocaleString()}
+          valueColor={metrics.newIssues === 0 ? "green.fg" : "red.fg"}
+          comparison={{ ...newIssuesComparison, intent: "lower-is-better" }}
         />
 
         <DashboardKpiCard
           title="Активные инциденты"
           value={metrics.activeIssues.toLocaleString()}
+          valueColor={metrics.activeIssues === 0 ? "green.fg" : "red.fg"}
         />
 
         <DashboardKpiCard
           title="Ошибки API FESB"
           value={metrics.fesbFailures.toLocaleString()}
+          valueColor={metrics.fesbFailures === 0 ? "green.fg" : "red.fg"}
           secondary={formatPercentage(metrics.fesbSuccessRate)}
+          comparison={{ ...fesbFailuresComparison, intent: "lower-is-better" }}
         />
       </SimpleGrid>
 

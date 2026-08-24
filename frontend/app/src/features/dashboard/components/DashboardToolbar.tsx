@@ -118,7 +118,8 @@ const DashboardToolbar = ({
     const allowedRouteIds = new Set(
       (filterOptions?.routes ?? [])
         .filter(
-          (route) => domains.length === 0 || selectedDomains.has(route.domainName),
+          (route) =>
+            domains.length === 0 || selectedDomains.has(route.domainName),
         )
         .map((route) => route.id),
     );
@@ -193,7 +194,7 @@ const DashboardToolbar = ({
         />
 
         <MultiSelectFilter
-          title="Маршруты"
+          title="СОПС"
           options={routeOptions}
           selected={filters.routeIds}
           onChange={handleRoutesChange}
@@ -211,9 +212,7 @@ const DashboardToolbar = ({
           <Switch.Root
             checked={isLiveEnabled}
             colorPalette="green"
-            onCheckedChange={({ checked }) =>
-              onLiveEnabledChange(checked)
-            }
+            onCheckedChange={({ checked }) => onLiveEnabledChange(checked)}
           >
             <Switch.HiddenInput />
             <Switch.Control />
