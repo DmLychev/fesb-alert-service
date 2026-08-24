@@ -23,6 +23,7 @@ import type {
 
 import MultiSelectFilter from "./MultiSelectFilter";
 import { formatRelativeTime } from "../relativeTime";
+import ResetFilterButton from "./ResetFilterButton";
 
 interface DashboardToolbarProps {
   rangeKey: DashboardRangeKey;
@@ -140,6 +141,12 @@ const DashboardToolbar = ({
     });
   };
 
+  const hasFilters = filters.domains.length > 0 || filters.routeIds.length > 0;
+
+  const handleResetFilters = () => {
+    onFiltersChange({ domains: [], routeIds: [] });
+  };
+
   return (
     <Flex
       gap={4}
@@ -201,6 +208,11 @@ const DashboardToolbar = ({
           onChange={handleRoutesChange}
           disabled={!filterOptions}
           minWidth="240px"
+        />
+
+        <ResetFilterButton
+          disabled={!hasFilters}
+          onClick={handleResetFilters}
         />
 
         <RefreshButton

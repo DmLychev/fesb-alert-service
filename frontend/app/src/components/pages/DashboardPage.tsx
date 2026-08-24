@@ -1,4 +1,4 @@
-import { Box, Flex, SimpleGrid, Spinner, Text } from "@chakra-ui/react";
+import { Box, SimpleGrid, Text } from "@chakra-ui/react";
 
 import DashboardKpiCard from "../../features/dashboard/components/DashboardKpiCard";
 import FesbApiHealthChart from "../../features/dashboard/components/FesbApiHealthChart";
@@ -14,6 +14,7 @@ import {
   getMetricComparison,
 } from "../../features/dashboard/selectors";
 import DashboardToolbar from "../../features/dashboard/components/DashboardToolbar";
+import DashboardSkeleton from "../../features/dashboard/components/DashboardSkeleton";
 
 const DashboardPage = () => {
   const {
@@ -40,11 +41,7 @@ const DashboardPage = () => {
   } = useDashboard();
 
   if (!dashboard && loading) {
-    return (
-      <Flex height="full" align="center" justify="center">
-        <Spinner size="lg" />
-      </Flex>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (!dashboard) {

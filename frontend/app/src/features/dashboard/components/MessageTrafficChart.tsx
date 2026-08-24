@@ -50,7 +50,7 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
       },
       {
         name: "withoutFinalStatus",
-        label: "Без финального статуса",
+        label: "Без статуса",
         color: "orange.solid",
       },
       {
