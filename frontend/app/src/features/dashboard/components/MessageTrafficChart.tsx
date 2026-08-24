@@ -94,8 +94,7 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
             dataKey={chart.key("start")}
             tickFormatter={formatAxisDate}
             ticks={axisTicks}
-            interval={rangeKey === "week" ? 0 : "preserveStartEnd"}
-            minTickGap={rangeKey === "month" ? 6 : 24}
+            interval={0}
           />
 
           <YAxis

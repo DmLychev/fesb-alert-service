@@ -63,7 +63,7 @@ const FesbApiHealthChart = ({ data, rangeKey }: Props) => {
             dataKey={chart.key("start")}
             tickFormatter={formatAxisDate}
             ticks={axisTicks}
-            minTickGap={24}
+            interval={0}
           />
 
           <YAxis allowDecimals={false} axisLine={false} tickLine={false} />
