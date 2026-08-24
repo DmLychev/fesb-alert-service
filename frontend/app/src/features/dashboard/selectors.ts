@@ -46,10 +46,20 @@ export const getDashboardMetrics = (dashboard: DashboardSnapshot) => {
 
   return {
     messages: messages.total,
+    messageFailures: messages.failed,
     messageSuccessRate,
     newIssues,
     activeIssues: dashboard.activeIssues,
     fesbFailures: fesbRequests.failed,
     fesbSuccessRate,
   };
+};
+
+export const getMetricComparison = (current: number, previous: number) => {
+  const difference = current - previous;
+
+  const percentage =
+    previous === 0 ? (current === 0 ? 0 : null) : (difference / previous) * 100;
+
+  return { difference, percentage };
 };
