@@ -13,7 +13,6 @@ import type { DashboardRangeKey, MessageBucket } from "../types";
 
 import {
   getChartAxisDateFormatter,
-  getChartAxisTicks,
   getChartTooltipDateFormatter,
 } from "../chartDateFormat";
 
@@ -64,7 +63,6 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
 
   const formatAxisDate = getChartAxisDateFormatter(rangeKey);
   const formatTooltipDate = getChartTooltipDateFormatter(rangeKey);
-  const axisTicks = getChartAxisTicks(chartData, rangeKey);
 
   return (
     <DashboardChartCard
@@ -93,8 +91,7 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
             tickLine={false}
             dataKey={chart.key("start")}
             tickFormatter={formatAxisDate}
-            ticks={axisTicks}
-            interval={0}
+            minTickGap={24}
           />
 
           <YAxis
