@@ -12,8 +12,9 @@ import {
 import type { DashboardRangeKey, IssueBucket } from "../types";
 import DashboardChartCard from "./DashboardChartCard";
 import {
-  getChartAxisDateFormat,
-  getChartTooltipDateFormat,
+  getChartAxisDateFormatter,
+  getChartAxisTicks,
+  getChartTooltipDateFormatter,
 } from "../chartDateFormat";
 
 interface Props {
@@ -34,10 +35,9 @@ const IssuesTimelineChart = ({ data, rangeKey }: Props) => {
     ],
   });
 
-  const formatAxisDate = chart.formatDate(getChartAxisDateFormat(rangeKey));
-  const formatTooltipDate = chart.formatDate(
-    getChartTooltipDateFormat(rangeKey),
-  );
+  const formatAxisDate = getChartAxisDateFormatter(rangeKey);
+  const formatTooltipDate = getChartTooltipDateFormatter(rangeKey);
+  const axisTicks = getChartAxisTicks(data, rangeKey);
 
   return (
     <DashboardChartCard title="Инциденты во времени" isEmpty={!hasData}>
@@ -53,6 +53,8 @@ const IssuesTimelineChart = ({ data, rangeKey }: Props) => {
             tickLine={false}
             dataKey={chart.key("start")}
             tickFormatter={formatAxisDate}
+            ticks={axisTicks}
+            minTickGap={24}
           />
 
           <YAxis

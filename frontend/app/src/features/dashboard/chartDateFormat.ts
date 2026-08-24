@@ -4,13 +4,8 @@ interface ChartTimePoint {
   start: string;
 }
 
-const createDateFormatter = (
-  options: Intl.DateTimeFormatOptions,
-) => {
-  const formatter = new Intl.DateTimeFormat(
-    "ru-RU",
-    options,
-  );
+const createDateFormatter = (options: Intl.DateTimeFormatOptions) => {
+  const formatter = new Intl.DateTimeFormat("ru-RU", options);
 
   return (value: string | number): string => {
     const date = new Date(value);
@@ -23,10 +18,7 @@ const createDateFormatter = (
   };
 };
 
-
-export const getChartAxisDateFormatter = (
-  rangeKey: DashboardRangeKey,
-) => {
+export const getChartAxisDateFormatter = (rangeKey: DashboardRangeKey) => {
   switch (rangeKey) {
     case "hour":
     case "sixHours":
@@ -46,10 +38,7 @@ export const getChartAxisDateFormatter = (
   }
 };
 
-
-export const getChartTooltipDateFormatter = (
-  rangeKey: DashboardRangeKey,
-) => {
+export const getChartTooltipDateFormatter = (rangeKey: DashboardRangeKey) => {
   switch (rangeKey) {
     case "hour":
       return createDateFormatter({
@@ -71,7 +60,6 @@ export const getChartTooltipDateFormatter = (
       });
   }
 };
-
 
 /*
  * Used only for determining whether two timestamps belong
@@ -79,39 +67,25 @@ export const getChartTooltipDateFormatter = (
  *
  * The year is included even though it isn't displayed on the axis.
  */
-const dayKeyFormatter = new Intl.DateTimeFormat(
-  "ru-RU",
-  {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  },
-);
+const dayKeyFormatter = new Intl.DateTimeFormat("ru-RU", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
-
-const sampleEvenly = <T,>(
-  values: T[],
-  maximum: number,
-): T[] => {
+const sampleEvenly = <T>(values: T[], maximum: number): T[] => {
   if (values.length <= maximum) {
     return values;
   }
 
   const lastIndex = values.length - 1;
 
-  return Array.from(
-    { length: maximum },
-    (_, index) => {
-      const sourceIndex = Math.round(
-        (index * lastIndex) /
-          (maximum - 1),
-      );
+  return Array.from({ length: maximum }, (_, index) => {
+    const sourceIndex = Math.round((index * lastIndex) / (maximum - 1));
 
-      return values[sourceIndex];
-    },
-  );
+    return values[sourceIndex];
+  });
 };
-
 
 /*
  * For short periods Recharts may select ticks normally.
@@ -129,10 +103,7 @@ export const getChartAxisTicks = (
   data: ChartTimePoint[],
   rangeKey: DashboardRangeKey,
 ): string[] | undefined => {
-  if (
-    rangeKey !== "week" &&
-    rangeKey !== "month"
-  ) {
+  if (rangeKey !== "week" && rangeKey !== "month") {
     return undefined;
   }
 
@@ -162,10 +133,5 @@ export const getChartAxisTicks = (
     dailyTicks.push(point.start);
   }
 
-  return sampleEvenly(
-    dailyTicks,
-    rangeKey === "week"
-      ? 7
-      : 6,
-  );
+  return dailyTicks;
 };

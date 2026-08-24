@@ -12,8 +12,9 @@ import {
 import type { DashboardRangeKey, MessageBucket } from "../types";
 
 import {
-  getChartAxisDateFormat,
-  getChartTooltipDateFormat,
+  getChartAxisDateFormatter,
+  getChartAxisTicks,
+  getChartTooltipDateFormatter,
 } from "../chartDateFormat";
 
 import DashboardChartCard from "./DashboardChartCard";
@@ -61,10 +62,9 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
     ],
   });
 
-  const formatAxisDate = chart.formatDate(getChartAxisDateFormat(rangeKey));
-  const formatTooltipDate = chart.formatDate(
-    getChartTooltipDateFormat(rangeKey),
-  );
+  const formatAxisDate = getChartAxisDateFormatter(rangeKey);
+  const formatTooltipDate = getChartTooltipDateFormatter(rangeKey);
+  const axisTicks = getChartAxisTicks(chartData, rangeKey);
 
   return (
     <DashboardChartCard
@@ -93,6 +93,9 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
             tickLine={false}
             dataKey={chart.key("start")}
             tickFormatter={formatAxisDate}
+            ticks={axisTicks}
+            interval={rangeKey === "week" ? 0 : "preserveStartEnd"}
+            minTickGap={rangeKey === "month" ? 6 : 24}
           />
 
           <YAxis
