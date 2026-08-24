@@ -3,10 +3,11 @@ import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import fetchDashboard from "../api/fetchDashboard";
 import { DASHBOARD_RANGES } from "../dashboardRanges";
 import dashboardReducer from "../dashboardReducer";
-import type {
-  DashboardFilters,
-  DashboardLiveEvent,
-  DashboardRangeKey,
+import {
+  type DashboardFilterOptions,
+  type DashboardFilters,
+  type DashboardLiveEvent,
+  type DashboardRangeKey,
 } from "../types";
 
 import useDashboardLiveUpdates from "./useDashboardLiveUpdates";
@@ -15,6 +16,7 @@ import {
   saveDashboardPreference,
   DEFAULT_DASHBOARD_FILTERS,
 } from "../dashboardPreferences";
+import fetchDashboardFilterOptions from "../api/fetchDashboardFilterOptions";
 
 const RECONCILE_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -48,6 +50,9 @@ const useDashboard = () => {
 
   const [dashboard, dispatch] = useReducer(dashboardReducer, null);
 
+  const [filterOptions, setFilterOptions] =
+    useState<DashboardFilterOptions | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +65,17 @@ const useDashboard = () => {
     preferences.liveEnabled ?? false,
   );
 
-  const refresh = useCallback(() => {
+  const refreshFilterOptions = useCallback(async () => {
+    const options = await fetchDashboardFilterOptions();
+
+    setFilterOptions(options);
+  }, []);
+
+  const refreshDashboard = useCallback(() => {
     const requestNumber = ++requestNumberRef.current;
 
-    fetchDashboard(rangeKey)
+    refreshFilterOptions()
+      .then(() => fetchDashboard(rangeKey, filters))
       .then((snapshot) => {
         if (requestNumber !== requestNumberRef.current) {
           return;
@@ -94,7 +106,7 @@ const useDashboard = () => {
           setLoading(false);
         }
       });
-  }, [rangeKey]);
+  }, [rangeKey, filters, refreshFilterOptions]);
 
   const handleLiveEvent = useCallback(
     (event: DashboardLiveEvent) => {
@@ -113,7 +125,7 @@ const useDashboard = () => {
   const liveStatus = useDashboardLiveUpdates({
     enabled: isLiveEnabled,
     onEvent: handleLiveEvent,
-    onReconnect: refresh,
+    onReconnect: refreshDashboard,
   });
 
   useEffect(() => {
@@ -121,14 +133,14 @@ const useDashboard = () => {
       return;
     }
 
-    const timer = setInterval(refresh, RECONCILE_INTERVAL_MS);
+    const timer = setInterval(refreshDashboard, RECONCILE_INTERVAL_MS);
 
     return () => clearInterval(timer);
-  }, [refresh, isLiveEnabled]);
+  }, [refreshDashboard, isLiveEnabled]);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void refreshDashboard();
+  }, [refreshDashboard]);
 
   useEffect(() => {
     if (!isLiveEnabled) {
@@ -169,7 +181,7 @@ const useDashboard = () => {
       const staleFor = Date.now() - lastRefreshRef.current;
 
       if (staleFor > RECONCILE_INTERVAL_MS) {
-        refresh();
+        refreshDashboard();
       }
     };
 
@@ -178,7 +190,7 @@ const useDashboard = () => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refresh, isLiveEnabled]);
+  }, [refreshDashboard, isLiveEnabled]);
 
   const setIsLiveEnabled = useCallback(
     (enabled: boolean) => {
@@ -187,25 +199,31 @@ const useDashboard = () => {
       saveDashboardPreference("liveEnabled", enabled);
 
       if (enabled) {
-        refresh();
+        refreshDashboard();
       }
     },
-    [refresh],
+    [refreshDashboard],
   );
 
   return {
     dashboard,
+
     rangeKey,
     setRangeKey,
+
+    filters,
+    setFilters,
+
+    filterOptions,
+
     liveStatus,
     loading,
     error,
-    refresh,
+    refreshDashboard,
     lastUpdatedAt,
+
     isLiveEnabled,
     setIsLiveEnabled,
-    filters,
-    setFilters,
   };
 };
 

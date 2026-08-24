@@ -96,6 +96,12 @@ class DashboardFilterOptions:
     routes: list[DashboardRouteOption]
 
 
+@strawberry.input
+class DashboardFiltersInput:
+    domains: list[str] | None = None
+    route_ids: list[str] | None = None
+
+
 @strawberry.type
 class DashboardSnapshot:
     generated_at: datetime
@@ -146,17 +152,42 @@ def _floor_to_bucket(
     )
 
 
+def _apply_message_filters(queryset, filters: DashboardFiltersInput | None):
+    if filters is None:
+        return queryset
+
+    if filters.domains:
+        queryset = queryset.filter(route__domain_name__in=filters.domains)
+
+    if filters.route_ids:
+        queryset = queryset.filter(route_id__in=filters.route_ids)
+
+    return queryset
+
+
+def _apply_issue_filters(queryset, filters: DashboardFiltersInput | None):
+    if filters is None:
+        return queryset
+
+    if filters.domains:
+        queryset = queryset.filter(domain_name__in=filters.domains)
+
+    if filters.route_ids:
+        queryset = queryset.filter(route_id__in=filters.route_ids)
+
+    return queryset
+
+
 def _message_buckets(
         from_time: datetime,
         to_time: datetime,
         duration: timedelta,
+        filters: DashboardFiltersInput | None = None,
 ) -> list[DashboardMessageBucket]:
+    queryset = Message.objects.filter(start_date__gte=from_time, start_date__lt=to_time)
+    queryset = _apply_message_filters(queryset, filters)
     rows = list(
-        Message.objects
-        .filter(
-            start_date__gte=from_time,
-            start_date__lt=to_time,
-        )
+        queryset
         .annotate(
             bucket=_bucket_expression(
                 "start_date",
@@ -211,13 +242,12 @@ def _issue_buckets(
         from_time: datetime,
         to_time: datetime,
         duration: timedelta,
+        filters: DashboardFiltersInput | None
 ) -> list[DashboardIssueBucket]:
+    queryset = Issue.objects.filter(created_at__gte=from_time, created_at__lt=to_time)
+    queryset = _apply_issue_filters(queryset, filters)
     rows = list(
-        Issue.objects
-        .filter(
-            created_at__gte=from_time,
-            created_at__lt=to_time,
-        )
+        queryset
         .annotate(
             bucket=_bucket_expression(
                 "created_at",
@@ -320,13 +350,12 @@ def _fesb_request_buckets(
 def _issue_type_stats(
         from_time: datetime,
         to_time: datetime,
+        filters: DashboardFiltersInput | None
 ) -> list[DashboardIssueTypeStat]:
+    queryset = Issue.objects.filter(created_at__gte=from_time, created_at__lt=to_time)
+    queryset = _apply_issue_filters(queryset, filters)
     rows = (
-        Issue.objects
-        .filter(
-            created_at__gte=from_time,
-            created_at__lt=to_time,
-        )
+        queryset
         .values(
             "type_id",
             "type__description",
@@ -350,13 +379,12 @@ def _issue_type_stats(
 def _route_stats(
         from_time: datetime,
         to_time: datetime,
+        filters: DashboardFiltersInput | None
 ) -> list[DashboardRouteStat]:
+    queryset = Issue.objects.filter(created_at__gte=from_time, created_at__lt=to_time)
+    queryset = _apply_issue_filters(queryset, filters)
     rows = list(
-        Issue.objects
-        .filter(
-            created_at__gte=from_time,
-            created_at__lt=to_time,
-        )
+        queryset
         .exclude(route_id__isnull=True)
         .exclude(route_id="")
         .values("route_id")
@@ -390,6 +418,13 @@ def _route_stats(
     ]
 
 
+def _active_issue_count(filters: DashboardFiltersInput | None) -> int:
+    queryset = Issue.objects.filter(is_solved=False)
+    queryset = _apply_issue_filters(queryset, filters)
+
+    return queryset.count()
+
+
 @strawberry.type
 class DashboardQuery:
     @strawberry.field(
@@ -400,6 +435,7 @@ class DashboardQuery:
             from_time: datetime,
             to_time: datetime,
             bucket: DashboardBucket,
+            filters: DashboardFiltersInput | None = None
     ) -> DashboardSnapshot:
         from_time = _normalize_datetime(from_time)
         to_time = _normalize_datetime(to_time)
@@ -418,26 +454,28 @@ class DashboardQuery:
 
         return DashboardSnapshot(
             generated_at=timezone.now(),
-            active_issues=Issue.objects.filter(
-                is_solved=False
-            ).count(),
+            active_issues=_active_issue_count(filters),
             message_traffic=_message_buckets(
                 from_time,
                 to_time,
                 duration,
+                filters
             ),
             issues_timeline=_issue_buckets(
                 from_time,
                 to_time,
                 duration,
+                filters
             ),
             issue_types=_issue_type_stats(
                 from_time,
                 to_time,
+                filters
             ),
             problematic_routes=_route_stats(
                 from_time,
                 to_time,
+                filters
             ),
             fesb_api_health=_fesb_request_buckets(
                 from_time,
