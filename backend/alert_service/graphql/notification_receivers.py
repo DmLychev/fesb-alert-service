@@ -4,7 +4,6 @@ from strawberry import auto
 
 from typing_extensions import Self
 
-from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
@@ -244,10 +243,10 @@ class NotificationReceiverMutation:
         elif data.scope == NotificationScope.ROUTE:
             routes = list(Route.objects.filter(id__in=data.route_ids, is_active=True, is_tracked=True))
             existing_route_ids = {route.id for route in routes}
-            mission_route_ids = set(data.route_ids) - existing_route_ids
+            missing_route_ids = set(data.route_ids) - existing_route_ids
 
-            if mission_route_ids:
-                raise GraphQLError("Unknown or untracked routes: " + ", ".join(sorted(mission_route_ids)))
+            if missing_route_ids:
+                raise GraphQLError("Unknown or untracked routes: " + ", ".join(sorted(missing_route_ids)))
 
         created_count = 0
         skipped_duplicates = 0
