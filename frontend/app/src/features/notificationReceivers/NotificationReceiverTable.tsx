@@ -28,12 +28,7 @@ const NotificationReceiverTable = ({
     getRowId={(receiver) => receiver.id}
     editing={notificationReceiverEditingConfig}
     toolbarActions={
-      <Button
-        size="sm"
-        onClick={onAddSubscription}
-        colorPalette="green"
-        variant="surface"
-      >
+      <Button size="sm" onClick={onAddSubscription} variant="outline">
         <LuPlus />
         Добавить
       </Button>

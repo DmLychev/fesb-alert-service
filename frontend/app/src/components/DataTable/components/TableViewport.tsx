@@ -53,7 +53,6 @@ const TableViewport = <TData,>({
       <Table.Root
         variant="outline"
         showColumnBorder
-        interactive
         tableLayout="fixed"
         style={{
           borderCollapse: "separate",
@@ -62,7 +61,7 @@ const TableViewport = <TData,>({
       >
         <Table.Header>
           {table.getHeaderGroups().map((headerGroup) => (
-            <Table.Row key={headerGroup.id}>
+            <Table.Row key={headerGroup.id} _hover={{ bg: "bg.muted" }}>
               {headerGroup.headers.map((header) => {
                 const sortDirection = header.column.getIsSorted();
                 const isEditableColumn = Boolean(
@@ -83,7 +82,7 @@ const TableViewport = <TData,>({
                         ? "orange.subtle"
                         : !isEditingMode && isFilteredColumn
                           ? "blue.subtle"
-                          : "bg.muted"
+                          : "bg.emphasized"
                     }
                     style={{
                       width: header.getSize(),
@@ -105,7 +104,7 @@ const TableViewport = <TData,>({
                     borderBottomColor={
                       isEditingMode && isEditableColumn
                         ? "orange.solid"
-                        : "border.muted"
+                        : "border.emphasized"
                     }
                   >
                     {header.isPlaceholder ? null : isSelectionColumn ? (
@@ -267,7 +266,13 @@ const TableViewport = <TData,>({
           ) : (
             // 3. RENDER REAL DATA ROWS NATIVELY
             table.getRowModel().rows.map((row) => (
-              <Table.Row key={row.id}>
+              <Table.Row
+                key={row.id}
+                bg={row.getIsSelected() ? "blue.subtle" : "bg.panel"}
+                _hover={{
+                  bg: row.getIsSelected() ? "blue.subtle" : "bg.muted",
+                }}
+              >
                 {row.getVisibleCells().map((cell) => {
                   const editableDefinition = editableFields?.[cell.column.id];
                   const rowChanges = pendingChanges[row.id];
@@ -301,13 +306,7 @@ const TableViewport = <TData,>({
                       textOverflow="ellipsis"
                       borderBottomWidth="1px"
                       borderBottomColor="border.muted"
-                      bg={
-                        isDirty
-                          ? "orange.muted"
-                          : cell.column.getIsPinned()
-                            ? "bg.panel"
-                            : undefined
-                      }
+                      bg={isDirty ? "orange.muted" : "inherit"}
                       style={{
                         width: cell.column.getSize(),
                         minWidth: cell.column.getSize(),
@@ -321,15 +320,6 @@ const TableViewport = <TData,>({
                       onClick={
                         canToggleSelection
                           ? () => row.toggleSelected()
-                          : undefined
-                      }
-                      _hover={
-                        canToggleSelection
-                          ? {
-                              bg: row.getIsSelected()
-                                ? "blue.subtle"
-                                : "bg.muted",
-                            }
                           : undefined
                       }
                     >
