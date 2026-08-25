@@ -454,37 +454,6 @@ async def get_issues(unsolved_only: bool = False, created_on_date: datetime | No
     return rows
 
 
-async def get_receivers(issue_type_id: int | None = None, route_id: str | None = None, domain_name: str | None = None,
-                        session: AsyncSession | None = None) -> Sequence[NotificationReceiver]:
-    """
-    Получить email для отправки уведомления.
-    :param issue_type_id:
-    :param route_id: Идентификатор СОПС.
-    :param domain_name: Название домена СОПС.
-    :param session:
-    :return:
-    """
-    query = select(NotificationReceiver)
-
-    if issue_type_id:
-        query = query.where(NotificationReceiver.issue_type_id == issue_type_id)
-    if route_id:
-        query = query.where(NotificationReceiver.route_id == route_id)
-    if domain_name:
-        query = query.where(NotificationReceiver.domain_name == domain_name)
-
-    if session and session.is_active:
-        res = await session.execute(query)
-        rows = res.scalars().all()
-
-    else:
-        async with db_session_maker() as new_session:
-            res = await new_session.execute(query)
-            rows = res.scalars().all()
-
-    return rows
-
-
 async def save_fesb_request(is_successful: bool,
                             type_id: int,
                             details: str | None = None,
@@ -551,7 +520,7 @@ async def get_previous_fesb_requests(req: FesbRequest, quantity: int,
 
 
 async def get_receiver_emails_for_issue(issue: Issue, session: AsyncSession | None = None) -> list[str]:
-    scope_conditions = [and_(NotificationReceiver.route_id_is_(None), NotificationReceiver.domain_name.is_(None))]
+    scope_conditions = [and_(NotificationReceiver.route_id.is_(None), NotificationReceiver.domain_name.is_(None))]
 
     if issue.domain_name:
         scope_conditions.append(
@@ -589,17 +558,3 @@ async def get_receiver_emails_for_issue(issue: Issue, session: AsyncSession | No
 
     async with db_session_maker() as new_session:
         return await execute_query(new_session)
-
-
-async def define_receivers(issue: Issue, session: AsyncSession) -> list[str]:
-    emails = await get_receiver_emails_for_issue(issue, session)
-
-    if emails:
-        return emails
-
-    admin_email = await get_settings("admin_email")
-
-    if await get_settings("inform_admin_if_no_receivers") and admin_email:
-        return [admin_email]
-
-    return []

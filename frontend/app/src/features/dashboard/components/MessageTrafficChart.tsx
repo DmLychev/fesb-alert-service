@@ -112,10 +112,10 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
 
           <Area
             type="monotone"
-            dataKey={chart.key("successful")}
+            dataKey={chart.key("failed")}
             stackId="messages"
-            stroke={chart.color("green.solid")}
-            fill={chart.color("green.subtle")}
+            stroke={chart.color("red.solid")}
+            fill={chart.color("red.subtle")}
             isAnimationActive={false}
           />
 
@@ -130,10 +130,10 @@ const MessageTrafficChart = ({ data, rangeKey }: Props) => {
 
           <Area
             type="monotone"
-            dataKey={chart.key("failed")}
+            dataKey={chart.key("successful")}
             stackId="messages"
-            stroke={chart.color("red.solid")}
-            fill={chart.color("red.subtle")}
+            stroke={chart.color("green.solid")}
+            fill={chart.color("green.subtle")}
             isAnimationActive={false}
           />
         </AreaChart>

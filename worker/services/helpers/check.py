@@ -3,16 +3,14 @@
 """
 
 import logging
-import traceback
-from aiohttp.client_exceptions import ClientConnectorError, ClientResponseError
 
 from sqlalchemy import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Message, Route, Issue, FesbRequest
 from .db import (get_previous_messages_in_route, get_last_warning_levels_for_routes_in_domain, save_issue,
-                 get_following_messages, get_issues, get_receivers, get_previous_fesb_requests, get_fesb_requests,
-                 get_settings)
+                 get_following_messages, get_issues, get_previous_fesb_requests, get_fesb_requests,
+                 get_settings, get_receiver_emails_for_issue)
 
 logger = logging.getLogger("scoring")
 
@@ -123,25 +121,17 @@ async def check_issue_is_solved(issue: Issue, session: AsyncSession, unsolved_is
 
 
 async def define_receivers(issue: Issue, session: AsyncSession) -> list[str]:
-    """
-    Определить получателей для отправки уведомления email о проблеме.
-    :param issue:
-    :param session:
-    :return:
-    """
-    admin_email = await get_settings('admin_email')
-    # Определить получателей
-    kwargs = {}
-    if issue.domain_name:
-        kwargs['domain_name'] = issue.domain_name
-    elif issue.type_id:
-        kwargs['issue_type_id'] = issue.type_id
-    receivers = await get_receivers(**kwargs, session=session)
+    emails = await get_receiver_emails_for_issue(issue, session)
 
-    emails = [r.email for r in receivers if r.issue_type == issue.type_id or r.issue_type is None]
-    if not emails and await get_settings('inform_admin_if_no_receivers') and admin_email:
+    if emails:
+        return emails
+
+    admin_email = await get_settings("admin_email")
+
+    if await get_settings("inform_admin_if_no_receivers") and admin_email:
         return [admin_email]
-    return emails
+
+    return []
 
 
 async def check_request_and_create_issue(req: FesbRequest, session: AsyncSession) -> FesbRequest:
