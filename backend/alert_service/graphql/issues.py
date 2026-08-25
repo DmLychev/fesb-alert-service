@@ -27,7 +27,7 @@ class IssueType:
     text: Optional[str]
     route_id: Optional[str]
     domain_name: Optional[str]
-    is_notified: bool
+    is_notified: Optional[bool]
     is_solved: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime

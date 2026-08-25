@@ -6,7 +6,7 @@ import redis.asyncio as redis
 from channels.layers import get_channel_layer
 from django.core.management.base import BaseCommand
 
-from alert_service.models import Route
+from alert_service.models import Route, IssueType
 
 REDIS_CHANNELS = ('messages', "issues", "requests")
 CHANNELS_GROUP = 'live_updates'
@@ -56,7 +56,8 @@ class Command(BaseCommand):
         route_name = None
 
         if type_code is not None:
-            type_description = await Route.objects.filter(id=route_id).values_list("description", flat=True).afirst()
+            type_description = await IssueType.objects.filter(code=type_code).values_list("description",
+                                                                                          flat=True).afirst()
 
         if route_id is not None:
             route_name = await Route.objects.filter(id=route_id).values_list("name", flat=True).afirst()

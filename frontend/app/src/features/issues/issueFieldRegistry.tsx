@@ -69,7 +69,7 @@ export const ISSUE_FIELD_REGISTRY = {
       enableSorting: true,
       cell: ({ getValue }) => <BooleanCell value={getValue()} />,
     },
-    value: { type: "boolean" },
+    value: { type: "boolean", nullable: true },
     filter: true,
     edit: true,
   },

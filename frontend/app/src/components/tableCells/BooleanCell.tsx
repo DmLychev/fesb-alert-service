@@ -2,10 +2,12 @@ import { Circle } from "@chakra-ui/react";
 import { LuCheck, LuX } from "react-icons/lu";
 
 interface BooleanCellProps {
-  value: boolean;
+  value: boolean | null;
 }
 
 const BooleanCell = ({ value }: BooleanCellProps) => {
+  if (value === null) return "";
+
   const label = value ? "Да" : "Нет";
 
   return (

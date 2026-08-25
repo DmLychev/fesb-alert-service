@@ -12,7 +12,7 @@ export interface Issue {
   text: string | null;
   routeId: string | null;
   domainName: string | null;
-  isNotified: boolean;
+  isNotified: boolean | null;
   isSolved: boolean;
   createdAt: DateTimeString;
   updatedAt: DateTimeString;

@@ -191,6 +191,7 @@ async def save_issue(type_id: int, text: str, route_id: str | None = None, domai
              .where(Issue.route_id == route_id)
              .where(Issue.domain_name == domain_name)
              .where(Issue.text == text)
+             .where(Issue.is_solved != True)
              )
 
     if session and session.is_active:
@@ -204,7 +205,7 @@ async def save_issue(type_id: int, text: str, route_id: str | None = None, domai
         async with db_session_maker() as new_session:
             duplicate_issues = await new_session.execute(query)
             if duplicate_issues.scalars().first():
-                logger.debug(f"Новая проблема с кодом {issue_code} не создана, так как существует такая же нерешенная.")
+                logger.info(f"Новая проблема с кодом {issue_code} не создана, так как существует такая же нерешенная.")
                 return None
             new_session.add(issue)
             await new_session.commit()

@@ -101,23 +101,26 @@ async def process_issues():
                             continue
 
                         # Отправить уведомление
-                        if not issue.is_notified and issue.type_id not in [103, 104]:
+                        if issue.is_notified == False:
                             receivers = await define_receivers(issue, session)
+
                             if receivers:
                                 logger.debug(f'Готовится отправка уведомлений следующим получателям: {receivers}')
+
+                                for receiver in receivers:
+                                    await send_email(
+                                        subject=f"{issue.type_id} | Ошибка в работе интеграционной шины FESB",
+                                        body=issue.text,
+                                        receiver_email=receiver
+                                    )
+                                    await asyncio.sleep(await get_settings('smtp_delay', session))
+
+                                issue.is_notified = True
                             else:
                                 logger.debug(
                                     f'Отсутствуют получатели для доставки уведомления о проблеме с кодом {issue.type_id}.')
+                                issue.is_notified = None
 
-                            for receiver in receivers:
-                                await send_email(
-                                    subject=f"{issue.type_id} | Ошибка в работе интеграционной шины FESB",
-                                    body=issue.text,
-                                    receiver_email=receiver
-                                )
-                                await asyncio.sleep(await get_settings('smtp_delay', session))
-
-                            issue.is_notified = True
                             await session.commit()
                             await publish_updated_issues(
                                 [issue.id],
