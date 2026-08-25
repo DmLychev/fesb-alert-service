@@ -36,6 +36,7 @@ const DataTable = <TData,>({
   getRowId,
   liveUpdates,
   editing,
+  toolbarActions,
 }: DataTableProps<TData>) => {
   // Постоянные параметры таблицы, хранимые в локальном хранилище браузера
   const { preferences, updatePreferences } = useTablePreferences(
@@ -317,6 +318,7 @@ const DataTable = <TData,>({
   const defaultRight = (
     <DefaultToolbarActions
       table={table}
+      customActions={toolbarActions}
       showEditButton={Boolean(editing?.updateRow || editing?.deleteRows)}
       isRefreshing={isRefreshing}
       hasFilterFields={hasFilterFields}

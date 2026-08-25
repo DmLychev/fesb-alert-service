@@ -9,6 +9,7 @@ import { flexRender, type Table as TanstackTable } from "@tanstack/react-table";
 import { getPinnedColumnStyles } from "../utils/getPinnedColumnStyles";
 import EditableCell from "./EditableCell";
 import { SELECT_COLUMN_ID } from "../constants";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 interface TableViewportProps<TData> {
   table: TanstackTable<TData>;
@@ -38,17 +39,70 @@ const TableViewport = <TData,>({
   onDraftChange,
 }: TableViewportProps<TData>) => {
   const tableWidth = table.getTotalSize();
-  const scrollbarSpace = 20;
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const [verticalScrollbarWidth, setVerticalScrollbarWidth] = useState(0);
+
+  const measureScrollbar = useCallback(() => {
+    const element = scrollAreaRef.current;
+
+    if (!element) return;
+
+    const styles = window.getComputedStyle(element);
+
+    const borderWidth =
+      parseFloat(styles.borderLeftWidth) + parseFloat(styles.borderRightWidth);
+    const scrollbarWidth = Math.max(
+      0,
+      element.offsetWidth - element.clientWidth - borderWidth,
+    );
+    const hasVerticalScrollbar =
+      element.scrollHeight > element.clientHeight + 1;
+    const nextWidth = hasVerticalScrollbar ? scrollbarWidth : 0;
+
+    setVerticalScrollbarWidth((current) =>
+      Math.abs(current - nextWidth) > 1 ? nextWidth : current,
+    );
+  }, []);
+
+  const rowCount = table.getRowModel().rows.length;
+
+  useLayoutEffect(() => {
+    const element = scrollAreaRef.current;
+
+    if (!element) return;
+
+    let frame = requestAnimationFrame(measureScrollbar);
+
+    const resizeObserver = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measureScrollbar);
+    });
+
+    resizeObserver.observe(element);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+    };
+  }, [
+    measureScrollbar,
+    tableWidth,
+    rowCount,
+    showSkeleton,
+    pageSize,
+    isEditingMode,
+  ]);
 
   return (
     <Table.ScrollArea
       borderWidth="1px"
       rounded="md"
-      width={`min(100%, ${tableWidth + scrollbarSpace}px)`}
+      width={`min(100%, ${tableWidth + verticalScrollbarWidth}px)`}
       maxWidth="full"
       minWidth={0}
       minHeight={0}
-      alignSelf="center"
+      alignSelf="flex-start"
       flex="0 1 auto"
       overflowX="auto"
       overflowY="auto"

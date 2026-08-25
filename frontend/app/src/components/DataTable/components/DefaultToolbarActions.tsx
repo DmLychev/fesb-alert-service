@@ -4,9 +4,11 @@ import { HStack } from "@chakra-ui/react";
 import FilterButton from "./FilterButton";
 import TableSettings from "./TableSettings";
 import RefreshButton from "../../RefreshButton";
+import type { ReactNode } from "react";
 
 interface DefaultToolbarActionsProps<TData> {
   table: Table<TData>;
+  customActions?: ReactNode;
   showEditButton: boolean;
   isRefreshing: boolean;
   hasFilterFields: boolean;
@@ -23,6 +25,7 @@ interface DefaultToolbarActionsProps<TData> {
 
 const DefaultToolbarActions = <TData,>({
   table,
+  customActions,
   showEditButton,
   isRefreshing,
   hasFilterFields,
@@ -38,6 +41,8 @@ const DefaultToolbarActions = <TData,>({
 }: DefaultToolbarActionsProps<TData>) => {
   return (
     <HStack gap={2} flexWrap="wrap" justifyContent="flex-end">
+      {customActions}
+
       {showEditButton && <EditingModeButton onClick={onStartEditing} />}
 
       <RefreshButton

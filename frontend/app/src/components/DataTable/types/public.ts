@@ -8,6 +8,7 @@ import type { HeterogeneousColumnDef } from "./fields";
 import type { FilterFieldRegistry, UiFilterRow } from "./filters";
 import type { LiveUpdateConfig } from "./liveUpdates";
 import type { DataTableEditingConfig } from "./editing";
+import type { ReactNode } from "react";
 
 export interface TablePreferences {
   version: number;
@@ -44,4 +45,6 @@ export interface DataTableProps<Tdata> {
   liveUpdates?: LiveUpdateConfig;
 
   editing?: DataTableEditingConfig<Tdata>;
+
+  toolbarActions?: ReactNode;
 }
