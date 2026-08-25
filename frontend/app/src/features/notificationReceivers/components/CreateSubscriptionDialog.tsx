@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   Dialog,
   Field,
   HStack,
@@ -12,11 +11,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchSubscriptionOptions } from "../api/fetchSubscriptionOptions";
 import { createNotificationSubscription } from "../api/notificationReceiverMutations";
@@ -31,7 +26,6 @@ import { toaster } from "../../../components/ui/toaster";
 
 import SubscriptionMultiSelect from "./SubscriptionMultiSelect";
 
-
 interface CreateSubscriptionDialogProps {
   open: boolean;
 
@@ -39,64 +33,44 @@ interface CreateSubscriptionDialogProps {
   onCreated: () => void;
 }
 
+type IssueTypeSelectionMode = "ALL" | "SELECTED";
 
-const SCOPE_DESCRIPTIONS: Record<
-  NotificationScope,
-  string
-> = {
-  GLOBAL:
-    "Получать выбранные типы ошибок независимо от домена или СОПС.",
+const SCOPE_DESCRIPTIONS: Record<NotificationScope, string> = {
+  GLOBAL: "Получать выбранные типы ошибок независимо от домена или СОПС.",
 
-  DOMAIN:
-    "Получать ошибки, относящиеся к выбранным доменам.",
+  DOMAIN: "Получать ошибки, относящиеся к выбранным доменам.",
 
-  ROUTE:
-    "Получать ошибки только для выбранных СОПС.",
+  ROUTE: "Получать ошибки только для выбранных СОПС.",
 };
-
 
 const CreateSubscriptionDialog = ({
   open,
   onOpenChange,
   onCreated,
 }: CreateSubscriptionDialogProps) => {
-  const [options, setOptions] =
-    useState<SubscriptionOptions | null>(null);
+  const [options, setOptions] = useState<SubscriptionOptions | null>(null);
 
-  const [isLoadingOptions, setIsLoadingOptions] =
-    useState(false);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
-  const [optionsError, setOptionsError] =
-    useState<string | null>(null);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
 
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [email, setEmail] = useState("");
 
-  const [scope, setScope] =
-    useState<NotificationScope>("GLOBAL");
+  const [scope, setScope] = useState<NotificationScope>("GLOBAL");
 
-  const [
-    selectedDomains,
-    setSelectedDomains,
-  ] = useState<string[]>([]);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
 
-  const [
-    selectedRouteIds,
-    setSelectedRouteIds,
-  ] = useState<string[]>([]);
+  const [selectedRouteIds, setSelectedRouteIds] = useState<string[]>([]);
 
-  const [
-    selectedIssueTypeCodes,
-    setSelectedIssueTypeCodes,
-  ] = useState<number[]>([]);
+  const [selectedIssueTypeCodes, setSelectedIssueTypeCodes] = useState<
+    number[]
+  >([]);
 
-  const [
-    allIssueTypes,
-    setAllIssueTypes,
-  ] = useState(false);
-
+  const [issueTypeSelectionMode, setIssueTypeSelectionMode] =
+    useState<IssueTypeSelectionMode>("ALL");
+  const allIssueTypes = issueTypeSelectionMode === "ALL";
 
   /*
    * Every time the dialog is opened:
@@ -113,7 +87,7 @@ const CreateSubscriptionDialog = ({
     setSelectedDomains([]);
     setSelectedRouteIds([]);
     setSelectedIssueTypeCodes([]);
-    setAllIssueTypes(false);
+    setIssueTypeSelectionMode("ALL");
 
     setOptions(null);
     setOptionsError(null);
@@ -145,22 +119,18 @@ const CreateSubscriptionDialog = ({
     };
   }, [open]);
 
-
   /*
    * Changing scope invalidates all selections made
    * for the previous scope.
    */
-  const handleScopeChange = (
-    nextScope: NotificationScope,
-  ) => {
+  const handleScopeChange = (nextScope: NotificationScope) => {
     setScope(nextScope);
 
     setSelectedDomains([]);
     setSelectedRouteIds([]);
     setSelectedIssueTypeCodes([]);
-    setAllIssueTypes(false);
+    setIssueTypeSelectionMode("ALL");
   };
-
 
   /*
    * The backend validates this too.
@@ -171,65 +141,48 @@ const CreateSubscriptionDialog = ({
    * ROUTE  -> ROUTE only
    */
   const applicableIssueTypes = useMemo(() => {
-    const issueTypes =
-      options?.issueTypes ?? [];
+    const issueTypes = options?.issueTypes ?? [];
 
-    if (scope === "GLOBAL")
-      return issueTypes;
+    if (scope === "GLOBAL") return issueTypes;
 
     if (scope === "DOMAIN")
       return issueTypes.filter(
         (issueType) =>
-          issueType.scope === "DOMAIN" ||
-          issueType.scope === "ROUTE",
+          issueType.scope === "DOMAIN" || issueType.scope === "ROUTE",
       );
 
-    return issueTypes.filter(
-      (issueType) =>
-        issueType.scope === "ROUTE",
-    );
+    return issueTypes.filter((issueType) => issueType.scope === "ROUTE");
   }, [options, scope]);
-
 
   const domainOptions = useMemo(
     () =>
-      (options?.domains ?? []).map(
-        (domain) => ({
-          value: domain,
-          label: domain,
-        }),
-      ),
+      (options?.domains ?? []).map((domain) => ({
+        value: domain,
+        label: domain,
+      })),
     [options],
   );
-
 
   const routeOptions = useMemo(
     () =>
-      (options?.routes ?? []).map(
-        (route) => ({
-          value: route.id,
-          label: route.name,
-          description: route.domainName,
-          searchText: route.id,
-        }),
-      ),
+      (options?.routes ?? []).map((route) => ({
+        value: route.id,
+        label: route.name,
+        description: route.domainName,
+        searchText: route.id,
+      })),
     [options],
   );
 
-
   const issueTypeOptions = useMemo(
     () =>
-      applicableIssueTypes.map(
-        (issueType) => ({
-          value: issueType.code,
-          label: String(issueType.code),
-          description:
-            issueType.description,
-        }),
-      ),
+      applicableIssueTypes.map((issueType) => ({
+        value: issueType.code,
+        label: String(issueType.code),
+        description: issueType.description,
+      })),
     [applicableIssueTypes],
   );
-
 
   /*
    * One GLOBAL scope = one target.
@@ -242,20 +195,13 @@ const CreateSubscriptionDialog = ({
         ? selectedDomains.length
         : selectedRouteIds.length;
 
-
   /*
    * "All issue types" produces one DB rule with
    * issue_type = NULL, not one rule per IssueType.
    */
-  const issueTypeCount =
-    allIssueTypes
-      ? 1
-      : selectedIssueTypeCodes.length;
+  const issueTypeCount = allIssueTypes ? 1 : selectedIssueTypeCodes.length;
 
-
-  const rulesCount =
-    targetCount * issueTypeCount;
-
+  const rulesCount = targetCount * issueTypeCount;
 
   const canCreate =
     Boolean(options) &&
@@ -263,11 +209,7 @@ const CreateSubscriptionDialog = ({
     !isSubmitting &&
     email.trim().length > 0 &&
     targetCount > 0 &&
-    (
-      allIssueTypes ||
-      selectedIssueTypeCodes.length > 0
-    );
-
+    (allIssueTypes || selectedIssueTypeCodes.length > 0);
 
   const handleCreate = async () => {
     if (!canCreate) return;
@@ -276,20 +218,11 @@ const CreateSubscriptionDialog = ({
       email: email.trim(),
       scope,
 
-      issueTypeCodes:
-        allIssueTypes
-          ? []
-          : selectedIssueTypeCodes,
+      issueTypeCodes: allIssueTypes ? [] : selectedIssueTypeCodes,
 
-      domainNames:
-        scope === "DOMAIN"
-          ? selectedDomains
-          : [],
+      domainNames: scope === "DOMAIN" ? selectedDomains : [],
 
-      routeIds:
-        scope === "ROUTE"
-          ? selectedRouteIds
-          : [],
+      routeIds: scope === "ROUTE" ? selectedRouteIds : [],
 
       allIssueTypes,
     };
@@ -297,10 +230,7 @@ const CreateSubscriptionDialog = ({
     setIsSubmitting(true);
 
     try {
-      const result =
-        await createNotificationSubscription(
-          data,
-        );
+      const result = await createNotificationSubscription(data);
 
       toaster.create({
         title:
@@ -334,13 +264,10 @@ const CreateSubscriptionDialog = ({
     }
   };
 
-
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={({ open }) =>
-        onOpenChange(open)
-      }
+      onOpenChange={({ open }) => onOpenChange(open)}
       size="lg"
       placement="center"
       closeOnEscape={!isSubmitting}
@@ -350,215 +277,131 @@ const CreateSubscriptionDialog = ({
         <Dialog.Backdrop />
 
         <Dialog.Positioner>
-          <Dialog.Content
-            maxHeight="90vh"
-          >
+          <Dialog.Content maxHeight="90vh">
             <Dialog.Header>
-              <Dialog.Title>
-                Добавить подписку
-              </Dialog.Title>
+              <Dialog.Title>Добавить подписку</Dialog.Title>
             </Dialog.Header>
 
-            <Dialog.Body
-              overflowY="auto"
-            >
+            <Dialog.Body overflowY="auto">
               {isLoadingOptions ? (
-                <HStack
-                  justify="center"
-                  py={10}
-                >
+                <HStack justify="center" py={10}>
                   <Spinner size="sm" />
 
-                  <Text>
-                    Загрузка параметров...
-                  </Text>
+                  <Text>Загрузка параметров...</Text>
                 </HStack>
               ) : optionsError ? (
-                <Text
-                  color="fg.error"
-                  py={4}
-                >
+                <Text color="fg.error" py={4}>
                   {optionsError}
                 </Text>
               ) : (
                 <Stack gap={5}>
-                  <Field.Root>
-                    <Field.Label>
-                      Email
-                    </Field.Label>
+                  <Field.Root width="full">
+                    <Field.Label>Email</Field.Label>
 
                     <Input
                       type="email"
                       value={email}
                       placeholder="support@example.com"
-                      onChange={(event) =>
-                        setEmail(
-                          event.target.value,
-                        )
-                      }
+                      onChange={(event) => setEmail(event.target.value)}
                     />
                   </Field.Root>
 
-
                   <Field.Root>
-                    <Field.Label>
-                      Область подписки
-                    </Field.Label>
+                    <Field.Label>Область подписки</Field.Label>
 
-                    <NativeSelect.Root>
+                    <NativeSelect.Root width="full">
                       <NativeSelect.Field
                         value={scope}
                         onChange={(event) =>
                           handleScopeChange(
-                            event.target
-                              .value as NotificationScope,
+                            event.target.value as NotificationScope,
                           )
                         }
                       >
-                        <option value="GLOBAL">
-                          Везде
-                        </option>
+                        <option value="GLOBAL">Везде</option>
 
-                        <option value="DOMAIN">
-                          Выбранные домены
-                        </option>
+                        <option value="DOMAIN">Выбранные домены</option>
 
-                        <option value="ROUTE">
-                          Выбранные СОПС
-                        </option>
+                        <option value="ROUTE">Выбранные СОПС</option>
                       </NativeSelect.Field>
 
                       <NativeSelect.Indicator />
                     </NativeSelect.Root>
 
                     <Field.HelperText>
-                      {
-                        SCOPE_DESCRIPTIONS[
-                          scope
-                        ]
-                      }
+                      {SCOPE_DESCRIPTIONS[scope]}
                     </Field.HelperText>
                   </Field.Root>
 
-
                   {scope === "DOMAIN" && (
                     <Field.Root>
-                      <Field.Label>
-                        Домены
-                      </Field.Label>
+                      <Field.Label>Домены</Field.Label>
 
                       <SubscriptionMultiSelect
-                        options={
-                          domainOptions
-                        }
-                        selected={
-                          selectedDomains
-                        }
-                        onChange={
-                          setSelectedDomains
-                        }
+                        options={domainOptions}
+                        selected={selectedDomains}
+                        onChange={setSelectedDomains}
                         emptyText="Домены не найдены"
                       />
                     </Field.Root>
                   )}
 
-
                   {scope === "ROUTE" && (
                     <Field.Root>
-                      <Field.Label>
-                        СОПС
-                      </Field.Label>
+                      <Field.Label>СОПС</Field.Label>
 
                       <SubscriptionMultiSelect
-                        options={
-                          routeOptions
-                        }
-                        selected={
-                          selectedRouteIds
-                        }
-                        onChange={
-                          setSelectedRouteIds
-                        }
+                        options={routeOptions}
+                        selected={selectedRouteIds}
+                        onChange={setSelectedRouteIds}
                         emptyText="СОПС не найдены"
                         maxHeight="260px"
                       />
                     </Field.Root>
                   )}
 
+                  <Field.Root width="full">
+                    <Field.Label>Типы ошибок</Field.Label>
 
-                  <Field.Root>
-                    <HStack
-                      width="full"
-                      justify="space-between"
-                      align="center"
-                    >
-                      <Field.Label mb={0}>
-                        Типы ошибок
-                      </Field.Label>
+                    <NativeSelect.Root width="full">
+                      <NativeSelect.Field
+                        width="full"
+                        value={issueTypeSelectionMode}
+                        onChange={(event) => {
+                          const nextMode = event.target
+                            .value as IssueTypeSelectionMode;
 
-                      <Checkbox.Root
-                        checked={
-                          allIssueTypes
-                        }
-                        size="sm"
-                        onCheckedChange={({
-                          checked,
-                        }) => {
-                          const nextValue =
-                            checked === true;
+                          setIssueTypeSelectionMode(nextMode);
 
-                          setAllIssueTypes(
-                            nextValue,
-                          );
-
-                          if (nextValue)
-                            setSelectedIssueTypeCodes(
-                              [],
-                            );
+                          if (nextMode === "ALL") setSelectedIssueTypeCodes([]);
                         }}
                       >
-                        <Checkbox.HiddenInput />
+                        <option value="ALL">Все применимые</option>
+                        <option value="SELECTED">Выбранные</option>
+                      </NativeSelect.Field>
 
-                        <Checkbox.Control>
-                          <Checkbox.Indicator />
-                        </Checkbox.Control>
-
-                        <Checkbox.Label>
-                          Все применимые
-                        </Checkbox.Label>
-                      </Checkbox.Root>
-                    </HStack>
-
-                    <SubscriptionMultiSelect
-                      options={
-                        issueTypeOptions
-                      }
-                      selected={
-                        selectedIssueTypeCodes
-                      }
-                      onChange={
-                        setSelectedIssueTypeCodes
-                      }
-                      disabled={
-                        allIssueTypes
-                      }
-                      emptyText="Типы ошибок не найдены"
-                    />
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
                   </Field.Root>
 
+                  {issueTypeSelectionMode === "SELECTED" && (
+                    <Field.Root width="full">
+                      <Field.Label>Выьерите типы ошибок</Field.Label>
+
+                      <SubscriptionMultiSelect
+                        options={issueTypeOptions}
+                        selected={selectedIssueTypeCodes}
+                        onChange={setSelectedIssueTypeCodes}
+                        emptyText="Типы ошибок не найдены"
+                      />
+                    </Field.Root>
+                  )}
 
                   <Text
                     fontSize="sm"
-                    color={
-                      rulesCount > 0
-                        ? "fg"
-                        : "fg.muted"
-                    }
+                    color={rulesCount > 0 ? "fg" : "fg.muted"}
                   >
-                    Будет создано правил:{" "}
-                    <strong>
-                      {rulesCount}
-                    </strong>
+                    Будет создано правил: <strong>{rulesCount}</strong>
                   </Text>
                 </Stack>
               )}
@@ -569,9 +412,7 @@ const CreateSubscriptionDialog = ({
                 <Button
                   variant="outline"
                   disabled={isSubmitting}
-                  onClick={() =>
-                    onOpenChange(false)
-                  }
+                  onClick={() => onOpenChange(false)}
                 >
                   Отмена
                 </Button>
@@ -579,9 +420,7 @@ const CreateSubscriptionDialog = ({
                 <Button
                   disabled={!canCreate}
                   loading={isSubmitting}
-                  onClick={() =>
-                    void handleCreate()
-                  }
+                  onClick={() => void handleCreate()}
                 >
                   Создать
                 </Button>
