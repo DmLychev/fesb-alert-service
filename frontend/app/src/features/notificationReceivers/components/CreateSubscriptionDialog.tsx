@@ -2,6 +2,7 @@ import {
   Button,
   Dialog,
   Field,
+  Fieldset,
   HStack,
   Input,
   NativeSelect,
@@ -334,30 +335,34 @@ const CreateSubscriptionDialog = ({
                   </Field.Root>
 
                   {scope === "DOMAIN" && (
-                    <Field.Root>
-                      <Field.Label>Домены</Field.Label>
+                    <Fieldset.Root>
+                      <Fieldset.Legend>Домены</Fieldset.Legend>
 
-                      <SubscriptionMultiSelect
-                        options={domainOptions}
-                        selected={selectedDomains}
-                        onChange={setSelectedDomains}
-                        emptyText="Домены не найдены"
-                      />
-                    </Field.Root>
+                      <Fieldset.Content width="full">
+                        <SubscriptionMultiSelect
+                          options={domainOptions}
+                          selected={selectedDomains}
+                          onChange={setSelectedDomains}
+                          emptyText="Домены не найдены"
+                        />
+                      </Fieldset.Content>
+                    </Fieldset.Root>
                   )}
 
                   {scope === "ROUTE" && (
-                    <Field.Root>
-                      <Field.Label>СОПС</Field.Label>
+                    <Fieldset.Root>
+                      <Fieldset.Legend>СОПС</Fieldset.Legend>
 
-                      <SubscriptionMultiSelect
-                        options={routeOptions}
-                        selected={selectedRouteIds}
-                        onChange={setSelectedRouteIds}
-                        emptyText="СОПС не найдены"
-                        maxHeight="260px"
-                      />
-                    </Field.Root>
+                      <Fieldset.Content width="full">
+                        <SubscriptionMultiSelect
+                          options={routeOptions}
+                          selected={selectedRouteIds}
+                          onChange={setSelectedRouteIds}
+                          emptyText="СОПС не найдены"
+                          maxHeight="260px"
+                        />
+                      </Fieldset.Content>
+                    </Fieldset.Root>
                   )}
 
                   <Field.Root width="full">
@@ -385,16 +390,18 @@ const CreateSubscriptionDialog = ({
                   </Field.Root>
 
                   {issueTypeSelectionMode === "SELECTED" && (
-                    <Field.Root width="full">
-                      <Field.Label>Выьерите типы ошибок</Field.Label>
+                    <Fieldset.Root width="full">
+                      <Fieldset.Legend>Выьерите типы ошибок</Fieldset.Legend>
 
-                      <SubscriptionMultiSelect
-                        options={issueTypeOptions}
-                        selected={selectedIssueTypeCodes}
-                        onChange={setSelectedIssueTypeCodes}
-                        emptyText="Типы ошибок не найдены"
-                      />
-                    </Field.Root>
+                      <Fieldset.Content width="full">
+                        <SubscriptionMultiSelect
+                          options={issueTypeOptions}
+                          selected={selectedIssueTypeCodes}
+                          onChange={setSelectedIssueTypeCodes}
+                          emptyText="Типы ошибок не найдены"
+                        />
+                      </Fieldset.Content>
+                    </Fieldset.Root>
                   )}
 
                   <Text

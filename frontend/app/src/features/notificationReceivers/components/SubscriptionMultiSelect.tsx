@@ -57,8 +57,6 @@ const SubscriptionMultiSelect = <TValue extends string | number>({
   }, [options, search]);
 
   const toggleValue = (value: TValue, checked: boolean) => {
-    console.log({ value, checked, selected });
-
     if (checked) {
       if (!selectedSet.has(value)) {
         onChange([...selected, value]);
