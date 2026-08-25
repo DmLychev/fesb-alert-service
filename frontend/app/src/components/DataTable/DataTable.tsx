@@ -273,11 +273,15 @@ const DataTable = <TData,>({
     startEditing();
   };
 
+  const hasUpdateCapability = Boolean(editing?.updateRow);
+
   const editingLeft = (
     <HStack gap={2}>
       <LuPencil />
 
-      <Text fontWeight="medium">Режим редактирования</Text>
+      <Text fontWeight="medium">
+        {hasUpdateCapability ? "Режим редактирования" : "Режим удаления"}
+      </Text>
 
       {hasPendingChanges && (
         <Badge colorPalette="orange">{changedCellsCount}</Badge>
@@ -298,6 +302,7 @@ const DataTable = <TData,>({
       showDeleteButton={
         Boolean(editing?.deleteRows) && selectedRowIds.length > 0
       }
+      showUpdateButton={Boolean(editing?.updateRow)}
       isDeleting={isDeleting}
       isApplyingChanges={isApplyingChanges}
       hasPendingChanges={hasPendingChanges}
@@ -312,7 +317,7 @@ const DataTable = <TData,>({
   const defaultRight = (
     <DefaultToolbarActions
       table={table}
-      showEditButton={Boolean(editing?.updateRow)}
+      showEditButton={Boolean(editing?.updateRow || editing?.deleteRows)}
       isRefreshing={isRefreshing}
       hasFilterFields={hasFilterFields}
       isFilterPanelOpen={uiState.isFilterPaneOpen}

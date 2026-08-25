@@ -6,6 +6,7 @@ import { LuLogOut } from "react-icons/lu";
 
 interface EditingToolbarActionsProps {
   showDeleteButton: boolean;
+  showUpdateButton: boolean;
   isDeleting: boolean;
   isApplyingChanges: boolean;
   hasPendingChanges: boolean;
@@ -18,6 +19,7 @@ interface EditingToolbarActionsProps {
 
 const EditingToolbarActions = ({
   showDeleteButton,
+  showUpdateButton,
   isDeleting,
   isApplyingChanges,
   hasPendingChanges,
@@ -36,20 +38,24 @@ const EditingToolbarActions = ({
         />
       )}
 
-      <ResetAllChangesButton
-        isApplying={isApplyingChanges}
-        disabled={!hasPendingChanges}
-        onClick={onResetChanges}
-      />
+      {showUpdateButton && (
+        <>
+          <ResetAllChangesButton
+            isApplying={isApplyingChanges}
+            disabled={!hasPendingChanges}
+            onClick={onResetChanges}
+          />
 
-      <ApplyAllChangesButton
-        isApplying={isApplyingChanges}
-        changesCount={changedCellsCount}
-        disabled={!hasPendingChanges}
-        onClick={() => {
-          void onApplyChanges();
-        }}
-      />
+          <ApplyAllChangesButton
+            isApplying={isApplyingChanges}
+            changesCount={changedCellsCount}
+            disabled={!hasPendingChanges}
+            onClick={() => {
+              void onApplyChanges();
+            }}
+          />
+        </>
+      )}
 
       <Button
         aria-label="Завершить"

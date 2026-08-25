@@ -12,18 +12,14 @@ import {
 
 import { LuSearch } from "react-icons/lu";
 
-export interface SubscriptionMultiSelectOption<
-  TValue extends string | number,
-> {
+export interface SubscriptionMultiSelectOption<TValue extends string | number> {
   value: TValue;
   label: string;
   description?: string;
   searchText?: string;
 }
 
-interface SubscriptionMultiSelectProps<
-  TValue extends string | number,
-> {
+interface SubscriptionMultiSelectProps<TValue extends string | number> {
   options: SubscriptionMultiSelectOption<TValue>[];
   selected: TValue[];
   onChange: (selected: TValue[]) => void;
@@ -33,9 +29,7 @@ interface SubscriptionMultiSelectProps<
   maxHeight?: string;
 }
 
-const SubscriptionMultiSelect = <
-  TValue extends string | number,
->({
+const SubscriptionMultiSelect = <TValue extends string | number>({
   options,
   selected,
   onChange,
@@ -45,24 +39,15 @@ const SubscriptionMultiSelect = <
 }: SubscriptionMultiSelectProps<TValue>) => {
   const [search, setSearch] = useState("");
 
-  const selectedSet = useMemo(
-    () => new Set(selected),
-    [selected],
-  );
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
 
   const filteredOptions = useMemo(() => {
-    const normalizedSearch = search
-      .trim()
-      .toLocaleLowerCase();
+    const normalizedSearch = search.trim().toLocaleLowerCase();
 
     if (!normalizedSearch) return options;
 
     return options.filter((option) => {
-      const searchable = [
-        option.label,
-        option.description,
-        option.searchText,
-      ]
+      const searchable = [option.label, option.description, option.searchText]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase();
@@ -71,10 +56,7 @@ const SubscriptionMultiSelect = <
     });
   }, [options, search]);
 
-  const toggleValue = (
-    value: TValue,
-    checked: boolean,
-  ) => {
+  const toggleValue = (value: TValue, checked: boolean) => {
     if (checked) {
       if (!selectedSet.has(value)) {
         onChange([...selected, value]);
@@ -83,16 +65,12 @@ const SubscriptionMultiSelect = <
       return;
     }
 
-    onChange(
-      selected.filter(
-        (selectedValue) => selectedValue !== value,
-      ),
-    );
+    onChange(selected.filter((selectedValue) => selectedValue !== value));
   };
 
   return (
-    <Stack gap={2}>
-      <HStack position="relative">
+    <Stack gap={2} width="full" minWidth={0} alignSelf="stretch">
+      <HStack position="relative" width="full">
         <Box
           position="absolute"
           left={3}
@@ -106,31 +84,25 @@ const SubscriptionMultiSelect = <
         </Box>
 
         <Input
+          width="full"
           size="sm"
           value={search}
           placeholder="Поиск..."
           ps={9}
           disabled={disabled}
-          onChange={(event) =>
-            setSearch(event.target.value)
-          }
+          onChange={(event) => setSearch(event.target.value)}
         />
       </HStack>
 
       <HStack justify="space-between">
-        <Text
-          fontSize="xs"
-          color="fg.muted"
-        >
+        <Text fontSize="xs" color="fg.muted">
           Выбрано: {selected.length}
         </Text>
 
         <Button
           size="xs"
           variant="ghost"
-          disabled={
-            disabled || selected.length === 0
-          }
+          disabled={disabled || selected.length === 0}
           onClick={() => onChange([])}
         >
           Сбросить
@@ -138,6 +110,9 @@ const SubscriptionMultiSelect = <
       </HStack>
 
       <Stack
+        width="full"
+        minWidth={0}
+        alignSelf="stretch"
         gap={1}
         maxHeight={maxHeight}
         overflowY="auto"
@@ -149,12 +124,7 @@ const SubscriptionMultiSelect = <
         opacity={disabled ? 0.6 : 1}
       >
         {filteredOptions.length === 0 ? (
-          <Text
-            py={3}
-            px={2}
-            fontSize="sm"
-            color="fg.muted"
-          >
+          <Text py={3} px={2} fontSize="sm" color="fg.muted">
             {emptyText}
           </Text>
         ) : (
@@ -164,9 +134,7 @@ const SubscriptionMultiSelect = <
               checked={selectedSet.has(option.value)}
               disabled={disabled}
               size="sm"
-              cursor={
-                disabled ? "default" : "pointer"
-              }
+              cursor={disabled ? "default" : "pointer"}
               px={2}
               py={1.5}
               borderRadius="sm"
@@ -178,44 +146,26 @@ const SubscriptionMultiSelect = <
                     }
               }
               onCheckedChange={({ checked }) =>
-                toggleValue(
-                  option.value,
-                  checked === true,
-                )
+                toggleValue(option.value, checked === true)
               }
             >
               <Checkbox.HiddenInput />
 
-              <Checkbox.Control
-                cursor={
-                  disabled
-                    ? "default"
-                    : "pointer"
-                }
-              >
+              <Checkbox.Control cursor={disabled ? "default" : "pointer"}>
                 <Checkbox.Indicator />
               </Checkbox.Control>
 
               <Checkbox.Label
-                cursor={
-                  disabled
-                    ? "default"
-                    : "pointer"
-                }
+                cursor={disabled ? "default" : "pointer"}
                 userSelect="none"
                 flex="1"
                 minWidth={0}
               >
                 <Box>
-                  <Text fontSize="sm">
-                    {option.label}
-                  </Text>
+                  <Text fontSize="sm">{option.label}</Text>
 
                   {option.description && (
-                    <Text
-                      fontSize="xs"
-                      color="fg.muted"
-                    >
+                    <Text fontSize="xs" color="fg.muted">
                       {option.description}
                     </Text>
                   )}

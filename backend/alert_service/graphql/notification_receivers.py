@@ -90,6 +90,12 @@ class CreateNotificationSubscriptionPayload:
     skipped_duplicates: int
 
 
+@strawberry.type
+class DeleteNotificationReceiversPayload:
+    deleted_count: int
+    deleted_ids: list[strawberry.ID]
+
+
 def validate_subscription_input(data: CreateNotificationSubscriptionInput) -> str:
     email = data.email.strip().lower()
     try:
@@ -193,7 +199,7 @@ class NotificationReceiverQuery:
 
     @strawberry.field(permission_classes=[IsAuthenticated])
     def notification_subscription_options(self) -> NotificationSubscriptionOptions:
-        issue_types= list(IssueType.objects.all().order_by("code"))
+        issue_types = list(IssueType.objects.all().order_by("code"))
         routes = list(Route.objects.filter(is_active=True, is_tracked=True).order_by("domain_name", "name"))
         domains = list(
             Route.objects
@@ -287,3 +293,18 @@ class NotificationReceiverMutation:
                     create_rule(issue_type=issue_type, route=route)
 
         return CreateNotificationSubscriptionPayload(created_count=created_count, skipped_duplicates=skipped_duplicates)
+
+    @strawberry.mutation(permission_classes=[IsAuthenticated])
+    @transaction.atomic
+    def delete_notification_receivers(self, ids: list[strawberry.ID]) -> DeleteNotificationReceiversPayload:
+        numeric_ids = [int(_id) for _id in ids]
+
+        queryset = NotificationReceiver.objects.filter(pk__in=numeric_ids)
+
+        existing_ids = list(queryset.values_list("id", flat=True))
+
+        queryset.delete()
+
+        return DeleteNotificationReceiversPayload(
+            deleted_count=len(existing_ids), deleted_ids=[strawberry.ID(str(_id)) for _id in existing_ids]
+        )

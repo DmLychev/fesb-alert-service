@@ -1,6 +1,7 @@
 import { DataTable } from "../../components/DataTable";
 
 import fetchNotificationReceivers from "./api/fetchNotificationReceivers";
+import { notificationReceiverEditingConfig } from "./notificationReceiverEditingConfig";
 import {
   notificationReceiverColumns,
   notificationReceiverFilterFields,
@@ -14,11 +15,10 @@ const NotificationReceiverTable = () => (
     storageKey="notification-receivers-table"
     columns={notificationReceiverColumns}
     filterFields={notificationReceiverFilterFields}
-    defaultPreferences={
-      notificationReceiverTablePreferences
-    }
+    defaultPreferences={notificationReceiverTablePreferences}
     fetchPage={fetchNotificationReceivers}
     getRowId={(receiver) => receiver.id}
+    editing={notificationReceiverEditingConfig}
   />
 );
 
