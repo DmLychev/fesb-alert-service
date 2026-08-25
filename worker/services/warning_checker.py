@@ -100,9 +100,6 @@ async def process_issues():
 
                             continue
 
-                        # Зарегистрировать обращение в SolMan
-                        # ToDo Регистрация обращения в SolMan
-
                         # Отправить уведомление
                         if not issue.is_notified and issue.type_id not in [103, 104]:
                             receivers = await define_receivers(issue, session)

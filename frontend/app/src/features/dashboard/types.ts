@@ -86,7 +86,9 @@ export interface IssueCreatedEvent {
   type: "issues_created";
   id: number;
   type_code: number;
+  type_description: string | null;
   route_id: string | null;
+  route_name: string | null;
   domain_name: string | null;
   created_at: string;
 }

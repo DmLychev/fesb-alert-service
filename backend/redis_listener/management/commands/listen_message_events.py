@@ -6,6 +6,8 @@ import redis.asyncio as redis
 from channels.layers import get_channel_layer
 from django.core.management.base import BaseCommand
 
+from alert_service.models import Route
+
 REDIS_CHANNELS = ('messages', "issues", "requests")
 CHANNELS_GROUP = 'live_updates'
 
@@ -32,6 +34,7 @@ class Command(BaseCommand):
                     continue
 
                 payload = json.loads(message["data"])
+                payload = await self.enrich_issue_created(payload)
                 print(f"Django event listener received message: {payload}")
 
                 await channel_layer.group_send(
@@ -42,3 +45,20 @@ class Command(BaseCommand):
             await pubsub.unsubscribe(*REDIS_CHANNELS)
             await pubsub.aclose()
             await redis_client.aclose()
+
+    async def enrich_issue_created(self, payload: dict) -> dict:
+        if payload.get('type') != 'issues_created':
+            return payload
+
+        type_code = payload.get('type_code')
+        route_id = payload.get('route_id')
+        type_description = None
+        route_name = None
+
+        if type_code is not None:
+            type_description = await Route.objects.filter(id=route_id).values_list("description", flat=True).afirst()
+
+        if route_id is not None:
+            route_name = await Route.objects.filter(id=route_id).values_list("name", flat=True).afirst()
+
+        return {**payload, "type_description": type_description, "route_name": route_name}
