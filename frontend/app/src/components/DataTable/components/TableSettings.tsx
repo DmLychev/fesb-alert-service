@@ -26,6 +26,7 @@ interface TableSettingsProps<TData> {
   table: Table<TData>;
   columns: string[];
 
+  hasLiveUpdates: boolean;
   isLiveUpdatesEnabled: boolean;
 
   onColumnOrderChange: (newOrder: string[]) => void;
@@ -35,6 +36,7 @@ interface TableSettingsProps<TData> {
 const TableSettings = <TData,>({
   table,
   columns,
+  hasLiveUpdates,
   isLiveUpdatesEnabled,
   onColumnOrderChange,
   onLiveUpdatesEnabledChange,
@@ -118,24 +120,32 @@ const TableSettings = <TData,>({
               </DndContext>
             </Stack>
 
-            <Separator />
+            {hasLiveUpdates && (
+              <>
+                <Separator />
 
-            <HStack justifyContent="space-between" alignItems="center" gap={4}>
-              <Box>
-                <Text fontSize="sm" fontWeight="medium">
-                  Автообновление
-                </Text>
+                <HStack
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={4}
+                >
+                  <Box>
+                    <Text fontSize="sm" fontWeight="medium">
+                      Автообновление
+                    </Text>
 
-                <Text fontSize="xs" color="fg.muted">
-                  Получать новые записи автоматически
-                </Text>
-              </Box>
+                    <Text fontSize="xs" color="fg.muted">
+                      Получать новые записи автоматически
+                    </Text>
+                  </Box>
 
-              <LiveUpdateToggle
-                isChecked={isLiveUpdatesEnabled}
-                onCheckedChange={onLiveUpdatesEnabledChange}
-              />
-            </HStack>
+                  <LiveUpdateToggle
+                    isChecked={isLiveUpdatesEnabled}
+                    onCheckedChange={onLiveUpdatesEnabledChange}
+                  />
+                </HStack>
+              </>
+            )}
           </Stack>
         </Popover.Content>
       </Popover.Positioner>

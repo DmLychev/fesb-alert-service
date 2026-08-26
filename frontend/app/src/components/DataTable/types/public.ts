@@ -37,6 +37,7 @@ export interface FetchPageParams {
 export interface DataTableProps<Tdata> {
   storageKey: string;
   columns: HeterogeneousColumnDef<Tdata>[];
+  hasLiveUpdates: boolean;
   filterFields?: FilterFieldRegistry;
   defaultPreferences: TablePreferences;
 

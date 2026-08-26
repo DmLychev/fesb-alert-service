@@ -12,6 +12,7 @@ interface DefaultToolbarActionsProps<TData> {
   showEditButton: boolean;
   isRefreshing: boolean;
   hasFilterFields: boolean;
+  hasLiveUpdates: boolean;
   isFilterPanelOpen: boolean;
   activeFiltersCount: number;
   columns: string[];
@@ -29,6 +30,7 @@ const DefaultToolbarActions = <TData,>({
   showEditButton,
   isRefreshing,
   hasFilterFields,
+  hasLiveUpdates,
   isFilterPanelOpen,
   activeFiltersCount,
   columns,
@@ -62,6 +64,7 @@ const DefaultToolbarActions = <TData,>({
       <TableSettings
         table={table}
         columns={columns}
+        hasLiveUpdates={hasLiveUpdates}
         isLiveUpdatesEnabled={isLiveUpdatesEnabled}
         onColumnOrderChange={onColumnOrderChange}
         onLiveUpdatesEnabledChange={onLiveUpdatesEnabledChange}

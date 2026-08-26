@@ -4,11 +4,7 @@ import NotificationSubscription from "../../features/notificationReceivers/Notif
 
 const SettingsPage = () => {
   return (
-    <Box
-      height="full"
-      minHeight={0}
-      overflow="hidden"
-    >
+    <Box height="full" minHeight={0} overflow="hidden">
       <Tabs.Root
         defaultValue="subscriptions"
         variant="line"
@@ -21,16 +17,14 @@ const SettingsPage = () => {
         overflow="hidden"
       >
         <Tabs.List flexShrink={0}>
-          <Tabs.Trigger value="general">
+          {/* <Tabs.Trigger value="general">
             Общие
-          </Tabs.Trigger>
+          </Tabs.Trigger> */}
 
-          <Tabs.Trigger value="subscriptions">
-            Подписки
-          </Tabs.Trigger>
+          <Tabs.Trigger value="subscriptions">Подписки</Tabs.Trigger>
         </Tabs.List>
 
-        <Tabs.Content
+        {/* <Tabs.Content
           value="general"
           flex="1"
           minHeight={0}
@@ -38,7 +32,7 @@ const SettingsPage = () => {
           pt={4}
         >
           Здесь будут общие настройки
-        </Tabs.Content>
+        </Tabs.Content> */}
 
         <Tabs.Content
           value="subscriptions"

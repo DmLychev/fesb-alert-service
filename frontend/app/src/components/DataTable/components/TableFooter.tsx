@@ -27,7 +27,7 @@ interface TablePaginationProps {
   }>;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  liveUpdateStatus: LiveUpdateStatus;
+  liveUpdateStatus?: LiveUpdateStatus;
 }
 
 const TableFooter = ({

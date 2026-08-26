@@ -320,6 +320,7 @@ const DataTable = <TData,>({
       table={table}
       customActions={toolbarActions}
       showEditButton={Boolean(editing?.updateRow || editing?.deleteRows)}
+      hasLiveUpdates={Boolean(liveUpdates)}
       isRefreshing={isRefreshing}
       hasFilterFields={hasFilterFields}
       isFilterPanelOpen={uiState.isFilterPaneOpen}
@@ -392,7 +393,7 @@ const DataTable = <TData,>({
               table.setPageIndex(newPage - 1);
             }}
             onPageSizeChange={(newSize) => table.setPageSize(newSize)}
-            liveUpdateStatus={liveUpdateStatus}
+            liveUpdateStatus={liveUpdates ? liveUpdateStatus : undefined}
           />
         </Box>
       )}

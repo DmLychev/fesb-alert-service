@@ -86,7 +86,7 @@ class Issue(Base):
     text = Column(TEXT)
     route_id = Column(VARCHAR(128), nullable=True)
     domain_name = Column(VARCHAR(128), nullable=True)
-    is_notified = Column(BOOLEAN, default=False)
+    is_notified = Column(BOOLEAN, default=False, nullable=True)
     is_solved = Column(BOOLEAN, default=False)
     created_at = Column(DATETIME(timezone=True), nullable=False, default=func.current_timestamp())
     updated_at = Column(DATETIME(timezone=True), nullable=False, default=func.current_timestamp(),
