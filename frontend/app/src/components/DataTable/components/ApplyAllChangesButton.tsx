@@ -20,7 +20,7 @@ const ApplyAllChangesButton = ({
       width={{ base: "36px", md: "132px" }}
       minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
-      colorPalette="blue"
+      colorPalette="orange"
       disabled={disabled || isApplying}
       onClick={onClick}
     >

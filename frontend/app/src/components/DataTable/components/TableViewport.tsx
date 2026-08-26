@@ -98,14 +98,6 @@ const TableViewport = <TData,>({
                     title={
                       isEditableColumn ? "Редактируемый столбец" : undefined
                     }
-                    borderBottomWidth={
-                      isEditingMode && isEditableColumn ? "4px" : "1px"
-                    }
-                    borderBottomColor={
-                      isEditingMode && isEditableColumn
-                        ? "orange.solid"
-                        : "border.emphasized"
-                    }
                   >
                     {header.isPlaceholder ? null : isSelectionColumn ? (
                       <Box
@@ -306,7 +298,32 @@ const TableViewport = <TData,>({
                       textOverflow="ellipsis"
                       borderBottomWidth="1px"
                       borderBottomColor="border.muted"
-                      bg={isDirty ? "orange.muted" : "inherit"}
+                      bg="inherit"
+                      backgroundImage={
+                        isDirty
+                          ? `repeating-linear-gradient(
+                                                  135deg,
+                                                  color-mix(
+                                                    in srgb,
+                                                    var(--chakra-colors-orange-solid) 12%,
+                                                    transparent
+                                                  ) 0px,
+                                                  color-mix(
+                                                    in srgb,
+                                                    var(--chakra-colors-orange-solid) 12%,
+                                                    transparent
+                                                  ) 6px,
+                                                  transparent 6px,
+                                                  transparent 12px
+                                                )`
+                          : undefined
+                      }
+                      outline={
+                        isDirty
+                          ? "1px dashed var(--chakra-colors-orange-500)"
+                          : undefined
+                      }
+                      outlineOffset="-2px"
                       style={{
                         width: cell.column.getSize(),
                         minWidth: cell.column.getSize(),

@@ -18,13 +18,20 @@ interface Props {
   data: IssueTypeStat[];
 }
 
+const MAX_LABEL_LENGTH = 32;
+
 const IssueTypesChart = ({ data }: Props) => {
   const hasData = data.some((item) => item.count > 0);
 
-  const chartData = data.slice(0, 8).map((item) => ({
-    ...item,
-    label: `${item.code} ${item.description}`,
-  }));
+  const chartData = data.slice(0, 8).map((item) => {
+    const fullLabel = `${item.code} ${item.description}`;
+    const shortLabel =
+      fullLabel.length > MAX_LABEL_LENGTH
+        ? `${fullLabel.slice(0, MAX_LABEL_LENGTH - 1).trimEnd()}...`
+        : fullLabel;
+
+    return { ...item, label: shortLabel, fullLabel };
+  });
 
   const chart = useChart({
     data: chartData,
@@ -69,7 +76,7 @@ const IssueTypesChart = ({ data }: Props) => {
           <YAxis
             type="category"
             dataKey={chart.key("label")}
-            width={170}
+            width={190}
             axisLine={false}
             tickLine={false}
           />

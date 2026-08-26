@@ -42,7 +42,7 @@ function App() {
             />
             <Route
               path="/analytics"
-              element={<Navigate to="/analytics/messages" replace />}
+              element={<Navigate to="/analytics/issues" replace />}
             />
             <Route
               path="/analytics/:tab"

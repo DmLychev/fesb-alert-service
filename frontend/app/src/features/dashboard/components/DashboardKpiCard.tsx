@@ -1,29 +1,25 @@
 import {
+  Badge,
   Box,
   Card,
+  Heading,
   HStack,
   Text,
   VStack,
 } from "@chakra-ui/react";
 
-import {
-  LuArrowDown,
-  LuArrowUp,
-} from "react-icons/lu";
-
+import { LuArrowDown, LuArrowUp } from "react-icons/lu";
 
 export type DashboardKpiTrendIntent =
   | "higher-is-better"
   | "lower-is-better"
   | "neutral";
 
-
 export interface DashboardKpiComparison {
   difference: number;
   percentage: number | null;
   intent: DashboardKpiTrendIntent;
 }
-
 
 interface Props {
   title: string;
@@ -35,48 +31,29 @@ interface Props {
   comparison?: DashboardKpiComparison;
 }
 
+// const formatSignedNumber = (value: number) => {
+//   if (value === 0) {
+//     return "0";
+//   }
 
-const formatSignedNumber = (
-  value: number,
-) => {
-  if (value === 0) {
-    return "0";
-  }
+//   const formatted = Math.abs(value).toLocaleString("ru-RU");
 
-  const formatted =
-    Math.abs(value).toLocaleString("ru-RU");
+//   return value > 0 ? `+${formatted}` : `−${formatted}`;
+// };
 
-  return value > 0
-    ? `+${formatted}`
-    : `−${formatted}`;
-};
-
-
-const formatSignedPercentage = (
-  value: number,
-) => {
+const formatSignedPercentage = (value: number) => {
   if (value === 0) {
     return "0%";
   }
 
-  const formatted =
-    Math.abs(value).toLocaleString(
-      "ru-RU",
-      {
-        maximumFractionDigits: 1,
-      },
-    );
+  const formatted = Math.abs(value).toLocaleString("ru-RU", {
+    maximumFractionDigits: 1,
+  });
 
-  return value > 0
-    ? `+${formatted}%`
-    : `−${formatted}%`;
+  return value > 0 ? `+${formatted}%` : `−${formatted}%`;
 };
 
-
-const getTrendColor = (
-  difference: number,
-  intent: DashboardKpiTrendIntent,
-) => {
+const getTrendColor = (difference: number, intent: DashboardKpiTrendIntent) => {
   if (difference === 0) {
     return "fg.muted";
   }
@@ -88,19 +65,12 @@ const getTrendColor = (
     return "blue.fg";
   }
 
-  const increaseIsPositive =
-    intent === "higher-is-better";
+  const increaseIsPositive = intent === "higher-is-better";
 
-  const isPositive =
-    difference > 0
-      ? increaseIsPositive
-      : !increaseIsPositive;
+  const isPositive = difference > 0 ? increaseIsPositive : !increaseIsPositive;
 
-  return isPositive
-    ? "green.fg"
-    : "red.fg";
+  return isPositive ? "green.fg" : "red.fg";
 };
-
 
 const DashboardKpiCard = ({
   title,
@@ -110,34 +80,16 @@ const DashboardKpiCard = ({
   comparison,
 }: Props) => {
   const trendColor = comparison
-    ? getTrendColor(
-        comparison.difference,
-        comparison.intent,
-      )
+    ? getTrendColor(comparison.difference, comparison.intent)
     : undefined;
 
   return (
-    <Card.Root
-      variant="outline"
-      height="full"
-      bg="bg.panel"
-    >
+    <Card.Root variant="outline" height="full" bg="bg.panel">
       <Card.Body>
-        <VStack
-          align="start"
-          gap={1}
-        >
-          <Text
-            fontSize="sm"
-            color="fg.muted"
-          >
-            {title}
-          </Text>
+        <VStack align="start" gap={1}>
+          <Heading size="md">{title}</Heading>
 
-          <HStack
-            gap={2}
-            align="center"
-          >
+          <HStack gap={2} align="center">
             <Text
               fontSize="3xl"
               fontWeight="semibold"
@@ -147,46 +99,26 @@ const DashboardKpiCard = ({
               {value}
             </Text>
 
-            {comparison &&
-              comparison.difference !== 0 && (
-                <Box
-                  color={trendColor}
-                  lineHeight="1"
-                >
-                  {comparison.difference > 0 ? (
-                    <LuArrowUp size={32} />
-                  ) : (
-                    <LuArrowDown size={32} />
-                  )}
-                </Box>
-              )}
+            {comparison && comparison.difference !== 0 && (
+              <Box color={trendColor} lineHeight="1">
+                {comparison.difference > 0 ? (
+                  <LuArrowUp size={32} />
+                ) : comparison.difference < 0 ? (
+                  <LuArrowDown size={32} />
+                ) : undefined}
+              </Box>
+            )}
+
+            {comparison?.percentage && comparison?.percentage !== 0 ? (
+              <Badge colorPalette={trendColor?.split(".")[0]}>
+                {formatSignedPercentage(comparison.percentage)}
+              </Badge>
+            ) : undefined}
           </HStack>
 
           {secondary && (
-            <Text
-              fontSize="sm"
-              color="fg.muted"
-            >
+            <Text fontSize="sm" color="fg.muted">
               {secondary}
-            </Text>
-          )}
-
-          {comparison && (
-            <Text
-              fontSize="xs"
-              color={trendColor}
-            >
-              {comparison.difference === 0
-                ? "Без изменений к предыдущему периоду"
-                : `${formatSignedNumber(
-                    comparison.difference,
-                  )}${
-                    comparison.percentage === null
-                      ? ""
-                      : ` (${formatSignedPercentage(
-                          comparison.percentage,
-                        )})`
-                  } к предыдущему периоду`}
             </Text>
           )}
         </VStack>
@@ -194,6 +126,5 @@ const DashboardKpiCard = ({
     </Card.Root>
   );
 };
-
 
 export default DashboardKpiCard;

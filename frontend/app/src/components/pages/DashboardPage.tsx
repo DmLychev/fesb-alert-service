@@ -106,7 +106,7 @@ const DashboardPage = () => {
         <DashboardKpiCard
           title="Сообщения"
           value={metrics.messages.toLocaleString()}
-          valueColor={metrics.messageFailures === 0 ? "green.fg" : "red.fg"}
+          valueColor={"blue.fg"}
           secondary={formatPercentage(metrics.messageSuccessRate)}
           comparison={{ ...messageComparison, intent: "neutral" }}
         />
