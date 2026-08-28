@@ -1,59 +1,30 @@
-import {
-  DataTable,
-} from "../../components/DataTable";
+import { DataTable } from "../../components/DataTable";
 
-import fetchFesbRequests
-  from "./api/fetchFesbRequests";
+import fetchFesbRequests from "./api/fetchFesbRequests";
 
 import {
   fesbRequestColumns,
   fesbRequestFilterFields,
 } from "./fesbRequestTableDefinitions";
 
-import {
-  fesbRequestTablePreferences,
-} from "./fesbRequestTablePreferences";
+import { fesbRequestTablePreferences } from "./fesbRequestTablePreferences";
 
-import {
-  fesbRequestLiveUpdateConfig,
-} from "./fesbRequestLiveUpdates";
+import { fesbRequestLiveUpdateConfig } from "./fesbRequestLiveUpdates";
 
-import type {
-  FesbRequest,
-} from "./types";
-
+import type { FesbRequest } from "./types";
 
 const FesbRequestTable = () => {
   return (
     <DataTable<FesbRequest>
-      storageKey="fesb-requests-table"
-
-      columns={
-        fesbRequestColumns
-      }
-
-      filterFields={
-        fesbRequestFilterFields
-      }
-
-      defaultPreferences={
-        fesbRequestTablePreferences
-      }
-
-      fetchPage={
-        fetchFesbRequests
-      }
-
-      getRowId={
-        (request) => request.id
-      }
-
-      liveUpdates={
-        fesbRequestLiveUpdateConfig
-      }
+      storageKey="requests-table"
+      columns={fesbRequestColumns}
+      filterFields={fesbRequestFilterFields}
+      defaultPreferences={fesbRequestTablePreferences}
+      fetchPage={fetchFesbRequests}
+      getRowId={(request) => request.id}
+      liveUpdates={fesbRequestLiveUpdateConfig}
     />
   );
 };
-
 
 export default FesbRequestTable;

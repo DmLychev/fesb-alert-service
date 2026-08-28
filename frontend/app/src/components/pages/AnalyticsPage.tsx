@@ -2,6 +2,7 @@ import { Box, Tabs } from "@chakra-ui/react";
 import MessageTable from "../../features/messages/MessageTable";
 import IssueTable from "../../features/issues/IssueTable";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
+import FesbRequestTable from "../../features/fesbRequests/FesbRequestTable";
 
 type AnalyticsTab = "messages" | "issues" | "requests";
 
@@ -61,7 +62,7 @@ const AnalyticsPage = () => {
           overflow="hidden"
           pt={4}
         >
-          <h2>Здесь будут статусы запросов к FESB</h2>
+          <FesbRequestTable />
         </Tabs.Content>
       </Tabs.Root>
     </Box>

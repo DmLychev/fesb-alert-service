@@ -1,43 +1,34 @@
-import type {
-  TablePreferences,
-} from "../../components/DataTable";
+import type { TablePreferences } from "../../components/DataTable";
 
-import {
-  FESB_REQUEST_FIELD_REGISTRY,
-} from "./fesbRequestFieldRegistry";
+export const fesbRequestTablePreferences: TablePreferences = {
+  version: 1,
 
+  filters: [],
 
-export const fesbRequestTablePreferences:
-  TablePreferences = {
-    version: 1,
-
-    filters: [],
-
-    sorting: [
-      {
-        id: "createdAt",
-        desc: true,
-      },
-    ],
-
-    columnVisibility: {
-      updatedAt: false,
+  sorting: [
+    {
+      id: "createdAt",
+      desc: true,
     },
+  ],
 
-    columnOrder: Object.entries(
-      FESB_REQUEST_FIELD_REGISTRY,
-    )
-      .filter(
-        ([, definition]) =>
-          Boolean(definition.column),
-      )
-      .map(
-        ([fieldId]) => fieldId,
-      ),
+  columnVisibility: {
+    updatedAt: false,
+    warningLevel: false,
+  },
 
-    columnSizing: {},
+  columnOrder: [
+    "createdAt",
+    "updatedAt",
+    "isSuccessful",
+    "type.title",
+    "details",
+    "warningLevel",
+  ],
 
-    pageSize: 10,
+  columnSizing: {},
 
-    isLiveUpdatesEnabled: true,
-  };
+  pageSize: 10,
+
+  isLiveUpdatesEnabled: true,
+};

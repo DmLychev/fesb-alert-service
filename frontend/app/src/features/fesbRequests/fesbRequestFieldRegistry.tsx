@@ -1,18 +1,11 @@
-import type {
-  TableFieldRegistry,
-} from "../../components/DataTable";
+import type { TableFieldRegistry } from "../../components/DataTable";
 
-import {
-  formatDateTime,
-} from "../../components/DataTable/utils/date";
+import { formatDateTime } from "../../components/DataTable/utils/date";
 
 import BooleanCell from "../../components/tableCells/BooleanCell";
 import ScrollableTextCell from "../../components/tableCells/ScrollableTextCell";
 
-import type {
-  FesbRequest,
-} from "./types";
-
+import type { FesbRequest } from "./types";
 
 export const FESB_REQUEST_FIELD_REGISTRY = {
   "type.title": {
@@ -20,8 +13,7 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     defaultSize: 220,
 
     column: {
-      accessorFn:
-        (request) => request.type.title,
+      accessorFn: (request) => request.type.title,
 
       enableSorting: true,
     },
@@ -33,22 +25,16 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     filter: true,
   },
 
-
   isSuccessful: {
     label: "Успешно",
     defaultSize: 100,
 
     column: {
-      accessorFn:
-        (request) => request.isSuccessful,
+      accessorFn: (request) => request.isSuccessful,
 
       enableSorting: true,
 
-      cell: ({ getValue }) => (
-        <BooleanCell
-          value={getValue()}
-        />
-      ),
+      cell: ({ getValue }) => <BooleanCell value={getValue()} />,
     },
 
     value: {
@@ -58,22 +44,16 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     filter: true,
   },
 
-
   details: {
     label: "Детали",
     defaultSize: 400,
 
     column: {
-      accessorFn:
-        (request) => request.details,
+      accessorFn: (request) => request.details,
 
       enableSorting: true,
 
-      cell: ({ getValue }) => (
-        <ScrollableTextCell
-          getValue={getValue}
-        />
-      ),
+      cell: ({ getValue }) => <ScrollableTextCell getValue={getValue} />,
     },
 
     value: {
@@ -84,15 +64,12 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     filter: true,
   },
 
-
   warningLevel: {
-    label: "Уровень предупреждения",
+    label: "Warning Level",
     defaultSize: 170,
 
     column: {
-      accessorFn:
-        (request) =>
-          request.warningLevel,
+      accessorFn: (request) => request.warningLevel,
 
       enableSorting: true,
     },
@@ -105,19 +82,16 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     filter: true,
   },
 
-
   createdAt: {
     label: "Дата создания",
     defaultSize: 180,
 
     column: {
-      accessorFn:
-        (request) => request.createdAt,
+      accessorFn: (request) => request.createdAt,
 
       enableSorting: true,
 
-      cell: ({ getValue }) =>
-        formatDateTime(getValue()),
+      cell: ({ getValue }) => formatDateTime(getValue()),
     },
 
     value: {
@@ -127,19 +101,16 @@ export const FESB_REQUEST_FIELD_REGISTRY = {
     filter: true,
   },
 
-
   updatedAt: {
     label: "Дата изменения",
     defaultSize: 180,
 
     column: {
-      accessorFn:
-        (request) => request.updatedAt,
+      accessorFn: (request) => request.updatedAt,
 
       enableSorting: true,
 
-      cell: ({ getValue }) =>
-        formatDateTime(getValue()),
+      cell: ({ getValue }) => formatDateTime(getValue()),
     },
 
     value: {
