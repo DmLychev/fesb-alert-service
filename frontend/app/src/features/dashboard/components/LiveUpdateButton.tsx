@@ -3,20 +3,26 @@ import type { DashboardLiveStatus } from "../types";
 
 interface LiveUpdateButtonProps {
   status: DashboardLiveStatus;
-  handleClick: (enabled: boolean) => void;
+  onClick: () => void;
 }
 
-const LiveUpdateButton = ({ status, handleClick }: LiveUpdateButtonProps) => {
+const STATUS_LABELS: Record<DashboardLiveStatus, string> = {
+  off: "Автообновление отключено",
+  connecting: "Подключение...",
+  connected: "Автообновление включено",
+  disconnected: "Автообновление потеряно",
+};
+
+const LiveUpdateButton = ({ status, onClick }: LiveUpdateButtonProps) => {
   return (
     <Button
-      aria-label="Автообновление"
+      aria-label={STATUS_LABELS[status]}
+      title={STATUS_LABELS[status]}
       size="sm"
-      width={{ base: "36px", md: "132px" }}
-      minWidth={{ base: "36px", md: "132px" }}
       paddingInline={{ base: 0, md: 3 }}
       variant={"outline"}
-      disabled={status === "connecting" ? true : false}
-      onClick={() => handleClick(status === "connected")}
+      disabled={status === "connecting"}
+      onClick={onClick}
     >
       <Box
         width="8px"

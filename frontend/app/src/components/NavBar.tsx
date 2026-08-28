@@ -44,16 +44,17 @@ const NavBar: React.FC = () => {
       bg="bg.panel"
       borderBottom="1px solid"
       borderColor="border.subtle"
-      px={4}
       h="16"
       boxShadow="sm"
     >
       <Flex
         h="full"
+        width="full"
+        minWidth="full"
+        px={{ base: 2, md: 3 }}
         alignItems="center"
         justifyContent="space-between"
-        maxW="1200px"
-        mx="auto"
+        gap={4}
       >
         {/* Лого + название приложения */}
         <Link asChild _hover={{ textDecoration: "none" }}>

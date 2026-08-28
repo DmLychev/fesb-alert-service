@@ -1,14 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  NativeSelect,
-  Switch,
-  Text,
-} from "@chakra-ui/react";
+import { Flex, Heading, HStack, NativeSelect, Text } from "@chakra-ui/react";
 
 import RefreshButton from "../../../components/RefreshButton";
 
@@ -162,10 +154,12 @@ const DashboardToolbar = ({
         xl: "row",
       }}
     >
-      <HStack gap={2}>
-        <Heading size="xl">Дашборд</Heading>
+      <HStack gap={3} align="flex-end" minWidth={0}>
+        <Heading size="lg" lineHeight="1" flexShrink={0}>
+          Дашборд
+        </Heading>
 
-        <Text fontSize="xs" color="fg.muted">
+        <Text fontSize="xs" lineHeight="1" color="fg.muted" whiteSpace="nowrap">
           Обновлено{" "}
           {lastUpdatedAt
             ? formatRelativeTime(
@@ -211,7 +205,7 @@ const DashboardToolbar = ({
           selected={filters.domains}
           onChange={handleDomainsChange}
           disabled={!filterOptions}
-          minWidth="180px"
+          minWidth="190px"
         />
 
         <MultiSelectFilter
@@ -220,7 +214,7 @@ const DashboardToolbar = ({
           selected={filters.routeIds}
           onChange={handleRoutesChange}
           disabled={!filterOptions}
-          minWidth="240px"
+          minWidth="190px"
         />
 
         <ResetFilterButton
@@ -234,12 +228,10 @@ const DashboardToolbar = ({
           ariaLabel="Обновить Dashboard"
         />
 
-        {isLiveEnabled && (
-          <LiveUpdateButton
-            status={liveStatus}
-            handleClick={onLiveEnabledChange}
-          />
-        )}
+        <LiveUpdateButton
+          status={liveStatus}
+          onClick={() => onLiveEnabledChange(!isLiveEnabled)}
+        />
       </Flex>
     </Flex>
   );

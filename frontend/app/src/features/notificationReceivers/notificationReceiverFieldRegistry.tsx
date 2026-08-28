@@ -10,7 +10,7 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
 
     column: {
       accessorFn: (receiver) => {
-        if (receiver.route) return "Маршрут";
+        if (receiver.route) return "СОПС";
         if (receiver.domainName) return "Домен";
 
         return "Глобально";
@@ -40,13 +40,11 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 100,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.issueType?.code ?? null,
+      accessorFn: (receiver) => receiver.issueType?.code ?? null,
 
       enableSorting: true,
 
-      cell: ({ getValue }) =>
-        getValue() ?? "Все",
+      cell: ({ getValue }) => getValue() ?? "Все",
     },
 
     value: {
@@ -62,14 +60,11 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 260,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.issueType?.description ?? null,
+      accessorFn: (receiver) => receiver.issueType?.description ?? null,
 
       enableSorting: true,
 
-      cell: ({ getValue }) => (
-        <ScrollableTextCell getValue={getValue} />
-      ),
+      cell: ({ getValue }) => <ScrollableTextCell getValue={getValue} />,
     },
 
     value: {
@@ -85,8 +80,7 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 150,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.domainName,
+      accessorFn: (receiver) => receiver.domainName,
 
       enableSorting: true,
     },
@@ -104,8 +98,7 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 220,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.route?.id ?? null,
+      accessorFn: (receiver) => receiver.route?.id ?? null,
 
       enableSorting: true,
     },
@@ -123,8 +116,7 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 220,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.route?.name ?? null,
+      accessorFn: (receiver) => receiver.route?.name ?? null,
 
       enableSorting: true,
     },
@@ -142,13 +134,11 @@ export const NOTIFICATION_RECEIVER_FIELD_REGISTRY = {
     defaultSize: 180,
 
     column: {
-      accessorFn: (receiver) =>
-        receiver.createdAt,
+      accessorFn: (receiver) => receiver.createdAt,
 
       enableSorting: true,
 
-      cell: ({ getValue }) =>
-        formatDateTime(getValue()),
+      cell: ({ getValue }) => formatDateTime(getValue()),
     },
 
     value: {
