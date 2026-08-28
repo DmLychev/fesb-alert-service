@@ -30,5 +30,5 @@ export const fesbRequestTablePreferences: TablePreferences = {
 
   pageSize: 10,
 
-  isLiveUpdatesEnabled: true,
+  isLiveUpdatesEnabled: false,
 };

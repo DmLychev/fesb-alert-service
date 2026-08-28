@@ -24,6 +24,7 @@ import type {
 import MultiSelectFilter from "./MultiSelectFilter";
 import { formatRelativeTime } from "../relativeTime";
 import ResetFilterButton from "./ResetFilterButton";
+import LiveUpdateButton from "./LiveUpdateButton";
 
 interface DashboardToolbarProps {
   rangeKey: DashboardRangeKey;
@@ -161,7 +162,19 @@ const DashboardToolbar = ({
         xl: "row",
       }}
     >
-      <Heading size="xl">Dashboard</Heading>
+      <HStack gap={2}>
+        <Heading size="xl">Дашборд</Heading>
+
+        <Text fontSize="xs" color="fg.muted">
+          Обновлено{" "}
+          {lastUpdatedAt
+            ? formatRelativeTime(
+                lastUpdatedAt,
+                relativeTimeNow || Date.parse(lastUpdatedAt),
+              )
+            : "-"}
+        </Text>
+      </HStack>
 
       <Flex
         gap={2}
@@ -221,52 +234,12 @@ const DashboardToolbar = ({
           ariaLabel="Обновить Dashboard"
         />
 
-        <HStack gap={2}>
-          <Switch.Root
-            checked={isLiveEnabled}
-            colorPalette="green"
-            onCheckedChange={({ checked }) => onLiveEnabledChange(checked)}
-          >
-            <Switch.HiddenInput />
-            <Switch.Control />
-            <Switch.Label>Live</Switch.Label>
-          </Switch.Root>
-
-          <Box
-            width="8px"
-            height="8px"
-            borderRadius="full"
-            bg={
-              liveStatus === "connected"
-                ? "green.solid"
-                : liveStatus === "connecting"
-                  ? "orange.solid"
-                  : liveStatus === "disconnected"
-                    ? "red.solid"
-                    : "fg.subtle"
-            }
+        {isLiveEnabled && (
+          <LiveUpdateButton
+            status={liveStatus}
+            handleClick={onLiveEnabledChange}
           />
-
-          <Text fontSize="sm" color="fg.muted">
-            {liveStatus === "connected"
-              ? "Подключено"
-              : liveStatus === "connecting"
-                ? "Подключение"
-                : liveStatus === "disconnected"
-                  ? "Нет соединения"
-                  : "Пауза"}
-          </Text>
-        </HStack>
-
-        <Text fontSize="xs" color="fg.muted">
-          Обновлено{" "}
-          {lastUpdatedAt
-            ? formatRelativeTime(
-                lastUpdatedAt,
-                relativeTimeNow || Date.parse(lastUpdatedAt),
-              )
-            : "-"}
-        </Text>
+        )}
       </Flex>
     </Flex>
   );
