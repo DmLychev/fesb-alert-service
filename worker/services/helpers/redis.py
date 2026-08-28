@@ -5,7 +5,6 @@ import os
 import redis.asyncio as redis
 from redis.exceptions import RedisError
 
-
 logger = logging.getLogger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL")
@@ -22,8 +21,8 @@ redis_client = redis.from_url(
 
 
 async def publish_event(
-    channel: str,
-    payload: dict,
+        channel: str,
+        payload: dict,
 ) -> None:
     try:
         await redis_client.publish(
@@ -45,8 +44,8 @@ async def publish_event(
 
 
 async def publish_new_messages(
-    count: int,
-    buckets: list[dict],
+        count: int,
+        buckets: list[dict],
 ) -> None:
     await publish_event(
         channel="messages",
@@ -59,8 +58,8 @@ async def publish_new_messages(
 
 
 async def publish_updated_messages(
-    ids: list[int],
-    status_buckets: list[dict] | None = None,
+        ids: list[int],
+        status_buckets: list[dict] | None = None,
 ) -> None:
     if not ids:
         return
@@ -80,12 +79,12 @@ async def publish_updated_messages(
 
 
 async def publish_issue_created(
-    *,
-    issue_id: int,
-    type_code: int,
-    route_id: str | None,
-    domain_name: str | None,
-    created_at: str,
+        *,
+        issue_id: int,
+        type_code: int,
+        route_id: str | None,
+        domain_name: str | None,
+        created_at: str,
 ) -> None:
     await publish_event(
         channel="issues",
@@ -101,9 +100,9 @@ async def publish_issue_created(
 
 
 async def publish_updated_issues(
-    ids: list[int],
-    *,
-    active_delta: int | None = None,
+        ids: list[int],
+        *,
+        active_delta: int | None = None,
 ) -> None:
     if not ids:
         return
@@ -123,11 +122,11 @@ async def publish_updated_issues(
 
 
 async def publish_request_created(
-    *,
-    request_id: int,
-    request_type: int,
-    is_successful: bool,
-    created_at: str,
+        *,
+        request_id: int,
+        request_type: int,
+        is_successful: bool,
+        created_at: str,
 ) -> None:
     await publish_event(
         channel="requests",
@@ -139,3 +138,10 @@ async def publish_request_created(
             "created_at": created_at,
         },
     )
+
+
+async def publish_updated_requests(request_ids: list[int]) -> None:
+    if not request_ids:
+        return
+
+    await publish_event(channel="requests", payload={"type": "requests_updated", "ids": request_ids})

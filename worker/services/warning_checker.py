@@ -11,7 +11,7 @@ from services.helpers.db import (db_session_maker, DbRequestTimeoutError, get_un
 from services.helpers.check import (set_message_warning_level_and_create_issue, check_issue_is_solved, define_receivers,
                                     check_request_and_create_issue)
 from services.helpers.email import send_email, SmtpError
-from services.helpers.redis import publish_updated_issues
+from services.helpers.redis import publish_updated_issues, publish_updated_requests
 
 logger = logging.getLogger("warning_checker")
 
@@ -164,9 +164,12 @@ async def process_fesb_request_statuses():
                 await save_issue(type_id=302, text=error_msg)
 
             else:
+                updated_request_ids: list[int] = []
+
                 for req in unchecked_requests:
                     try:
                         await check_request_and_create_issue(req, session)
+                        updated_request_ids.append(req.id)
 
                     except DbRequestTimeoutError as e:
                         error_msg = f"Превышено время ожидания сохранения проблемы в БД приложения: {type(e)} {e}. Traceback: {traceback.print_exc()}."
@@ -176,6 +179,9 @@ async def process_fesb_request_statuses():
                         error_msg = f"Неожиданная ошибка сохранения проблемы в БД приложения: {type(e)} {e}. Traceback: {traceback.print_exc()}."
                         logger.critical(error_msg)
                         await save_issue(type_id=302, text=error_msg)
+
+                if updated_request_ids:
+                    await publish_updated_requests(updated_request_ids)
 
             finally:
                 await asyncio.sleep(check_interval)

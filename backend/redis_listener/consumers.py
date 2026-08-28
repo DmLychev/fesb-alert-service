@@ -53,3 +53,7 @@ class LiveUpdateConsumer(AsyncJsonWebsocketConsumer):
 
         await self.send_json(event)
 
+    async def requests_updated(self, event):
+        logger.debug(f"Websocket event: {event}")
+        await self.send_json(event)
+
