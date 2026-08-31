@@ -148,7 +148,7 @@ services:
 
     command: >
       sh -c "
-        python manage.py wait_for_db" &&
+        python manage.py wait_for_db &&
         python manage.py migrate --noinput &&
         python manage.py loaddata ./alert_service/fixtures/*.json
       "
