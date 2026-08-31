@@ -20,13 +20,13 @@ from .helpers.models import Message
 
 logger = logging.getLogger('message_fetcher')
 
-def build_message_dashboard_buckets(
+async def build_message_dashboard_buckets(
     messages: list[dict],
 ) -> list[dict]:
     buckets: dict[datetime, dict[str, int]] = {}
 
     for item in messages:
-        start_date = format_fesb_datatime(
+        start_date = await format_fesb_datatime(
             item["start_date"]
         )
 
@@ -159,7 +159,7 @@ async def get_fesb_messages_and_save_to_db() -> None:
                 if messages:
                     await publish_new_messages(
                         count=len(messages),
-                        buckets=build_message_dashboard_buckets(
+                        buckets=await build_message_dashboard_buckets(
                             messages
                         ),
                     )
@@ -212,7 +212,7 @@ async def update_status_for_unfinished_messages() -> None:
                         message = await db_session.merge(message)  # Bind to the session
                         resp = await get_message_info(message.exchange_id)  # The message becomes detached from session
 
-                        message.end_date = format_fesb_datatime(resp["end_date"])
+                        message.end_date = await format_fesb_datatime(resp["end_date"])
                         message.status = resp["status"]
                         message.update_status_attempts += 1
                         message_was_updated = True

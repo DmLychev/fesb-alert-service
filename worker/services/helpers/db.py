@@ -38,7 +38,7 @@ class DbRequestTimeoutError(Exception):
         self.message = message
 
 
-def format_fesb_datatime(fesb_datetime: str) -> datetime | None:
+async def format_fesb_datatime(fesb_datetime: str) -> datetime | None:
     """
     Преобразует строку времени из формата, используемого FESB, в стандартный ISO формат с учетом часового пояса FESB.
     :param fesb_datetime: Строка с датой и временем в формате FESB.
@@ -50,7 +50,7 @@ def format_fesb_datatime(fesb_datetime: str) -> datetime | None:
     try:
         input_datetime = re.findall(r"/Date\((.*)\)/", fesb_datetime)
         date_obj = datetime.strptime(input_datetime[0], '%Y-%m-%dT%H:%M:%S.%f')
-        date_with_timezone = date_obj.replace(tzinfo=ZoneInfo(os.getenv('FESB_TZ', 'Europe/Moscow')))
+        date_with_timezone = date_obj.replace(tzinfo=ZoneInfo(await get_settings("fesb_timezone")))
         return date_with_timezone.astimezone(ZoneInfo('UTC'))
     except Exception as e:
         logger.warning(f"Не удалось преобразовать дату и время сообщения из ответа FESB к ISO формату: {type(e)} {e}. "
@@ -145,8 +145,8 @@ async def save_messages(messages: list[dict]) -> None:
                 route_id=msg["route_id"],
                 status=msg["status"],
                 error_message=msg.get('error_message', ''),
-                start_date=format_fesb_datatime(msg["start_date"]),
-                end_date=format_fesb_datatime(msg["end_date"]) if msg["end_date"] else None,
+                start_date=await format_fesb_datatime(msg["start_date"]),
+                end_date=await format_fesb_datatime(msg["end_date"]) if msg["end_date"] else None,
             )
 
             insert_route = insert(Route).values(route)
@@ -254,7 +254,7 @@ async def get_messages_without_status_and_warning(session: AsyncSession | None =
     Получить необработанные ранее сообщения из БД.
     :return: Сообщения и связанные маршруты
     """
-    time_thresh = datetime.now() - timedelta(seconds=int(os.getenv('MESSAGE_STATUS_UPDATER_DELAY', 120)))
+    time_thresh = datetime.now() - timedelta(seconds=await get_settings("fesb_messages_update_interval"))
     query = select(Message, Route).join(Route).where(Message.warning_level.is_(None)).where(
         Message.status.is_(None)).where(
         Message.update_status_attempts >= 0).where(

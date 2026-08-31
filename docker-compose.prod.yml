@@ -5,7 +5,7 @@ x-logging: &default-logging
     max-file: "3"
 
 services:
-  nginx:
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
@@ -24,7 +24,11 @@ services:
       context: ./backend
     restart: unless-stopped
     init: true
-    command: /scripts/run-prod.sh
+    command: >
+      sh -c "
+        python manage.py collectstatic --noinput &&
+        exec daphne -b 0.0.0.0 -p 8000 app.asgi:application
+      "
     environment:
       DB_HOST: db
       DB_NAME: ${DB_NAME:?DB_NAME is required}
@@ -42,6 +46,8 @@ services:
     volumes:
       - static-data:/vol/web
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       redis:
@@ -70,7 +76,9 @@ services:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?DJANGO_ALLOWED_HOSTS is required}
     depends_on:
-      backend:
+      migrate:
+        condition: service_completed_successfully
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -81,17 +89,27 @@ services:
       context: ./worker
     restart: unless-stopped
     init: true
-    env_file:
-      - ./worker/.env.production
     environment:
       DB_HOST: db
       DB_NAME: ${DB_NAME:?DB_NAME is required}
       DB_USER: ${DB_USER:?DB_USER is required}
       DB_PASS: ${DB_PASS:?DB_PASS is required}
+
       REDIS_URL: redis://redis:6379/0
-      DEBUG: "0"
+
+      FESB_API_USER: ${FESB_API_USER}
+      FESB_API_PASSWORD: ${FESB_API_PASSWORD}
+      FESB_MESSAGE_LOG_URL: ${FESB_MESSAGE_LOG_URL}
+      FESB_MESSAGE_ERROR_URL: ${FESB_MESSAGE_ERROR_URL}
+
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
-      backend:
+      migrate:
+        condition: service_completed_successfully
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -123,6 +141,27 @@ services:
       timeout: 3s
       retries: 5
     logging: *default-logging
+
+  migrate:
+    build:
+      context: ./backend
+
+    command: >
+      sh -c "
+        python manage.py wait_for_db" &&
+        python manage.py migrate --noinput &&
+        python manage.py loaddata ./alert_service/fixtures/*.json
+      "
+
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db-data:
