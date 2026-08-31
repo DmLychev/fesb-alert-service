@@ -10,7 +10,7 @@ interface TokenRefreshResponse {
 const TOKEN_EXPIRATION_MARGIN_SECONDS = 10;
 
 const authApi = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_HOST,
+  baseURL: import.meta.env.VITE_BACKEND_BASE_URL_DEV ?? "",
 });
 
 let refreshPromise: Promise<string | null> | null = null;

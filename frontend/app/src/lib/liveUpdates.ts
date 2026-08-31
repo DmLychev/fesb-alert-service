@@ -28,8 +28,8 @@ export const createConnectionUrl = async (
 
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const baseUrl =
-    import.meta.env.VITE_WEBSOCKET_BASE_URL ??
-    `${protocol}//${window.location.hostname}:8000`;
+    import.meta.env.VITE_WEBSOCKET_BASE_URL_DEV ??
+    `${protocol}//${window.location.host}`;
   const url = new URL("/ws/events/", baseUrl);
 
   url.searchParams.set("ticket", response.data.ticket);

@@ -26,10 +26,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-bv@m3we8jzf8-e!lub#8l4a)!g&4zfqte=h(+)l9+nxfa75(3d')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "0") == "1"
 
 ALLOWED_HOSTS = []
 ALLOWED_HOSTS.extend(filter(None, os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')))
+
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -54,17 +59,17 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    
+
     'corsheaders.middleware.CorsMiddleware',
-    
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -158,9 +163,6 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("DJANGO_ACCESS_TOKEN_LIFETIME_MINUTES", 30))),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("DJANGO_REFRESH_TOKEN_LIFETIME_DAYS", 7)))
 }
-
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
 
 CHANNEL_LAYERS = {
     "default": {

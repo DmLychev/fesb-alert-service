@@ -6,7 +6,7 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_HOST,
+  baseURL: import.meta.env.VITE_BACKEND_BASE_URL_DEV ?? "",
 });
 
 api.interceptors.request.use(
