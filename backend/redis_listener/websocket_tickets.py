@@ -39,21 +39,6 @@ def get_async_redis() -> redis_async.Redis:
     )
 
 
-sync_redis = redis.Redis.from_url(
-    settings.WEBSOCKET_TICKET_REDIS_URL,
-    decode_responses=True,
-    socket_connect_timeout=2,
-    socket_timeout=2,
-)
-
-async_redis = redis_async.Redis.from_url(
-    settings.WEBSOCKET_TICKET_REDIS_URL,
-    decode_responses=True,
-    socket_connect_timeout=2,
-    socket_timeout=2,
-)
-
-
 def get_ticket_key(ticket: str) -> str:
     return f"{TICKET_KEY_PREFIX}{ticket}"
 

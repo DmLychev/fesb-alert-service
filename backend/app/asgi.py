@@ -9,12 +9,11 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 
 import os
 
-from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-from redis_listener.routing import websocket_urlpatterns
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
+
+django_asgi_app = get_asgi_application()
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
@@ -22,7 +21,7 @@ from redis_listener.middleware import WebSocketTicketAuthMiddleware
 from redis_listener.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
-    'http': get_asgi_application(),
+    'http': django_asgi_app,
     'websocket': AllowedHostsOriginValidator(
         WebSocketTicketAuthMiddleware(URLRouter(websocket_urlpatterns)),
     ),
