@@ -96,22 +96,10 @@ async def get_settings(parameter: str | None = None,
 
     settings = res.scalar_one_or_none()
 
-    if not settings:
-        logger.warning(
-            f"В БД приложения отсутствуют настройки, новая запись со значениями по умолчанию будет добавлена.")
-        new_settings = SystemSettings(id=1)
-
-        if session and session.is_active():
-            session.add(new_settings)
-            await session.commit()
-            res = await session.execute(query)
-        else:
-            async with db_session_maker() as new_session:
-                new_session.add(new_settings)
-                await new_session.commit()
-                res = await new_session.execute(query)
-
-        settings = res.scalar_one_or_none()
+    if settings is None:
+        msg = "В БД приложения отсутствуют настройки"
+        logger.error(msg)
+        raise RuntimeError(msg)
 
     if parameter:
         if hasattr(settings, parameter):

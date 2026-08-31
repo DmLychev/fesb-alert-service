@@ -20,4 +20,4 @@ ENV PATH="/.venv/bin:$PATH"
 USER fesb-alert-service
 
 #ENTRYPOINT ["top", "-b"]
-CMD ["python main.py"]
+CMD ["python", "main.py"]
