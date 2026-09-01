@@ -210,7 +210,10 @@ async def get_message_info(exchange_id: str) -> dict:
     msg_list = resp_payload.get('list')
     msg_count = resp_payload.get('count')
     if msg_list is None or type(msg_list) != list or len(msg_list) != 1 or msg_count != 1:
-        raise ValueError('Непредвиденный ответ FESB на запрос получения сообщений.')
+        raise ValueError('Непредвиденный ответ FESB на запрос получения сообщений.'
+                         f"Message exchange_id: {exchange_id}. "
+                         f"Response payload: {resp}."
+                         )
 
     logger.debug(f"Запрос данных сообщения с exchange_id = '{exchange_id}' в FESB успешен.")
     return msg_list[0]

@@ -235,8 +235,6 @@ async def update_status_for_unfinished_messages() -> None:
 
                     except ValueError as e:
                         msg = (f"Ошибка парсинга ответа на запрос получения сообщений FESB: {type(e)} {e}. "
-                               f"Message exchange_id: {message.exchange_id}. "
-                               f"Response payload: {resp}. "
                                f"Traceback: {traceback.print_exc()}.")
                         logger.warning(msg)
                         await save_fesb_request(False, 2, msg)
