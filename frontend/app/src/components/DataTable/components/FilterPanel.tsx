@@ -16,6 +16,7 @@ import type { FilterFieldRegistry, UiFilterRow } from "../types";
 import { getBeginningOfCurrentDayString } from "../utils/date";
 import { all_filter_operations, bool_values } from "../constants";
 import { LuTrash2 } from "react-icons/lu";
+import { randomId } from "../../../lib/randomId";
 
 interface FilterPanelProps {
   activeFilters: UiFilterRow[];
@@ -42,7 +43,7 @@ const FilterPanel = ({
   const addFilterRow = () => {
     onFiltersChange((prev) => [
       ...prev,
-      { id: crypto.randomUUID(), column: "", operation: "exact", value: "" },
+      { id: randomId(), column: "", operation: "exact", value: "" },
     ]);
   };
 
