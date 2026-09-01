@@ -9,6 +9,7 @@ backend/*/__pycache__/
 backend/*/*/__pycache__/
 backend/*/*/*/__pycache__/
 frontend/app/node_modules
+frontend/app/.vite/
 
 .env*
 !.env*.example

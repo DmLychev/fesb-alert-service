@@ -20,8 +20,9 @@ from .helpers.models import Message
 
 logger = logging.getLogger('message_fetcher')
 
+
 async def build_message_dashboard_buckets(
-    messages: list[dict],
+        messages: list[dict],
 ) -> list[dict]:
     buckets: dict[datetime, dict[str, int]] = {}
 
@@ -67,9 +68,9 @@ async def build_message_dashboard_buckets(
 
 
 def add_status_dashboard_delta(
-    buckets: dict[datetime, dict[str, int]],
-    start_date: datetime,
-    status: str | None,
+        buckets: dict[datetime, dict[str, int]],
+        start_date: datetime,
+        status: str | None,
 ) -> None:
     if status not in {"SUCCESS", "ERROR"}:
         return
@@ -94,7 +95,7 @@ def add_status_dashboard_delta(
 
 
 def serialize_status_dashboard_buckets(
-    buckets: dict[datetime, dict[str, int]],
+        buckets: dict[datetime, dict[str, int]],
 ) -> list[dict]:
     return [
         {
@@ -233,7 +234,10 @@ async def update_status_for_unfinished_messages() -> None:
                         await save_fesb_request(False, 2, msg)
 
                     except ValueError as e:
-                        msg = f"Ошибка парсинга ответа на запрос получения сообщений FESB: {type(e)} {e}. Traceback: {traceback.print_exc()}."
+                        msg = (f"Ошибка парсинга ответа на запрос получения сообщений FESB: {type(e)} {e}. "
+                               f"Message exchange_id: {message.exchange_id}. "
+                               f"Response payload: {resp}. "
+                               f"Traceback: {traceback.print_exc()}.")
                         logger.warning(msg)
                         await save_fesb_request(False, 2, msg)
 
