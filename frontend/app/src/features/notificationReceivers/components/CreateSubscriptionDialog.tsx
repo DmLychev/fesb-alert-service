@@ -51,7 +51,7 @@ const CreateSubscriptionDialog = ({
 }: CreateSubscriptionDialogProps) => {
   const [options, setOptions] = useState<SubscriptionOptions | null>(null);
 
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
 
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
@@ -73,6 +73,24 @@ const CreateSubscriptionDialog = ({
     useState<IssueTypeSelectionMode>("ALL");
   const allIssueTypes = issueTypeSelectionMode === "ALL";
 
+  const resetForm = () => {
+    setEmail("");
+    setScope("GLOBAL");
+    setSelectedDomains([]);
+    setSelectedRouteIds([]);
+    setSelectedIssueTypeCodes([]);
+    setIssueTypeSelectionMode("ALL");
+    setOptions(null);
+    setOptionsError(null);
+    setIsLoadingOptions(true);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) resetForm();
+
+    onOpenChange(nextOpen);
+  };
+
   /*
    * Every time the dialog is opened:
    * - start with a clean form;
@@ -82,17 +100,6 @@ const CreateSubscriptionDialog = ({
     if (!open) return;
 
     let active = true;
-
-    setEmail("");
-    setScope("GLOBAL");
-    setSelectedDomains([]);
-    setSelectedRouteIds([]);
-    setSelectedIssueTypeCodes([]);
-    setIssueTypeSelectionMode("ALL");
-
-    setOptions(null);
-    setOptionsError(null);
-    setIsLoadingOptions(true);
 
     void fetchSubscriptionOptions()
       .then((result) => {
@@ -248,7 +255,7 @@ const CreateSubscriptionDialog = ({
         duration: 4000,
       });
 
-      onOpenChange(false);
+      handleOpenChange(false);
       onCreated();
     } catch (error: unknown) {
       toaster.create({
@@ -268,7 +275,7 @@ const CreateSubscriptionDialog = ({
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={({ open }) => onOpenChange(open)}
+      onOpenChange={({ open }) => handleOpenChange(open)}
       size="lg"
       placement="center"
       closeOnEscape={!isSubmitting}
@@ -419,7 +426,7 @@ const CreateSubscriptionDialog = ({
                 <Button
                   variant="outline"
                   disabled={isSubmitting}
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => handleOpenChange(false)}
                 >
                   Отмена
                 </Button>
