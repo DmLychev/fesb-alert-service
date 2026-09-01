@@ -1,0 +1,171 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - static-data:/vol/web:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    logging: *default-logging
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    init: true
+    command: >
+      sh -c "
+        python manage.py collectstatic --noinput &&
+        exec daphne -b 0.0.0.0 -p 8000 app.asgi:application
+      "
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+      REDIS_URL: redis://redis:6379/0
+      WEBSOCKET_TICKET_REDIS_URL: redis://redis:6379/1
+      WEBSOCKET_TICKET_TTL_SECONDS: ${WEBSOCKET_TICKET_TTL_SECONDS:-30}
+      DEBUG: "0"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?DJANGO_ALLOWED_HOSTS is required}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
+      DJANGO_ACCESS_TOKEN_LIFETIME_MINUTES: ${DJANGO_ACCESS_TOKEN_LIFETIME_MINUTES:-30}
+      DJANGO_REFRESH_TOKEN_LIFETIME_DAYS: ${DJANGO_REFRESH_TOKEN_LIFETIME_DAYS:-7}
+    volumes:
+      - static-data:/vol/web
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8000), 2); s.close()" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
+
+  backend-events-listener:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    init: true
+    command: python manage.py listen_message_events
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "0"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?DJANGO_ALLOWED_HOSTS is required}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging: *default-logging
+
+  worker:
+    build:
+      context: ./worker
+    restart: unless-stopped
+    init: true
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+
+      REDIS_URL: redis://redis:6379/0
+
+      FESB_API_USER: ${FESB_API_USER}
+      FESB_API_PASSWORD: ${FESB_API_PASSWORD}
+      FESB_HOST: ${FESB_HOST}
+      FESB_PORT: ${FESB_PORT}
+      FESB_MESSAGE_LOG_ENDPOINT: ${FESB_MESSAGE_LOG_ENDPOINT}
+      FESB_MESSAGE_ERROR_DETAILS_ENDPOINT: ${FESB_MESSAGE_ERROR_DETAILS_ENDPOINT}
+      FESB_TREAT_HTTP_AS_SECURE: ${FESB_TREAT_HTTP_AS_SECURE:-false}
+
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_SENDER_EMAIL: ${SMTP_SENDER_EMAIL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    logging: *default-logging
+
+  db:
+    image: postgres:18.1-alpine3.23
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
+      POSTGRES_USER: ${DB_USER:?DB_USER is required}
+      POSTGRES_PASSWORD: ${DB_PASS:?DB_PASS is required}
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging: *default-logging
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
+
+  migrate:
+    build:
+      context: ./backend
+
+    command: >
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py loaddata ./alert_service/fixtures/*.json
+        python manage.py ensure_initial_app_settings
+      "
+
+    environment:
+      DB_HOST: db
+      DB_NAME: ${DB_NAME:?DB_NAME is required}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASS: ${DB_PASS:?DB_PASS is required}
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  static-data:

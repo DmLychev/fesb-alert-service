@@ -1,0 +1,119 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    container_name: fesb-alert-frontend
+    volumes:
+      - ./frontend/app:/app
+      - ./frontend/app/node_modules:/app/node_modules
+    command: sh -c "npm run dev -- --host 0.0.0.0 & tail -f /dev/null"
+    stdin_open: true
+    tty: true
+    environment:
+      - VITE_BACKEND_BASE_URL_DEV=http://127.0.0.1:8000
+      - VITE_WEBSOCKET_BASE_URL_DEV=ws://127.0.0.1:8000
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    container_name: fesb-alert-backend
+    volumes:
+      - ./backend:/app
+      - dev-static-data:/vol/web
+    command: >
+      sh -c "python manage.py wait_for_db && python manage.py migrate && 
+      python manage.py loaddata ./alert_service/fixtures/*.json && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
+      - WEBSOCKET_TICKET_REDIS_URL=redis://redis:6379/1
+      - WEBSOCKET_TICKET_TTL_SECONDS=30
+      - DEBUG=1
+    depends_on:
+      - db
+      - redis
+
+  backend-events-listener:
+    build: ./backend
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ./backend/.env
+    container_name: fesb-alert-backend-events-listener
+    volumes:
+      - ./backend:/app
+      - dev-static-data:/vol/web
+    command: python manage.py listen_message_events
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=1
+    depends_on:
+      - redis
+      - backend
+
+  worker:
+    build: ./worker
+    restart: unless-stopped
+    init: true
+    env_file:
+      - ./worker/.env
+    container_name: fesb-alert-worker
+    volumes:
+      - ./worker:/app
+    command: >
+      sh -c "python main.py"
+    dns:
+      - 10.152.1.5
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=dbuser
+      - DB_PASS=Cz1cdGBQG5Roq6go>PxE
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=1
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:18.1-alpine3.23
+    restart: always
+    ports:
+      - "5432:5432"
+    container_name: fesb-alert-db
+    volumes:
+      - dev-db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=Cz1cdGBQG5Roq6go>PxE
+
+  redis:
+    image: redis:8-alpine
+    container_name: fesb-alert-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  dev-db-data:
+  dev-static-data:

@@ -1,0 +1,98 @@
+[
+  {
+    "model": "alert_service.issuetype",
+    "pk": 101,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "FESB недоступен на протяжении нескольких вызовов."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 102,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Ошибка запроса к FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 103,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Превышено максимальное время ожидание ответа от FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 109,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Неожиданная ошибка FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 201,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Множественные ошибки в нескольких доменах FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 202,
+    "fields": {
+      "scope": "DOMAIN",
+      "description": "Множественные ошибки в одном домене FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 203,
+    "fields": {
+      "scope": "ROUTE",
+      "description": "Множественные ошибки в одном СОПС."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 204,
+    "fields": {
+      "scope": "ROUTE",
+      "description": "Ошибка СОПС."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 205,
+    "fields": {
+      "scope": "ROUTE",
+      "description": "Статус сообщения неизвестен."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 301,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Некорректный запрос к FESB."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 302,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Ошибка запроса в БД приложения."
+    }
+  },
+  {
+    "model": "alert_service.issuetype",
+    "pk": 303,
+    "fields": {
+      "scope": "GLOBAL",
+      "description": "Внутренняя ошибка приложения."
+    }
+  }
+]

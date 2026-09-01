@@ -1,0 +1,65 @@
+import { useRef, useState } from "react";
+import {
+  Button,
+  CloseButton,
+  Group,
+  Input,
+  InputGroup,
+} from "@chakra-ui/react";
+import { LuSearch } from "react-icons/lu";
+
+interface GlobalSearchProps {
+  value: string;
+  onSubmit: (value: string) => void;
+}
+
+const GlobalSearch = ({ value, onSubmit }: GlobalSearchProps) => {
+  const [inputValue, setInputValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const globalFilterClearButton = inputValue ? (
+    <CloseButton
+      size="xs"
+      onClick={() => {
+        setInputValue("");
+        onSubmit("");
+        inputRef.current?.focus();
+      }}
+      me="-2"
+    />
+  ) : undefined;
+
+  return (
+    <Group width="full" maxWidth={{ base: "full", md: "420px" }}>
+      <InputGroup
+        flex="1"
+        startElement={<LuSearch />}
+        endElement={globalFilterClearButton}
+      >
+        <Input
+          ref={inputRef}
+          size="sm"
+          placeholder="Поиск по всем столбцам"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSubmit(inputValue);
+            }
+          }}
+        />
+      </InputGroup>
+
+      <Button
+        size="sm"
+        bg="bg.subtle"
+        variant="outline"
+        onClick={() => onSubmit(inputValue)}
+      >
+        Найти
+      </Button>
+    </Group>
+  );
+};
+
+export default GlobalSearch;
