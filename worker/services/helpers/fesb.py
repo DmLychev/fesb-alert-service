@@ -22,6 +22,7 @@ HOST = os.getenv("FESB_HOST", None)
 PORT = int(os.getenv("FESB_PORT", 443 if HOST.lower().startswith('https') else 80))
 MESSAGES_LOG_ENDPOINT = os.getenv("FESB_MESSAGE_LOG_ENDPOINT", None)
 ERROR_MESSAGE_ENDPOINT = os.getenv("FESB_MESSAGE_ERROR_DETAILS_ENDPOINT", None)
+FESB_TREAT_HTTP_AS_SECURE = os.getenv("FESB_TREAT_HTTP_AS_SECURE", "False").lower() in ['true', '1', 't', 'yes', 'on']
 
 crit_msg = ''
 if USER is None:
@@ -41,7 +42,14 @@ if crit_msg:
 
 async def init_fesb_client() -> None:
     global _fesb_http_session
-    _fesb_http_session = aiohttp.ClientSession(cookie_jar=aiohttp.CookieJar(unsafe=True))
+    fesb_origin = URL(f"{HOST.rstrip('/')}:{PORT}").origin()
+    cookie_jar_kwargs = {}
+
+    if FESB_TREAT_HTTP_AS_SECURE:
+        cookie_jar_kwargs["treat_as_secure_origin"] = fesb_origin
+
+    cookie_jar = aiohttp.CookieJar(**cookie_jar_kwargs)
+    _fesb_http_session = aiohttp.ClientSession(cookie_jar=cookie_jar)
 
 
 def get_fesb_http_session() -> aiohttp.ClientSession:
@@ -95,9 +103,6 @@ async def _call_fesb(host: str, port: int, endpoint: str, user: str, password: s
         raise ValueError('Неподдерживаемый HTTP метод.')
 
     session = get_fesb_http_session()
-    cookies_before = session.cookie_jar.filter_cookies(URL(url))
-    logger.debug("FESB cookies before: %s", {name: cookie.value for name, cookie in cookies_before.items()})
-
     request_kwargs = dict(json=payload, auth=aiohttp.BasicAuth(user, password))
 
     try:
@@ -108,11 +113,6 @@ async def _call_fesb(host: str, port: int, endpoint: str, user: str, password: s
     except asyncio.TimeoutError:
         raise FesbRequestTimeoutError(f"Превышено максимальное время ожидания ответа от FESB. "
                                       f"Максимальное время ответа: {request_timeout}с.")
-
-    logger.debug("FESB request Cookie header: %s", resp.request_info.headers.get("Cookie", "<none>"))
-    logger.debug("FESB response Set-Cookie: %s", resp.headers.getall("Set-Cookie", []))
-    cookies_after = session.cookie_jar.filter_cookies(URL(url))
-    logger.debug("FESB cookies after response: %s", {name: cookie.value for name, cookie in cookies_after.items()})
 
     resp.raise_for_status()
     return resp
