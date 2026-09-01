@@ -11,6 +11,7 @@ import aiohttp
 from aiohttp import ClientSession, ClientResponse
 from .db import get_settings, save_issue
 import re
+from yarl import URL
 
 logger = logging.getLogger('fesb')
 _fesb_http_session: aiohttp.ClientSession | None = None
@@ -93,18 +94,28 @@ async def _call_fesb(host: str, port: int, endpoint: str, user: str, password: s
     if method not in ["POST"]:
         raise ValueError('Неподдерживаемый HTTP метод.')
 
+    session = get_fesb_http_session()
+    cookies_before = session.cookie_jar.filter_cookies(URL(url))
+    logger.debug("FESB cookies before: %s", {name: cookie.value for name, cookie in cookies_before.items()})
+
     request_kwargs = dict(json=payload, auth=aiohttp.BasicAuth(user, password))
 
     try:
         async with asyncio.timeout(request_timeout):
-            resp = await _fesb_http_session.post(url, **request_kwargs)
+            resp = await session.post(url, **request_kwargs)
+
 
     except asyncio.TimeoutError:
         raise FesbRequestTimeoutError(f"Превышено максимальное время ожидания ответа от FESB. "
                                       f"Максимальное время ответа: {request_timeout}с.")
-    else:
-        resp.raise_for_status()
-        return resp
+
+    logger.debug("FESB request Cookie header: %s", resp.request_info.headers.get("Cookie", "<none>"))
+    logger.debug("FESB response Set-Cookie: %s", resp.headers.getall("Set-Cookie", []))
+    cookies_after = session.cookie_jar.filter_cookies(URL(url))
+    logger.debug("FESB cookies after response: %s", {name: cookie.value for name, cookie in cookies_after.items()})
+
+    resp.raise_for_status()
+    return resp
 
 
 async def get_message_error_text(exchange_id: str, request_id: str) -> str:
