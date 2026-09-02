@@ -158,7 +158,7 @@ async def get_new_messages(start_date: datetime, end_date: datetime, limit: int 
     """
     if limit is None:
         limit = await get_settings('fesb_messages_log_limit')
-    delay = await get_settings('fesb_messages_log_limit')
+    delay = await get_settings('fesb_messages_log_interval')
 
     payload = dict(
         skip=offset,

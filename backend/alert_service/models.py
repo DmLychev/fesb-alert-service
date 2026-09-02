@@ -9,7 +9,7 @@ class SystemSettings(models.Model):
     fesb_request_errors_threshold = models.SmallIntegerField(default=5)
     fesb_messages_get_interval = models.SmallIntegerField(default=15)
     fesb_messages_update_interval = models.SmallIntegerField(default=120)
-    fesb_messages_log_limit = models.SmallIntegerField(default=10)
+    fesb_messages_log_limit = models.SmallIntegerField(default=50)
     fesb_messages_log_interval = models.SmallIntegerField(default=2)
     fesb_single_route_errors_threshold = models.SmallIntegerField(default=3)
     fesb_routes_errors_threshold = models.SmallIntegerField(default=2)

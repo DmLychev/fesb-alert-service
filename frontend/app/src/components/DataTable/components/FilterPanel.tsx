@@ -110,7 +110,7 @@ const FilterPanel = ({
       padding={4}
       borderWidth="1px"
       borderRadius="md"
-      bg="bg.muted/20"
+      bg="bg.panel"
     >
       <Heading size="xs" flexShrink={0} marginBottom={3}>
         Условия фильтрации
