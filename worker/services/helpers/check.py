@@ -59,6 +59,7 @@ async def set_message_warning_level_and_create_issue(message: Message, route: Ro
                               f'сообщений подряд завершились ошибками.')
 
         last_routes_warning_levels = await get_last_warning_levels_for_routes_in_domain(route.domain_name, session)
+        logger.debug(f"last_routes_warning_levels for a domain: {route.domain_name} are {last_routes_warning_levels}")
 
         # Повысить уровень угрозы до 2
         if len(last_routes_warning_levels) and len(
@@ -111,7 +112,7 @@ async def check_issue_is_solved(issue: Issue, session: AsyncSession, unsolved_is
         return True
     if code == 201:
         unique_faulty_domain_names = list(set([i.domain_name for i in unsolved_issues if i.type_id == 202]))
-        if len(unique_faulty_domain_names) >= domain_errors_threshold:
+        if len(unique_faulty_domain_names) < domain_errors_threshold:
             return True
 
     if code // 100 == 3:

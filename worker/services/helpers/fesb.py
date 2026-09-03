@@ -170,25 +170,34 @@ async def get_new_messages(start_date: datetime, end_date: datetime, limit: int 
 
     resp = await _call_fesb(HOST, PORT, MESSAGES_LOG_ENDPOINT, USER, PASSWORD, payload, 'POST')
     resp_payload = await resp.json()
-    result_list = msg_list = resp_payload.get('list')
+    msg_list = resp_payload.get('list')
     msg_count = resp_payload.get('count')
-    if msg_list is None or type(msg_list) != list or msg_count is None or type(msg_count) != int:
+    if msg_list is None or not isinstance(msg_list, list) or msg_count is None or not isinstance(msg_count, int):
         raise ValueError('Некорректный ответ FESB')
+    result_list = list(msg_list)
 
     while len(result_list) < msg_count:
         print(f"Message count exceeded message limit. {msg_count - len(result_list)} messages left.")
         await asyncio.sleep(delay)
-        payload['skip'] += limit
-        resp_payload = await resp.json()
+        payload['skip'] += len(result_list)
+
         resp = await _call_fesb(HOST, PORT, MESSAGES_LOG_ENDPOINT, USER, PASSWORD, payload, 'POST')
+        resp_payload = await resp.json()
+
         msg_list = resp_payload.get('list')
-        msg_count = resp_payload.get('count')
+        current_count = resp_payload.get('count')
+
         if msg_list is None or type(msg_list) != list or msg_count is None or type(msg_count) != int:
             raise ValueError('Некорректный ответ FESB')
 
-        result_list += msg_list
+        result_list.extend(msg_list)
+        msg_count = current_count
 
-    logger.debug(f"Запрос получения сообщений из FESB за период {target_period_str} вернул {len(result_list)} шт.")
+    unique_messages = {(message["exchange_id"], message["route_id"]) for message in result_list}
+
+    logger.debug(
+        f"Запрос получения сообщений из FESB за период {target_period_str} вернул {len(result_list)} сообщений, "
+        f"из них уникальных {len(unique_messages)}.")
     return result_list
 
 

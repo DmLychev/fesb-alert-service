@@ -156,7 +156,7 @@ async def save_messages(messages: list[dict]) -> None:
             await session.execute(on_conflict_message)
 
         await session.commit()
-        logger.debug(f"Сохранено {len(messages)} сообщений.")
+        logger.debug(f"Обработно {len(messages)} сообщений при сохранении в БД.")
 
 
 @_handle_timeout_error
@@ -410,7 +410,7 @@ async def get_last_warning_levels_for_domains(session: AsyncSession | None = Non
             res = await new_session.execute(distinct_domains)
             rows = res.all()
 
-    # logger.debug(f"Функция get_last_warning_levels_for_domains вернула {len(rows)} строк.")
+    logger.debug(f"Функция get_last_warning_levels_for_domains вернула {len(rows)} строк.")
     return rows
 
 
