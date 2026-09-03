@@ -49,7 +49,7 @@ async def set_message_warning_level_and_create_issue(message: Message, route: Ro
         return message
 
     # Повысить уровень угрозы до 3
-    previous_messages = await get_previous_messages_in_route(message, single_route_errors_threshold, session)
+    previous_messages = await get_previous_messages_in_route(message, single_route_errors_threshold - 1, session)
 
     if len(previous_messages) >= single_route_errors_threshold - 1 and all(
             [m.warning_level and m.warning_level > 0 for m in previous_messages]):
@@ -70,7 +70,7 @@ async def set_message_warning_level_and_create_issue(message: Message, route: Ro
 
             # Повысить уровень угрозы до 1
             unsolved_issues = await get_issues(unsolved_only=True, session=session)
-            unique_faulty_domain_names = list(set([i.domain_name for i in unsolved_issues if i.type_id == 201]))
+            unique_faulty_domain_names = list(set([i.domain_name for i in unsolved_issues if i.type_id == 202]))
             if len(unique_faulty_domain_names) >= domain_errors_threshold:
                 message.warning_level = 1
                 await save_issue(type_id=201, session=session, text=f'Массовая ошибка в СОПС нескольких доменов.')
@@ -110,7 +110,7 @@ async def check_issue_is_solved(issue: Issue, session: AsyncSession, unsolved_is
             return False
         return True
     if code == 201:
-        unique_faulty_domain_names = list(set([i.domain_name for i in unsolved_issues if i.type_id == 201]))
+        unique_faulty_domain_names = list(set([i.domain_name for i in unsolved_issues if i.type_id == 202]))
         if len(unique_faulty_domain_names) >= domain_errors_threshold:
             return True
 
