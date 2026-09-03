@@ -68,7 +68,7 @@ class IssueOrder:
 @strawberry.input
 class UpdateIssueInput:
     id: strawberry.ID
-    is_notified: strawberry.Maybe[bool]
+    is_notified: strawberry.Maybe[Optional[bool]]
     is_solved: strawberry.Maybe[bool]
 
 

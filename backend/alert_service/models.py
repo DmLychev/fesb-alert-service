@@ -133,9 +133,9 @@ class NotificationReceiver(models.Model):
 class Issue(models.Model):
     type = models.ForeignKey(IssueType, on_delete=models.CASCADE, related_name='issues')
     text = models.TextField()
-    route_id = models.CharField(max_length=128, blank=False, null=True)
-    domain_name = models.CharField(max_length=128, blank=False, null=True)
-    is_notified = models.BooleanField(default=False, null=True)
+    route_id = models.CharField(max_length=128, blank=True, null=True)
+    domain_name = models.CharField(max_length=128, blank=True, null=True)
+    is_notified = models.BooleanField(default=False, blank=True, null=True)
     is_solved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
